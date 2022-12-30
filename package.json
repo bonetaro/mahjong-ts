@@ -5,6 +5,7 @@
     "ts-jest": "^29.0.3"
   },
   "scripts": {
+    "build": "npx tsc --build ./tsconfig.json",
     "test": "jest"
   }
 }
