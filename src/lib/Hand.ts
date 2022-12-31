@@ -1,4 +1,5 @@
-class Hand {
+import { 牌, 配牌 } from "./MahjongType";
+export class Hand {
   private hand_of_tiles: Array<牌>;
 
   constructor(tiles: 配牌) {
