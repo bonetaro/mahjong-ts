@@ -39,14 +39,14 @@ const WindsSort = [
     exports.NorthWindChar,
 ];
 exports.WindsSort = WindsSort;
-const Winds = WindsSort.map((c) => c + exports.KazehaiChar);
-exports.Winds = Winds;
 const DragonsSort = [
     exports.WhiteDragonChar,
     exports.GreenDragonChar,
     exports.RedDragonChar,
 ];
 exports.DragonsSort = DragonsSort;
+const Winds = WindsSort.map((c) => c + exports.KazehaiChar);
+exports.Winds = Winds;
 const Dragons = DragonsSort.map((c) => c + exports.SangenpaiChar);
 exports.Dragons = Dragons;
 //# sourceMappingURL=Constants.js.map

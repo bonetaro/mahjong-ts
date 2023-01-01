@@ -1,7 +1,7 @@
 import { List } from "linqts";
 import { TileTypeSort, WindsSort, DragonsSort } from "./Constants";
-import { 牌 } from "./MahjongTypes";
-import { isKazehai, isSangenpai, isSuits } from "./MahjongFunctions";
+import { 牌 } from "./Types";
+import { isKazehai, isSangenpai, isSuits } from "./Functions";
 
 const typeSortMap = new Map<string, number>();
 TileTypeSort.forEach((x, index) => typeSortMap.set(x, index));

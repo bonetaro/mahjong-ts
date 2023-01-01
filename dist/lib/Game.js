@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Game = void 0;
 const linqts_1 = require("linqts");
 const Constants_1 = require("./Constants");
-const MahjongFunctions_1 = require("./MahjongFunctions");
+const Functions_1 = require("./Functions");
 class Game {
     constructor() {
         this._wall = this.initializeTiles();
@@ -11,15 +11,14 @@ class Game {
     get wall() {
         return this._wall;
     }
-    //開始
     start() {
         this.washTiles();
     }
     //洗牌
     washTiles() {
-        const randomTiles = new linqts_1.List(this.wall).OrderBy((x) => Math.random());
+        this._wall = new linqts_1.List(this.wall).OrderBy(() => Math.random()).ToArray();
     }
-    //牌をとりだす
+    //牌を配る
     dealTiles(num) {
         let tiles = [];
         for (let i = 0; i < num; i++) {
@@ -40,20 +39,22 @@ class Game {
         tiles = tiles.Concat(tiles).Concat(tiles).Concat(tiles);
         return tiles.ToArray();
     }
+    // 数牌を初期化
     initializeSuits(color) {
         return linqts_1.Enumerable.Range(1, 9)
             .Select((n) => {
             switch (color) {
                 case Constants_1.ManduChar:
-                    return (0, MahjongFunctions_1.toManzu)(n + color);
+                    return (0, Functions_1.toManzu)(n + color);
                 case Constants_1.PinduChar:
-                    return (0, MahjongFunctions_1.toPinzu)(n + color);
+                    return (0, Functions_1.toPinzu)(n + color);
                 case Constants_1.SouduChar:
-                    return (0, MahjongFunctions_1.toSouzu)(n + color);
+                    return (0, Functions_1.toSouzu)(n + color);
             }
         })
             .ToArray();
     }
+    // 字牌を初期化
     initializeHonors() {
         const tiles = [];
         tiles.push(...this.initializeKazehai());
@@ -63,14 +64,14 @@ class Game {
     initializeKazehai() {
         return new linqts_1.List(Constants_1.Winds)
             .Select((n) => {
-            return (0, MahjongFunctions_1.ToKazehai)(n);
+            return (0, Functions_1.ToKazehai)(n);
         })
             .ToArray();
     }
     initializeSangenpai() {
         return new linqts_1.List(Constants_1.Dragons)
             .Select((n) => {
-            return (0, MahjongFunctions_1.ToSangenpai)(n);
+            return (0, Functions_1.ToSangenpai)(n);
         })
             .ToArray();
     }

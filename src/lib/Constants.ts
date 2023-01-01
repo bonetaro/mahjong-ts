@@ -1,20 +1,4 @@
-import {
-  牌,
-  萬子,
-  筒子,
-  索子,
-  数牌,
-  東,
-  南,
-  西,
-  北,
-  風牌,
-  白,
-  發,
-  中,
-  三元牌,
-  字牌,
-} from "./MahjongTypes";
+import { 萬子, 筒子, 索子, 東, 南, 西, 北, 白, 發, 中 } from "./Types";
 
 export const ManduChar = "m"; // 萬子 Characters
 export const PinduChar = "p"; // 筒子 Wheels
@@ -61,13 +45,14 @@ const WindsSort: readonly string[] = [
   WestWindChar,
   NorthWindChar,
 ];
-const Winds: string[] = WindsSort.map((c) => c + KazehaiChar);
 
 const DragonsSort: readonly string[] = [
   WhiteDragonChar,
   GreenDragonChar,
   RedDragonChar,
 ];
+
+const Winds: string[] = WindsSort.map((c) => c + KazehaiChar);
 const Dragons: string[] = DragonsSort.map((c) => c + SangenpaiChar);
 
 export { TileTypeSort, Winds, Dragons, WindsSort, DragonsSort };

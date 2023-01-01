@@ -27,7 +27,7 @@ import {
   中,
   三元牌,
   字牌,
-} from "./MahjongTypes";
+} from "./Types";
 
 export function toTile(value: unknown): 牌 {
   if (isSuits(value) || isHonours(value)) return value;

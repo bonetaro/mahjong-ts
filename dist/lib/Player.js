@@ -5,7 +5,10 @@ const Hand_1 = require("./Hand");
 class Player {
     constructor(name) {
         this.tiles = [];
-        this.name = name;
+        this._name = name;
+    }
+    get name() {
+        return this._name;
     }
     takeTiles(tiles) {
         this.tiles.push(...tiles);

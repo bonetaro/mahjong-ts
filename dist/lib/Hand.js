@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Hand = void 0;
 const linqts_1 = require("linqts");
 const Constants_1 = require("./Constants");
-const MahjongFunctions_1 = require("./MahjongFunctions");
+const Functions_1 = require("./Functions");
 const typeSortMap = new Map();
 Constants_1.TileTypeSort.forEach((x, index) => typeSortMap.set(x, index));
 const windSortMap = new Map();
@@ -19,11 +19,11 @@ class Hand {
             .OrderBy((x) => typeSortMap.get(x[1]))
             .ThenBy((x) => {
             const sort = x[0];
-            if ((0, MahjongFunctions_1.isSuits)(x))
+            if ((0, Functions_1.isSuits)(x))
                 return sort;
-            if ((0, MahjongFunctions_1.isKazehai)(x))
+            if ((0, Functions_1.isKazehai)(x))
                 return windSortMap.get(sort);
-            if ((0, MahjongFunctions_1.isSangenpai)(x))
+            if ((0, Functions_1.isSangenpai)(x))
                 return dragonSortMap.get(sort);
             throw new Error(x);
         })

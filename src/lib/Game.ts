@@ -1,13 +1,7 @@
 import { Enumerable, List } from "linqts";
 import { ManduChar, PinduChar, SouduChar, Winds, Dragons } from "./Constants";
-import {
-  toManzu,
-  toPinzu,
-  toSouzu,
-  ToSangenpai,
-  ToKazehai,
-} from "./MahjongFunctions";
-import { 牌, 色 } from "./MahjongTypes";
+import { toManzu, toPinzu, toSouzu, ToSangenpai, ToKazehai } from "./Functions";
+import { 牌, 色 } from "./Types";
 
 export class Game {
   private _wall: Array<牌>; //牌の山
@@ -20,17 +14,16 @@ export class Game {
     return this._wall;
   }
 
-  //開始
   start(): void {
     this.washTiles();
   }
 
   //洗牌
   washTiles(): void {
-    const randomTiles = new List(this.wall).OrderBy((x) => Math.random());
+    this._wall = new List(this.wall).OrderBy(() => Math.random()).ToArray();
   }
 
-  //牌をとりだす
+  //牌を配る
   dealTiles(num: number): Array<牌> {
     let tiles: Array<牌> = [];
 
@@ -60,6 +53,7 @@ export class Game {
     return tiles.ToArray();
   }
 
+  // 数牌を初期化
   initializeSuits(color: 色): Array<牌> {
     return Enumerable.Range(1, 9)
       .Select((n) => {
@@ -75,6 +69,7 @@ export class Game {
       .ToArray();
   }
 
+  // 字牌を初期化
   initializeHonors(): Array<牌> {
     const tiles: Array<牌> = [];
     tiles.push(...this.initializeKazehai());

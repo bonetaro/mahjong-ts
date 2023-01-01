@@ -6,7 +6,7 @@ import {
   isSouzu,
   isKazehai,
   isSangenpai,
-} from "../src/lib/MahjongFunctions";
+} from "../src/lib/Functions";
 import { Game } from "../src/lib/Game";
 
 test("1m is Suits", () => {

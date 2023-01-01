@@ -1,12 +1,16 @@
 import { Hand } from "./Hand";
-import { 牌 } from "./MahjongTypes";
+import { 牌 } from "./Types";
 
 export class Player {
-  private name: string;
+  private _name: string;
   private tiles: Array<牌> = [];
 
   constructor(name: string) {
-    this.name = name;
+    this._name = name;
+  }
+
+  get name(): string {
+    return this._name;
   }
 
   takeTiles(tiles: Array<牌>) {
