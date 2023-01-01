@@ -184,3 +184,59 @@ export function toVisual(value: 牌): string {
     return "?";
   }
 }
+
+export function toKanjiFromArray(values: Array<牌>): string {
+  return values.map((v) => toKanji(v)).join("");
+}
+
+export function toKanji(value: 牌): string {
+  const manzuList = [
+    "一萬",
+    "二萬",
+    "三萬",
+    "四萬",
+    "五萬",
+    "六萬",
+    "七萬",
+    "八萬",
+    "九萬",
+  ];
+  const pinzuList = [
+    "一筒",
+    "二筒",
+    "三筒",
+    "四筒",
+    "五筒",
+    "六筒",
+    "七筒",
+    "八筒",
+    "九筒",
+  ];
+  const souzuList = [
+    "一索",
+    "二索",
+    "三索",
+    "四索",
+    "五索",
+    "六索",
+    "七索",
+    "八索",
+    "九索",
+  ];
+  const kazehaiList: any = { e: "東", s: "南", w: "西", n: "北" };
+  const sangenpaiList: any = { w: "白", g: "發", r: "中" };
+
+  if (isManzu(value)) {
+    return manzuList[Number(value[0]) - 1];
+  } else if (isPinzu(value)) {
+    return pinzuList[Number(value[0]) - 1];
+  } else if (isSouzu(value)) {
+    return souzuList[Number(value[0]) - 1];
+  } else if (isKazehai(value)) {
+    return kazehaiList[value[0]];
+  } else if (isSangenpai(value)) {
+    return sangenpaiList[value[0]];
+  } else {
+    return "?";
+  }
+}

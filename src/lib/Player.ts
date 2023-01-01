@@ -1,7 +1,7 @@
 import { logger } from "./logging";
 import { Hand } from "./Hand";
 import { 牌 } from "./Types";
-import { toVisualFromArray } from "./Functions";
+import { toVisualFromArray, toKanjiFromArray } from "./Functions";
 
 export class Player {
   private _name: string;
@@ -35,6 +35,7 @@ export class Player {
       tiles: this.hand.tiles.join(""),
       length: this.hand.tiles.length,
       visual: toVisualFromArray(this.hand.tiles),
+      kanji: toKanjiFromArray(this.hand.tiles),
     });
   }
 }
