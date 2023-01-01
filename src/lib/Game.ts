@@ -1,4 +1,5 @@
 import { Enumerable, List } from "linqts";
+import { logger } from "./logging";
 import { ManduChar, PinduChar, SouduChar, Winds, Dragons } from "./Constants";
 import { toManzu, toPinzu, toSouzu, ToSangenpai, ToKazehai } from "./Functions";
 import { 牌, 色 } from "./Types";
@@ -15,7 +16,10 @@ export class Game {
   }
 
   start(): void {
+    logger.info("半荘開始", this);
+
     this.washTiles();
+    logger.info("洗牌", this.wall);
   }
 
   //洗牌

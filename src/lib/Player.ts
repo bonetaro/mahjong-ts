@@ -3,7 +3,7 @@ import { 牌 } from "./Types";
 
 export class Player {
   private _name: string;
-  private tiles: Array<牌> = [];
+  private _hand: Array<牌> = [];
 
   constructor(name: string) {
     this._name = name;
@@ -13,11 +13,15 @@ export class Player {
     return this._name;
   }
 
+  get hand(): Hand {
+    return new Hand(this._hand);
+  }
+
   takeTiles(tiles: Array<牌>) {
-    this.tiles.push(...tiles);
+    this._hand.push(...tiles);
   }
 
   sortTiles(): void {
-    this.tiles = new Hand(this.tiles).sort();
+    this._hand = new Hand(this._hand).sort();
   }
 }
