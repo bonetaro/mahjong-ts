@@ -6,4 +6,4 @@ exports.PinduChar = "p";
 exports.SouduChar = "s";
 exports.KazehaiChar = "z"; // Zihai
 exports.SangenpaiChar = "d"; // Dragon
-//# sourceMappingURL=MahjongTiles.js.map
+//# sourceMappingURL=MahjongTilesConstants.js.map

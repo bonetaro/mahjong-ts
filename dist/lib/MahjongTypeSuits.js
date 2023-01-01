@@ -1,16 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toSuits = exports.toSouzu = exports.toPinzu = exports.toManzu = exports.isSuits = exports.isSouzu = exports.isPinzu = exports.isManzu = void 0;
+const Constants_1 = require("./Constants");
 function isManzu(value) {
-    return new RegExp("^[1-9]m$", "g").test(value.toString());
+    return new RegExp(`^[1-9]${Constants_1.ManduChar}$`, "g").test(value.toString());
 }
 exports.isManzu = isManzu;
 function isPinzu(value) {
-    return new RegExp("^[1-9]p$", "g").test(value.toString());
+    return new RegExp(`^[1-9]${Constants_1.PinduChar}$`, "g").test(value.toString());
 }
 exports.isPinzu = isPinzu;
 function isSouzu(value) {
-    return new RegExp("^[1-9]s$", "g").test(value.toString());
+    return new RegExp(`^[1-9]${Constants_1.SouduChar}$`, "g").test(value.toString());
 }
 exports.isSouzu = isSouzu;
 function isSuits(value) {

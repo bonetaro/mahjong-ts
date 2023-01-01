@@ -7,5 +7,8 @@
   "scripts": {
     "build": "npx tsc --build ./tsconfig.json",
     "test": "jest"
+  },
+  "dependencies": {
+    "linqts": "^1.14.4"
   }
 }

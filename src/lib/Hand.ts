@@ -1,19 +1,35 @@
-import { 牌, 配牌 } from "./MahjongType";
+import { List } from "linqts";
+import { TileTypeSort, WindsSort, DragonsSort } from "./Constants";
+import { 牌 } from "./MahjongTypes";
+import { isKazehai, isSangenpai, isSuits } from "./MahjongFunctions";
+
+const typeSortMap = new Map<string, number>();
+TileTypeSort.forEach((x, index) => typeSortMap.set(x, index));
+
+const windSortMap = new Map<string, number>();
+WindsSort.forEach((x, index) => windSortMap.set(x, index));
+
+const dragonSortMap = new Map<string, number>();
+DragonsSort.forEach((x, index) => dragonSortMap.set(x, index));
+
 export class Hand {
   private hand_of_tiles: Array<牌>;
 
-  constructor(tiles: 配牌) {
-    // todo sort
+  constructor(tiles: Array<牌>) {
     this.hand_of_tiles = tiles;
   }
 
-  static parse(text: string) {
-    const textArray = text.match(/.{2}/g);
+  sort(): Array<牌> {
+    return new List(this.hand_of_tiles)
+      .OrderBy((x) => typeSortMap.get(x[1]))
+      .ThenBy((x) => {
+        const sort = x[0];
 
-    if (textArray instanceof Array<牌>) {
-      return textArray as Array<牌>;
-    }
-
-    throw new Error("parse Error");
+        if (isSuits(x)) return sort;
+        if (isKazehai(x)) return windSortMap.get(sort);
+        if (isSangenpai(x)) return dragonSortMap.get(sort);
+        throw new Error(x);
+      })
+      .ToArray();
   }
 }

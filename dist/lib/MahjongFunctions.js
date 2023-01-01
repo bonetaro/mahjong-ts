@@ -48,19 +48,19 @@ function toSuits(value) {
 }
 exports.toSuits = toSuits;
 function isEast(value) {
-    return value.toString() === `1${Constants_1.KazehaiChar}`;
+    return value.toString() === `${Constants_1.EastWindChar}${Constants_1.KazehaiChar}`;
 }
 exports.isEast = isEast;
 function isSouth(value) {
-    return value.toString() === `2${Constants_1.KazehaiChar}`;
+    return value.toString() === `${Constants_1.SouduChar}${Constants_1.KazehaiChar}`;
 }
 exports.isSouth = isSouth;
 function isWest(value) {
-    return value.toString() === `3${Constants_1.KazehaiChar}`;
+    return value.toString() === `${Constants_1.WestWindChar}${Constants_1.KazehaiChar}`;
 }
 exports.isWest = isWest;
 function isNorth(value) {
-    return value.toString() === `4${Constants_1.KazehaiChar}`;
+    return value.toString() === `${Constants_1.NorthWindChar}${Constants_1.KazehaiChar}`;
 }
 exports.isNorth = isNorth;
 function isKazehai(value) {
@@ -68,15 +68,15 @@ function isKazehai(value) {
 }
 exports.isKazehai = isKazehai;
 function isHaku(value) {
-    return value.toString() === `1${Constants_1.SangenpaiChar}`;
+    return value.toString() === `${Constants_1.WhiteDragonChar}${Constants_1.SangenpaiChar}`;
 }
 exports.isHaku = isHaku;
 function isHatsu(value) {
-    return value.toString() === `2${Constants_1.SangenpaiChar}`;
+    return value.toString() === `${Constants_1.GreenDragonChar}${Constants_1.SangenpaiChar}`;
 }
 exports.isHatsu = isHatsu;
 function isChun(value) {
-    return value.toString() === `3${Constants_1.SangenpaiChar}`;
+    return value.toString() === `${Constants_1.RedDragonChar}${Constants_1.SangenpaiChar}`;
 }
 exports.isChun = isChun;
 function isSangenpai(value) {
@@ -147,4 +147,4 @@ function ToHonours(value) {
     throw new Error(`${value} NOT 字牌`);
 }
 exports.ToHonours = ToHonours;
-//# sourceMappingURL=MahjongTypeHonours.js.map
+//# sourceMappingURL=MahjongFunctions.js.map

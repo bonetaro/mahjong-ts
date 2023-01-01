@@ -1,10 +1,13 @@
+import { Winds, Dragons } from "../src/lib/Constants";
 import {
   isSuits,
   isManzu,
   isPinzu,
   isSouzu,
-} from "../src/lib/MahjongTypeSuits";
-import { isKazehai, isSangenpai, isWest } from "../src/lib/MahjongTypeHonours";
+  isKazehai,
+  isSangenpai,
+} from "../src/lib/MahjongFunctions";
+import { Game } from "../src/lib/Game";
 
 test("1m is Suits", () => {
   expect(isSuits("1m")).toBe(true);
@@ -42,12 +45,27 @@ test("9s is Souzu", () => {
   expect(isSouzu("9s")).toBe(true);
 });
 
-test("EZ SZ WZ NZ is 東南西北", () => {
-  const result = ["EZ", "SZ", "WZ", "NZ"].every((tile) => isKazehai(tile));
+test(`${Winds.join(" ")} is 東南西北`, () => {
+  const result = Winds.every((tile) => isKazehai(tile));
   expect(result).toBe(true);
 });
 
-test("WD GD RD is 白發中", () => {
-  const result = ["WD", "GD", "RD"].every((tile) => isSangenpai(tile));
+test(`${Dragons.join(" ")} is 白發中`, () => {
+  const result = Dragons.every((tile) => isSangenpai(tile));
   expect(result).toBe(true);
+});
+
+test("wall tiles is 136", () => {
+  const game = new Game();
+  const wall = game.initializeTiles();
+
+  expect(wall.length).toBe(136);
+});
+
+test("deal tiles is 13. rest tiles 123", () => {
+  const game = new Game();
+  const dealedTiles = game.dealTiles(13);
+
+  expect(dealedTiles.length).toBe(13);
+  expect(game.wall.length).toBe(136 - 13);
 });

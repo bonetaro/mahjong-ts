@@ -147,4 +147,4 @@ function ToHonours(value) {
     throw new Error(`${value} NOT 字牌`);
 }
 exports.ToHonours = ToHonours;
-//# sourceMappingURL=MahjongTypeHonours.js.map
+//# sourceMappingURL=MahjongTypeFunction.js.map

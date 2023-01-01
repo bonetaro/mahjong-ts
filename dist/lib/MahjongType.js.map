@@ -1,1 +1,1 @@
-{"version":3,"file":"MahjongType.js","sourceRoot":"","sources":["../../src/lib/MahjongType.ts"],"names":[],"mappings":";;;AAAA,yDAAkE;AAClE,6DAY8B;AAqD9B,SAAgB,MAAM,CAAC,KAAc;IACnC,IAAI,IAAA,0BAAO,EAAC,KAAK,CAAC,IAAI,IAAA,8BAAS,EAAC,KAAK,CAAC;QAAE,OAAO,KAAK,CAAC;AACvD,CAAC;AAFD,wBAEC"}
+{"version":3,"file":"MahjongType.js","sourceRoot":"","sources":["../../src/lib/MahjongType.ts"],"names":[],"mappings":""}
