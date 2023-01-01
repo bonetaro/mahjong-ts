@@ -1,7 +1,7 @@
 import { List } from "linqts";
 import { 牌 } from "./Types";
 import { TileTypeSort, WindsSort, DragonsSort } from "./Constants";
-import { isKazehai, isSangenpai, isSuits } from "./Functions";
+import { isKazehai, isSangenpai, isSuits, toVisual } from "./Functions";
 
 const typeSortMap = new Map<string, number>();
 TileTypeSort.forEach((x, index) => typeSortMap.set(x, index));
@@ -13,10 +13,14 @@ const dragonSortMap = new Map<string, number>();
 DragonsSort.forEach((x, index) => dragonSortMap.set(x, index));
 
 export class Hand {
-  private tiles: Array<牌>;
+  private _tiles: Array<牌>;
 
   constructor(tiles: Array<牌>) {
-    this.tiles = tiles;
+    this._tiles = tiles;
+  }
+
+  get tiles(): Array<牌> {
+    return this._tiles;
   }
 
   sort(): Array<牌> {

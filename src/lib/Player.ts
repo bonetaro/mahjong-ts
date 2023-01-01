@@ -1,5 +1,7 @@
+import { logger } from "./logging";
 import { Hand } from "./Hand";
 import { 牌 } from "./Types";
+import { toVisualFromArray } from "./Functions";
 
 export class Player {
   private _name: string;
@@ -19,9 +21,20 @@ export class Player {
 
   takeTiles(tiles: Array<牌>) {
     this._hand.push(...tiles);
+
+    logger.info(`${this.name}が牌を${tiles.length}枚とる`, {
+      tiles: this.hand.tiles,
+      length: this.hand.tiles.length,
+    });
   }
 
   sortTiles(): void {
     this._hand = new Hand(this._hand).sort();
+
+    logger.info(`${this.name}が牌を並び替える`, {
+      tiles: this.hand.tiles.join(""),
+      length: this.hand.tiles.length,
+      visual: toVisualFromArray(this.hand.tiles),
+    });
   }
 }

@@ -158,3 +158,29 @@ export function ToHonours(value: unknown): 字牌 {
   if (isHonours(value)) return value;
   throw new Error(`${value} NOT 字牌`);
 }
+
+export function toVisualFromArray(values: Array<牌>): string {
+  return values.map((v) => toVisual(v)).join("");
+}
+
+export function toVisual(value: 牌): string {
+  const manzuList = ["🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏"];
+  const pinzuList = ["🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟", "🀠", "🀡"];
+  const souzuList = ["🀐", "🀑", "🀒", "🀓", "🀔", "🀕", "🀖", "🀗", "🀘"];
+  const kazehaiList: any = { e: "🀀", s: "🀁", w: "🀂", n: "🀃" };
+  const sangenpaiList: any = { w: "🀆", g: "🀅", r: "🀄" };
+
+  if (isManzu(value)) {
+    return manzuList[Number(value[0]) - 1];
+  } else if (isPinzu(value)) {
+    return pinzuList[Number(value[0]) - 1];
+  } else if (isSouzu(value)) {
+    return souzuList[Number(value[0]) - 1];
+  } else if (isKazehai(value)) {
+    return kazehaiList[value[0]];
+  } else if (isSangenpai(value)) {
+    return sangenpaiList[value[0]];
+  } else {
+    return "?";
+  }
+}
