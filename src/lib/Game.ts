@@ -7,7 +7,7 @@ import { Player } from "./Player";
 import { Dice } from "./Dice";
 import { Table } from "./Table";
 import { GameRound } from "./GameRound";
-import { GameHand } from "./GameHand";
+import { GameRoundHand } from "./GameRoundHand";
 
 export class Game {
   private _dices: [Dice, Dice] = [new Dice(), new Dice()];
@@ -15,6 +15,7 @@ export class Game {
   private _players: Array<Player> = [];
   private _dealer: Player;
   private _rounds: GameRound[] = [];
+  private _playerIndex: number = 0;
 
   constructor() {
     logger.info(`半荘が作成されました`);
@@ -38,6 +39,10 @@ export class Game {
 
   get currentRound(): GameRound {
     return new List(this._rounds).Last();
+  }
+
+  get currentPlayer(): Player {
+    return this._players[this._playerIndex];
   }
 
   validateForStart(): boolean {
@@ -90,8 +95,8 @@ export class Game {
     this._rounds.push(new GameRound());
   }
 
-  createGameHand(): void {
-    this.currentRound.hands.push(new GameHand());
+  createGameRoundHand(): void {
+    this.currentRound.hands.push(new GameRoundHand());
   }
 
   showStatus(
@@ -127,7 +132,7 @@ export class Game {
   }
 
   // 半荘開始
-  start(): void {
+  start() {
     logger.info("半荘開始");
 
     if (!this.validateForStart()) {
@@ -141,7 +146,7 @@ export class Game {
     this.createGameRound();
 
     // 第1局生成
-    this.createGameHand();
+    this.createGameRoundHand();
   }
 
   startHand(): void {

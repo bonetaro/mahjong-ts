@@ -1,10 +1,10 @@
-import { GameHand } from "./GameHand";
+import { GameRoundHand } from "./GameRoundHand";
 
 // 場（東場、南場）
 export class GameRound {
-  private _hands: GameHand[] = [];
+  private _hands: GameRoundHand[] = [];
 
-  get hands(): GameHand[] {
+  get hands(): GameRoundHand[] {
     return this._hands;
   }
 }

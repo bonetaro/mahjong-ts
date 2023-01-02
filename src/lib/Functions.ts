@@ -251,18 +251,13 @@ export function toMoji(value: 牌): string {
 
 export function nextTile(tile: 牌): 牌 {
   if (isSuits(tile)) {
-    const num = (Number(tile[0]) + 1) % 9;
-
-    return toSuits(`${num}${tile[1]}`);
+    const nextNumber = Number(tile[0]) + 1;
+    return toSuits(`${nextNumber == 10 ? 1 : nextNumber}${tile[1]}`);
   } else if (isKazehai(tile)) {
     return ToKazehai(
       `${WindsSort[(Number(windSortMap.get(tile[0])) + 1) % 4]}${KazehaiChar}`
     );
   } else if (isSangenpai(tile)) {
-    const list: any = new List(DragonsSort).Select((c, index) => {
-      return { c: index };
-    });
-
     return ToSangenpai(
       `${
         DragonsSort[(Number(dragonSortMap.get(tile[0])) + 1) % 3]

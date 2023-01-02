@@ -1,16 +1,13 @@
+import { List } from "linqts";
 import { logger } from "../logging";
 import { Hand } from "./Hand";
 import { 牌 } from "./Types";
-import {
-  toEmoji,
-  toEmojiFromArray,
-  toKanjiFromArray,
-  toMoji,
-} from "./Functions";
+import { toEmojiFromArray, toKanjiFromArray, toMoji } from "./Functions";
 
 export class Player {
   private _name: string;
   private _hand: Array<牌> = [];
+  private _discardTiles: Array<牌> = [];
 
   constructor(name: string) {
     this._name = name;
@@ -22,6 +19,26 @@ export class Player {
 
   get hand(): Hand {
     return new Hand(this._hand);
+  }
+
+  show(): void {
+    logger.info(`${this.name}`, {
+      hand: toEmojiFromArray(this.hand.tiles),
+      discard: toEmojiFromArray(this._discardTiles),
+    });
+  }
+
+  discard(num: number) {
+    const tile = this._hand[num];
+
+    this._discardTiles.push(tile);
+    this._hand = new List(this._hand)
+      .Where((i, index) => index != num)
+      .ToArray();
+
+    logger.info(`${this.name}が${toMoji(tile)}を捨てました`);
+
+    this.sortHandTiles();
   }
 
   drawTile(tile: 牌) {

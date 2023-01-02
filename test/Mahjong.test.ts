@@ -121,6 +121,10 @@ test("The next of 9m is 1m.", () => {
   expect(nextTile("9m")).toBe("1m");
 });
 
+test("The next of 9s is 1s.", () => {
+  expect(nextTile("9s")).toBe("1s");
+});
+
 test("The next of ew is sw.", () => {
   expect(nextTile("ew")).toBe("sw");
 });
