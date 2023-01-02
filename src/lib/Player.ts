@@ -28,8 +28,10 @@ export class Player {
     this._hand.push(tile);
 
     logger.info(`${this.name}が${toMoji(tile)}をツモりました`, {
-      tiles: this.hand.tiles,
+      tiles: this.hand.tiles.join(""),
       length: this.hand.tiles.length,
+      emoji: toEmojiFromArray(this.hand.tiles),
+      kanji: toKanjiFromArray(this.hand.tiles),
     });
   }
 

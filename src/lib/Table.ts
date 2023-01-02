@@ -29,13 +29,18 @@ export class Table {
   }
 
   makeDeadWall(): void {
+    // todo 常に先頭の山から14枚を王牌としている
     this._deadWall = new DeadWall(new Wall(this._walls[0].pickTiles(14)));
+
+    logger.info("王牌を作成しました");
   }
 
   buildWalls(): void {
     this._walls = Enumerable.Range(0, 4)
       .Select((n) => this.buildWall())
       .ToArray();
+
+    logger.info("山を積みました");
   }
 
   buildWall(): Wall {

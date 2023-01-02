@@ -10,11 +10,10 @@ game.setPlayers([
   new Player("Dさん"),
 ]);
 
-game.buildWalls(); // 牌の山を積む
 game.start(); // 半荘開始
+game.startHand(); // 東場第1局
 
-game.dealTilesToPlayers(); // 配牌
+game.showStatus();
 
-game.players.forEach((player) => player.sortHandTiles());
-
+// 親の第1ツモ
 game.dealer.drawTile(game.table.pickTile());
