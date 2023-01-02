@@ -1,30 +1,95 @@
-import { Enumerable, List } from "linqts";
-import { logger } from "./logging";
-import { ManduChar, PinduChar, SouduChar, Winds, Dragons } from "./Constants";
-import { toManzu, toPinzu, toSouzu, ToSangenpai, ToKazehai } from "./Functions";
-import { 牌, 色 } from "./Types";
+import { List } from "linqts";
+import { logger } from "../logging";
+import { 牌 } from "./Types";
+import { Player } from "./Player";
+import { Dice } from "./Dice";
+import { Table } from "./Table";
+import { toMoji } from "./Functions";
 
 export class Game {
-  private _wall: Array<牌>; //牌の山
+  private _dices: [Dice, Dice] = [new Dice(), new Dice()];
+  private _table: Table = new Table();
+  private _players: Array<Player> = [];
+  private _dealer: Player;
 
   constructor() {
-    this._wall = this.initializeTiles();
+    logger.info(`半荘が作成されました`);
   }
 
-  get wall(): Array<牌> {
-    return this._wall;
+  get table(): Table {
+    return this._table;
+  }
+
+  get players(): Array<Player> {
+    return this._players;
+  }
+
+  get dealer(): Player {
+    return this._dealer;
+  }
+
+  get restTilesCount(): number {
+    return this._table.restTilesCount;
+  }
+
+  validate(): boolean {
+    if (!this.validatePlayers()) {
+      return false;
+    }
+
+    return true;
+  }
+
+  validatePlayers(): boolean {
+    if (this._players.length != 4) {
+      logger.error(`players is ${this._players.length} people.`);
+      return false;
+    }
+
+    return true;
+  }
+
+  rollDices(): number {
+    const dice = this._dices[0];
+    const dice2 = this._dices[1];
+
+    dice.roll();
+    dice2.roll();
+
+    logger.info(`サイコロ: ${dice.toEmoji()} ${dice2.toEmoji()} `);
+
+    return dice.num + dice2.num;
+  }
+
+  pickUpPlayerAtRandom(): Player {
+    return new List(this._players).OrderBy(() => Math.random()).First();
+  }
+
+  buildWalls(): void {
+    this._table.washTiles();
+    this._table.buildWalls();
   }
 
   start(): void {
-    logger.info("半荘開始", this);
+    this._dealer = this.pickUpPlayerAtRandom();
+    logger.info(`仮親：${this.dealer.name}`);
 
-    this.washTiles();
-    logger.info("洗牌", this.wall);
-  }
+    this._dealer = this.pickUpPlayerAtRandom();
+    logger.info(`親：${this.dealer.name}`);
 
-  //洗牌
-  washTiles(): void {
-    this._wall = new List(this.wall).OrderBy(() => Math.random()).ToArray();
+    if (!this.validate()) {
+      return;
+    }
+
+    logger.info("半荘開始");
+
+    this.rollDices();
+
+    // todo サイコロを振っているが王牌と無関係
+    this._table.makeDeadWall();
+
+    const dora = this.table.deadWall.dora;
+    logger.info(`ドラ: ${toMoji(dora)}`);
   }
 
   //牌を配る
@@ -39,62 +104,35 @@ export class Game {
   }
 
   dealTile(): 牌 {
-    const tile = this.wall.shift();
-
+    const tile = this._table.pickTile();
     return tile;
   }
 
-  initializeTiles(): Array<牌> {
-    let tiles = new List<牌>();
+  dealTilesToPlayers(): void {
+    for (let i = 0; i < 3; i++) {
+      this._players.forEach((player) => {
+        player.drawTiles(this.dealTiles(4));
+      });
+    }
 
-    tiles.AddRange(this.initializeSuits(ManduChar));
-    tiles.AddRange(this.initializeSuits(PinduChar));
-    tiles.AddRange(this.initializeSuits(SouduChar));
-    tiles.AddRange(this.initializeHonors());
-
-    tiles = tiles.Concat(tiles).Concat(tiles).Concat(tiles);
-
-    return tiles.ToArray();
+    this._players.forEach((player) => {
+      player.drawTiles(this.dealTiles(1));
+    });
   }
 
-  // 数牌を初期化
-  initializeSuits(color: 色): Array<牌> {
-    return Enumerable.Range(1, 9)
-      .Select((n) => {
-        switch (color) {
-          case ManduChar:
-            return toManzu(n + color);
-          case PinduChar:
-            return toPinzu(n + color);
-          case SouduChar:
-            return toSouzu(n + color);
-        }
-      })
-      .ToArray();
+  setPlayers(players: Array<Player>): void {
+    players.forEach((player) => {
+      this.setPlayer(player);
+    });
   }
 
-  // 字牌を初期化
-  initializeHonors(): Array<牌> {
-    const tiles: Array<牌> = [];
-    tiles.push(...this.initializeKazehai());
-    tiles.push(...this.initializeSangenpai());
+  setPlayer(player: Player): void {
+    if (this._players.length > 4) {
+      throw new Error("プレイヤーは4人");
+    }
 
-    return tiles;
-  }
+    this._players.push(player);
 
-  initializeKazehai(): Array<牌> {
-    return new List(Winds)
-      .Select((n) => {
-        return ToKazehai(n);
-      })
-      .ToArray();
-  }
-
-  initializeSangenpai(): Array<牌> {
-    return new List(Dragons)
-      .Select((n) => {
-        return ToSangenpai(n);
-      })
-      .ToArray();
+    logger.info(`${player.name}が参加しました`);
   }
 }

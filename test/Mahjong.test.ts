@@ -6,8 +6,11 @@ import {
   isSouzu,
   isKazehai,
   isSangenpai,
+  nextTile,
 } from "../src/lib/Functions";
 import { Game } from "../src/lib/Game";
+import { Player } from "../src/lib/Player";
+import { Table } from "../src/lib/Table";
 
 test("1m is Suits", () => {
   expect(isSuits("1m")).toBe(true);
@@ -55,17 +58,81 @@ test(`${Dragons.join(" ")} is 白發中`, () => {
   expect(result).toBe(true);
 });
 
-test("wall tiles is 136", () => {
-  const game = new Game();
-  const wall = game.initializeTiles();
-
-  expect(wall.length).toBe(136);
+test("table initialize tiles is 136", () => {
+  const table = new Table();
+  expect(table.initializeTiles().length).toBe(136);
 });
 
-test("deal tiles is 13. rest tiles 123", () => {
+test("deal tiles is 13.", () => {
   const game = new Game();
+  game.setPlayers([
+    new Player("player1"),
+    new Player("player2"),
+    new Player("player3"),
+    new Player("player4"),
+  ]);
+
+  game.buildWalls();
   const dealedTiles = game.dealTiles(13);
 
   expect(dealedTiles.length).toBe(13);
-  expect(game.wall.length).toBe(136 - 13);
+});
+
+test("rest tiles is 136.", () => {
+  const game = new Game();
+  game.setPlayers([
+    new Player("player1"),
+    new Player("player2"),
+    new Player("player3"),
+    new Player("player4"),
+  ]);
+
+  game.buildWalls();
+
+  expect(game.table.restTilesCount).toBe(136);
+});
+
+test("rest tiles is 123 after deal 13 tiles.", () => {
+  const game = new Game();
+  game.setPlayers([
+    new Player("player1"),
+    new Player("player2"),
+    new Player("player3"),
+    new Player("player4"),
+  ]);
+
+  game.buildWalls();
+
+  const dealedTilesCount = 13;
+  const dealedTiles = game.dealTiles(dealedTilesCount);
+
+  expect(game.restTilesCount).toBe(136 - dealedTilesCount);
+});
+
+test("The next of 1p is 2p.", () => {
+  expect(nextTile("1p")).toBe("2p");
+});
+
+test("The next of 7s is 8s.", () => {
+  expect(nextTile("7s")).toBe("8s");
+});
+
+test("The next of 9m is 1m.", () => {
+  expect(nextTile("9m")).toBe("1m");
+});
+
+test("The next of ew is sw.", () => {
+  expect(nextTile("ew")).toBe("sw");
+});
+
+test("The next of nw is ew.", () => {
+  expect(nextTile("nw")).toBe("ew");
+});
+
+test("The next of gd is rd.", () => {
+  expect(nextTile("gd")).toBe("rd");
+});
+
+test("The next of rd is wd.", () => {
+  expect(nextTile("rd")).toBe("wd");
 });

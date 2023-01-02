@@ -1,7 +1,7 @@
-import { logger } from "./logging";
+import { logger } from "../logging";
 import { Hand } from "./Hand";
 import { 牌 } from "./Types";
-import { toVisualFromArray, toKanjiFromArray } from "./Functions";
+import { toEmojiFromArray, toKanjiFromArray } from "./Functions";
 
 export class Player {
   private _name: string;
@@ -19,22 +19,22 @@ export class Player {
     return new Hand(this._hand);
   }
 
-  takeTiles(tiles: Array<牌>) {
+  drawTiles(tiles: Array<牌>) {
     this._hand.push(...tiles);
 
-    logger.info(`${this.name}が牌を${tiles.length}枚とる`, {
+    logger.info(`${this.name}が牌を${tiles.length}枚とりました`, {
       tiles: this.hand.tiles,
       length: this.hand.tiles.length,
     });
   }
 
-  sortTiles(): void {
+  sortHandTiles(): void {
     this._hand = new Hand(this._hand).sort();
 
-    logger.info(`${this.name}が牌を並び替える`, {
+    logger.info(`${this.name}が牌を並び替えました`, {
       tiles: this.hand.tiles.join(""),
       length: this.hand.tiles.length,
-      visual: toVisualFromArray(this.hand.tiles),
+      emoji: toEmojiFromArray(this.hand.tiles),
       kanji: toKanjiFromArray(this.hand.tiles),
     });
   }

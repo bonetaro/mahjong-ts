@@ -2,13 +2,16 @@ import { Game } from "./lib/Game";
 import { Player } from "./lib/Player";
 
 const game = new Game();
+
+game.setPlayers([
+  new Player("Aさん"),
+  new Player("Bさん"),
+  new Player("Cさん"),
+  new Player("Dさん"),
+]);
+
+game.buildWalls();
 game.start();
+game.dealTilesToPlayers();
 
-const player = new Player("player1");
-
-for (let i = 0; i < 3; i++) {
-  player.takeTiles(game.dealTiles(4));
-}
-
-player.takeTiles(game.dealTiles(1));
-player.sortTiles();
+game.players.forEach((player) => player.sortHandTiles());

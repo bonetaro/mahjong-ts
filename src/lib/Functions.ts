@@ -10,6 +10,8 @@ import {
   WhiteDragonChar,
   GreenDragonChar,
   RedDragonChar,
+  windSortMap,
+  dragonSortMap,
 } from "./Constants";
 import {
   牌,
@@ -28,6 +30,8 @@ import {
   三元牌,
   字牌,
 } from "./Types";
+import { TileTypeSort, WindsSort, DragonsSort } from "./Constants";
+import { List } from "linqts";
 
 export function toTile(value: unknown): 牌 {
   if (isSuits(value) || isHonours(value)) return value;
@@ -159,11 +163,11 @@ export function ToHonours(value: unknown): 字牌 {
   throw new Error(`${value} NOT 字牌`);
 }
 
-export function toVisualFromArray(values: Array<牌>): string {
-  return values.map((v) => toVisual(v)).join("");
+export function toEmojiFromArray(values: Array<牌>): string {
+  return values.map((v) => toEmoji(v)).join("");
 }
 
-export function toVisual(value: 牌): string {
+export function toEmoji(value: 牌): string {
   const manzuList = ["🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏"];
   const pinzuList = ["🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟", "🀠", "🀡"];
   const souzuList = ["🀐", "🀑", "🀒", "🀓", "🀔", "🀕", "🀖", "🀗", "🀘"];
@@ -238,5 +242,33 @@ export function toKanji(value: 牌): string {
     return sangenpaiList[value[0]];
   } else {
     return "?";
+  }
+}
+
+export function toMoji(value: 牌): string {
+  return `${toEmoji(value)} ${toKanji(value)}`;
+}
+
+export function nextTile(tile: 牌): 牌 {
+  if (isSuits(tile)) {
+    const num = (Number(tile[0]) + 1) % 9;
+
+    return toSuits(`${num}${tile[1]}`);
+  } else if (isKazehai(tile)) {
+    return ToKazehai(
+      `${WindsSort[(Number(windSortMap.get(tile[0])) + 1) % 4]}${KazehaiChar}`
+    );
+  } else if (isSangenpai(tile)) {
+    const list: any = new List(DragonsSort).Select((c, index) => {
+      return { c: index };
+    });
+
+    return ToSangenpai(
+      `${
+        DragonsSort[(Number(dragonSortMap.get(tile[0])) + 1) % 3]
+      }${SangenpaiChar}`
+    );
+  } else {
+    throw new Error(tile);
   }
 }

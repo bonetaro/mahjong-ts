@@ -39,20 +39,33 @@ const TileTypeSort = [
   SangenpaiChar,
 ];
 
-const WindsSort: readonly string[] = [
+const WindsSort: string[] = [
   EastWindChar,
   SouthWindChar,
   WestWindChar,
   NorthWindChar,
 ];
-
-const DragonsSort: readonly string[] = [
-  WhiteDragonChar,
-  GreenDragonChar,
-  RedDragonChar,
-];
+const DragonsSort: string[] = [WhiteDragonChar, GreenDragonChar, RedDragonChar];
 
 const Winds: string[] = WindsSort.map((c) => c + KazehaiChar);
 const Dragons: string[] = DragonsSort.map((c) => c + SangenpaiChar);
 
-export { TileTypeSort, Winds, Dragons, WindsSort, DragonsSort };
+const typeSortMap = new Map<string, number>();
+TileTypeSort.forEach((x, index) => typeSortMap.set(x, index));
+
+const windSortMap = new Map<string, number>();
+WindsSort.forEach((x, index) => windSortMap.set(x, index));
+
+const dragonSortMap = new Map<string, number>();
+DragonsSort.forEach((x, index) => dragonSortMap.set(x, index));
+
+export {
+  TileTypeSort,
+  Winds,
+  Dragons,
+  WindsSort,
+  DragonsSort,
+  typeSortMap,
+  windSortMap,
+  dragonSortMap,
+};
