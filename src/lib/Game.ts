@@ -32,7 +32,7 @@ export class Game {
     return this._table.restTilesCount;
   }
 
-  validate(): boolean {
+  validateForStart(): boolean {
     if (!this.validatePlayers()) {
       return false;
     }
@@ -70,14 +70,32 @@ export class Game {
     this._table.buildWalls();
   }
 
-  start(): void {
+  pickUpDealer(): void {
     this._dealer = this.pickUpPlayerAtRandom();
     logger.info(`仮親：${this.dealer.name}`);
 
     this._dealer = this.pickUpPlayerAtRandom();
     logger.info(`親：${this.dealer.name}`);
+  }
 
-    if (!this.validate()) {
+  showPlayerList(): void {
+    const playerLabelList: string[] = [];
+    new List(["東", "南", "西", "北"]).Zip(
+      new List(this.players),
+      (wind, player) => {
+        playerLabelList.push(`${wind}家: ${player.name}`);
+      }
+    );
+
+    logger.info(playerLabelList.join(" "));
+  }
+
+  start(): void {
+    this.pickUpDealer();
+
+    this.showPlayerList();
+
+    if (!this.validateForStart()) {
       return;
     }
 

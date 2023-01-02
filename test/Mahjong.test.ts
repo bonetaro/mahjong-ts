@@ -78,7 +78,7 @@ test("deal tiles is 13.", () => {
   expect(dealedTiles.length).toBe(13);
 });
 
-test("rest tiles is 136.", () => {
+test("initialized tiles is 136.", () => {
   const game = new Game();
   game.setPlayers([
     new Player("player1"),
