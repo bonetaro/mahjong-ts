@@ -39,6 +39,8 @@ const TileTypeSort = [
   SangenpaiChar,
 ];
 
+export const WindsLabel = ["東", "南", "西", "北"];
+
 const WindsSort: string[] = [
   EastWindChar,
   SouthWindChar,

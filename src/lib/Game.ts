@@ -1,16 +1,20 @@
 import { List } from "linqts";
 import { logger } from "../logging";
 import { 牌 } from "./Types";
+import { toMoji } from "./Functions";
 import { Player } from "./Player";
 import { Dice } from "./Dice";
 import { Table } from "./Table";
-import { toMoji } from "./Functions";
+import { GameRound } from "./GameRound";
+import { WindsLabel } from "./Constants";
+import { GameHand } from "./GameHand";
 
 export class Game {
   private _dices: [Dice, Dice] = [new Dice(), new Dice()];
   private _table: Table = new Table();
   private _players: Array<Player> = [];
   private _dealer: Player;
+  private _rounds: GameRound[] = [];
 
   constructor() {
     logger.info(`半荘が作成されました`);
@@ -30,6 +34,10 @@ export class Game {
 
   get restTilesCount(): number {
     return this._table.restTilesCount;
+  }
+
+  get currentRound(): GameRound {
+    return new List(this._rounds).Last();
   }
 
   validateForStart(): boolean {
@@ -80,14 +88,27 @@ export class Game {
 
   showPlayerList(): void {
     const playerLabelList: string[] = [];
-    new List(["東", "南", "西", "北"]).Zip(
-      new List(this.players),
-      (wind, player) => {
-        playerLabelList.push(`${wind}家: ${player.name}`);
-      }
-    );
+    new List(WindsLabel).Zip(new List(this.players), (wind, player) => {
+      playerLabelList.push(`${wind}家: ${player.name}`);
+    });
 
     logger.info(playerLabelList.join(" "));
+  }
+
+  createGameRound(): void {
+    this._rounds.push(new GameRound());
+  }
+
+  createGameHand(): void {
+    this.currentRound.hands.push(new GameHand());
+  }
+
+  showGame(): void {
+    logger.info(
+      `${WindsLabel[this._rounds.length - 1]}${
+        this.currentRound.hands.length
+      }局`
+    );
   }
 
   start(): void {
@@ -100,6 +121,11 @@ export class Game {
     }
 
     logger.info("半荘開始");
+
+    this.createGameRound(); // 場生成
+    this.createGameHand(); // 局生成
+
+    this.showGame();
 
     this.rollDices();
 

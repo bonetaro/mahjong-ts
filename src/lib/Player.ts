@@ -1,7 +1,12 @@
 import { logger } from "../logging";
 import { Hand } from "./Hand";
 import { 牌 } from "./Types";
-import { toEmojiFromArray, toKanjiFromArray } from "./Functions";
+import {
+  toEmoji,
+  toEmojiFromArray,
+  toKanjiFromArray,
+  toMoji,
+} from "./Functions";
 
 export class Player {
   private _name: string;
@@ -19,8 +24,17 @@ export class Player {
     return new Hand(this._hand);
   }
 
+  drawTile(tile: 牌) {
+    this._hand.push(tile);
+
+    logger.info(`${this.name}が${toMoji(tile)}をツモりました`, {
+      tiles: this.hand.tiles,
+      length: this.hand.tiles.length,
+    });
+  }
+
   drawTiles(tiles: Array<牌>) {
-    this._hand.push(...tiles);
+    tiles.forEach((tile) => this._hand.push(tile));
 
     logger.info(`${this.name}が牌を${tiles.length}枚とりました`, {
       tiles: this.hand.tiles,

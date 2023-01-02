@@ -10,8 +10,11 @@ game.setPlayers([
   new Player("Dさん"),
 ]);
 
-game.buildWalls();
-game.start();
-game.dealTilesToPlayers();
+game.buildWalls(); // 牌の山を積む
+game.start(); // 半荘開始
+
+game.dealTilesToPlayers(); // 配牌
 
 game.players.forEach((player) => player.sortHandTiles());
+
+game.dealer.drawTile(game.table.pickTile());
