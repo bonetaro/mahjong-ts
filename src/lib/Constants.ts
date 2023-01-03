@@ -71,3 +71,11 @@ export {
   windSortMap,
   dragonSortMap,
 };
+
+export class PlayerAction {
+  static Pon: string = "pon";
+  static Kan: string = "kan";
+  static Chi: string = "chi";
+  static Tsumo: string = "tsumo";
+  static Ron: string = "ron";
+}

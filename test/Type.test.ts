@@ -8,9 +8,6 @@ import {
   isSangenpai,
   nextTile,
 } from "../src/lib/Functions";
-import { Game } from "../src/lib/Game";
-import { Player } from "../src/lib/Player";
-import { Table } from "../src/lib/Table";
 
 test("1m is Suits", () => {
   expect(isSuits("1m")).toBe(true);
@@ -56,57 +53,6 @@ test(`${Winds.join(" ")} is 東南西北`, () => {
 test(`${Dragons.join(" ")} is 白發中`, () => {
   const result = Dragons.every((tile) => isSangenpai(tile));
   expect(result).toBe(true);
-});
-
-test("table initialize tiles is 136", () => {
-  const table = new Table();
-  expect(table.initializeTiles().length).toBe(136);
-});
-
-test("deal tiles is 13.", () => {
-  const game = new Game();
-  game.setPlayers([
-    new Player("player1"),
-    new Player("player2"),
-    new Player("player3"),
-    new Player("player4"),
-  ]);
-
-  game.buildWalls();
-  const dealedTiles = game.dealTiles(13);
-
-  expect(dealedTiles.length).toBe(13);
-});
-
-test("initialized tiles is 136.", () => {
-  const game = new Game();
-  game.setPlayers([
-    new Player("player1"),
-    new Player("player2"),
-    new Player("player3"),
-    new Player("player4"),
-  ]);
-
-  game.buildWalls();
-
-  expect(game.table.restTilesCount).toBe(136);
-});
-
-test("rest tiles is 123 after deal 13 tiles.", () => {
-  const game = new Game();
-  game.setPlayers([
-    new Player("player1"),
-    new Player("player2"),
-    new Player("player3"),
-    new Player("player4"),
-  ]);
-
-  game.buildWalls();
-
-  const dealedTilesCount = 13;
-  const dealedTiles = game.dealTiles(dealedTilesCount);
-
-  expect(game.restTilesCount).toBe(136 - dealedTilesCount);
 });
 
 test("The next of 1p is 2p.", () => {

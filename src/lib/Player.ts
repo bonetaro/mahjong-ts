@@ -21,11 +21,35 @@ export class Player {
     return new Hand(this._hand);
   }
 
+  init(): void {
+    this._hand = [];
+  }
+
   show(): void {
     logger.info(`${this.name}`, {
       hand: toEmojiFromArray(this.hand.tiles),
       discard: toEmojiFromArray(this._discardTiles),
     });
+  }
+
+  get handStatus(): string {
+    return (
+      `[${toEmojiFromArray(this.hand.tiles)}]` +
+      " " +
+      `[${toKanjiFromArray(this.hand.tiles)}]`
+    );
+  }
+
+  get discardStatus(): string {
+    return (
+      `[${toEmojiFromArray(this._discardTiles)}]` +
+      " " +
+      `[${toKanjiFromArray(this._discardTiles)}]`
+    );
+  }
+
+  meld(num: number, action: string): 牌 {
+    return null;
   }
 
   discard(num: number) {
@@ -38,7 +62,7 @@ export class Player {
 
     logger.info(`${this.name}が${toMoji(tile)}を捨てました`);
 
-    this.sortHandTiles();
+    return tile;
   }
 
   drawTile(tile: 牌) {
@@ -55,7 +79,7 @@ export class Player {
   drawTiles(tiles: Array<牌>) {
     tiles.forEach((tile) => this._hand.push(tile));
 
-    logger.info(`${this.name}が牌を${tiles.length}枚とりました`, {
+    logger.debug(`${this.name}が牌を${tiles.length}枚とりました`, {
       tiles: this.hand.tiles,
       length: this.hand.tiles.length,
     });
@@ -64,7 +88,7 @@ export class Player {
   sortHandTiles(): void {
     this._hand = new Hand(this._hand).sort();
 
-    logger.info(`${this.name}が牌を並び替えました`, {
+    logger.debug(`${this.name}が牌を並び替えました`, {
       tiles: this.hand.tiles.join(""),
       length: this.hand.tiles.length,
       emoji: toEmojiFromArray(this.hand.tiles),

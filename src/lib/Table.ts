@@ -32,7 +32,7 @@ export class Table {
     // todo 常に先頭の山から14枚を王牌としている
     this._deadWall = new DeadWall(new Wall(this._walls[0].pickTiles(14)));
 
-    logger.info("王牌を作成しました");
+    logger.debug("王牌を作成しました");
   }
 
   buildWalls(): void {
@@ -40,7 +40,7 @@ export class Table {
       .Select((n) => this.buildWall())
       .ToArray();
 
-    logger.info("山を積みました");
+    logger.debug("山を積みました");
   }
 
   buildWall(): Wall {
@@ -73,7 +73,7 @@ export class Table {
       .OrderBy(() => Math.random())
       .ToArray();
 
-    logger.info("洗牌");
+    logger.debug("洗牌");
   }
 
   initializeTiles(): Array<牌> {

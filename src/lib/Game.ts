@@ -1,17 +1,15 @@
 import { List } from "linqts";
-import { logger } from "../logging";
+import { logger, LogEvent } from "../logging";
 import { WindsLabel } from "./Constants";
 import { 牌 } from "./Types";
 import { toMoji } from "./Functions";
 import { Player } from "./Player";
 import { Dice } from "./Dice";
-import { Table } from "./Table";
 import { GameRound } from "./GameRound";
 import { GameRoundHand } from "./GameRoundHand";
 
 export class Game {
   private _dices: [Dice, Dice] = [new Dice(), new Dice()];
-  private _table: Table = new Table();
   private _players: Array<Player> = [];
   private _dealer: Player;
   private _rounds: GameRound[] = [];
@@ -19,10 +17,6 @@ export class Game {
 
   constructor() {
     logger.info(`半荘が作成されました`);
-  }
-
-  get table(): Table {
-    return this._table;
   }
 
   get players(): Array<Player> {
@@ -34,15 +28,51 @@ export class Game {
   }
 
   get restTilesCount(): number {
-    return this._table.restTilesCount;
+    return this.currentRoundHand.table.restTilesCount;
   }
 
   get currentRound(): GameRound {
     return new List(this._rounds).Last();
   }
 
+  get currentRoundHand(): GameRoundHand {
+    return new List(this.currentRound.hands).Last();
+  }
+
   get currentPlayer(): Player {
     return this._players[this._playerIndex];
+  }
+
+  get otherPlayers(): Player[] {
+    return new List(this.players)
+      .Where((_, index) => index != this._playerIndex)
+      .ToArray();
+  }
+
+  get nextPlayer(): Player {
+    this.incrementPlayerIndex();
+    return this.currentPlayer;
+  }
+
+  isLastRoundHand(): boolean {
+    return this._rounds.length == 2 && this.currentRound.hands.length == 4;
+  }
+
+  pickTile(): 牌 {
+    return this.currentRoundHand.table.pickTile();
+  }
+
+  hasRestTiles(): boolean {
+    logger.info(
+      `残りの山の牌：${this.currentRoundHand.table.restTilesCount}枚`
+    );
+
+    return this.currentRoundHand.table.restTilesCount > 0;
+  }
+
+  incrementPlayerIndex(): void {
+    let index = this._playerIndex;
+    this._playerIndex = index + 1 > 3 ? 0 : index + 1;
   }
 
   validateForStart(): boolean {
@@ -69,7 +99,7 @@ export class Game {
     dice.roll();
     dice2.roll();
 
-    logger.info(`サイコロを振りました: ${dice.toEmoji()} ${dice2.toEmoji()} `);
+    logger.debug(`サイコロを振りました: ${dice.toEmoji()} ${dice2.toEmoji()} `);
 
     return dice.num + dice2.num;
   }
@@ -79,10 +109,11 @@ export class Game {
   }
 
   buildWalls(): void {
-    this._table.washTiles();
-    this._table.buildWalls();
+    this.currentRoundHand.table.washTiles();
+    this.currentRoundHand.table.buildWalls();
   }
 
+  // 起家決め
   pickUpDealer(): void {
     this._dealer = this.pickUpPlayerAtRandom();
     logger.info(`仮親：${this.dealer.name}`);
@@ -99,17 +130,24 @@ export class Game {
     this.currentRound.hands.push(new GameRoundHand());
   }
 
-  showStatus(
+  status(
     option: { round: boolean; player: boolean; dora: boolean } | null = null
-  ): void {
-    let label = "";
+  ): string {
+    const label: string[] = [];
 
     option ??= { round: true, player: true, dora: true };
 
     if (option.round) {
-      label += `${WindsLabel[this._rounds.length - 1]}${
-        this.currentRound.hands.length
-      }局 `;
+      label.push(
+        `${WindsLabel[this._rounds.length - 1]}${
+          this.currentRound.hands.length
+        }局`
+      );
+    }
+
+    if (option.dora) {
+      const dora = this.currentRoundHand.table.deadWall.dora;
+      label.push(`ドラ:${toMoji(dora)}`);
     }
 
     if (option.player) {
@@ -118,44 +156,53 @@ export class Game {
         playerLabelList.push(`${wind}家: ${player.name}`);
       });
 
-      label += playerLabelList.join(" ") + " ";
+      label.push(playerLabelList.join(", "));
     }
 
-    if (option.dora) {
-      const dora = this.table.deadWall.dora;
-      label += `ドラ: ${toMoji(dora)}`;
-    }
+    return label.join(", ");
+  }
+
+  showStatus(
+    option: { round: boolean; player: boolean; dora: boolean } | null = null
+  ): void {
+    const label = this.status(option);
 
     if (label.length > 0) {
       logger.info(label);
     }
   }
 
+  nextRoundHand(): void {
+    this.createGameRoundHand();
+    this.startHand();
+
+    LogEvent(this.status());
+  }
+
   // 半荘開始
-  start() {
+  start(): void {
     logger.info("半荘開始");
 
     if (!this.validateForStart()) {
       return;
     }
 
-    // 親決め
+    // 起家決め
     this.pickUpDealer();
 
     // 東場生成
     this.createGameRound();
-
-    // 第1局生成
-    this.createGameRoundHand();
   }
 
   startHand(): void {
+    this.players.map((player) => player.init());
+
     this.buildWalls(); // 牌の山を積む
 
     this.rollDices(); // サイコロを振る
 
     // todo サイコロを振っているが王牌と無関係
-    this._table.makeDeadWall();
+    this.currentRoundHand.table.makeDeadWall();
 
     this.dealTilesToPlayers(); // 配牌
   }
@@ -172,7 +219,7 @@ export class Game {
   }
 
   dealTile(): 牌 {
-    const tile = this._table.pickTile();
+    const tile = this.currentRoundHand.table.pickTile();
     return tile;
   }
 
