@@ -16,7 +16,7 @@ export class Game {
   private _playerIndex: number = 0;
 
   constructor() {
-    logger.info(`半荘が作成されました`);
+    logger.debug(`半荘が作成されました`);
   }
 
   get players(): Array<Player> {
@@ -116,10 +116,10 @@ export class Game {
   // 起家決め
   pickUpDealer(): void {
     this._dealer = this.pickUpPlayerAtRandom();
-    logger.info(`仮親：${this.dealer.name}`);
+    logger.debug(`仮親：${this.dealer.name}`);
 
     this._dealer = this.pickUpPlayerAtRandom();
-    logger.info(`親：${this.dealer.name}`);
+    logger.debug(`親：${this.dealer.name}`);
   }
 
   createGameRound(): void {
@@ -249,6 +249,6 @@ export class Game {
 
     this._players.push(player);
 
-    logger.info(`${player.name}が参加しました`);
+    logger.debug(`${player.name}が参加しました`);
   }
 }

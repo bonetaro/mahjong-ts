@@ -1,6 +1,7 @@
 import { logger } from "../logging";
 import { rl } from "../readline";
 import { 牌 } from "./Types";
+import { Game } from "./Game";
 import { Player } from "./Player";
 import { playerAction, otherPlayersAction } from "./PlayerAction";
 
@@ -120,4 +121,44 @@ export const askOtherPlayers = async (
       }
     );
   });
+};
+
+export const askPlayerLoop = async (
+  player: Player
+): Promise<PlayerAskResult> => {
+  let result: PlayerAskResult;
+
+  while (true) {
+    result = await askPlayer(player);
+    if (result.isValid) {
+      return result;
+    }
+
+    logger.error("無効な操作");
+  }
+};
+
+export const askOtherPlayersLoop = async (
+  game: Game,
+  discard: 牌
+): Promise<OtherPlayersAskResult> => {
+  let result: OtherPlayersAskResult;
+
+  while (true) {
+    result = await askOtherPlayers(game.otherPlayers, discard);
+
+    if (result.ron) {
+      return result;
+    }
+
+    if (result.chi) {
+      // todo
+    }
+    if (result.pon) {
+      // todo
+    }
+    if (result.kan) {
+      // todo
+    }
+  }
 };

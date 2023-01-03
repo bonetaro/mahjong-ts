@@ -1,51 +1,7 @@
 import { LogEvent, logger } from "./logging";
 import { Game } from "./lib/Game";
 import { Player } from "./lib/Player";
-import { 牌 } from "./lib/Types";
-import {
-  askPlayer,
-  askOtherPlayers,
-  PlayerAskResult,
-  OtherPlayersAskResult,
-} from "./lib/AskPlayer";
-
-const askPlayerLoop = async (player: Player): Promise<PlayerAskResult> => {
-  let result: PlayerAskResult;
-
-  while (true) {
-    result = await askPlayer(player);
-    if (result.isValid) {
-      return result;
-    }
-
-    logger.error("無効な操作");
-  }
-};
-
-const askOtherPlayersLoop = async (
-  game: Game,
-  discard: 牌
-): Promise<OtherPlayersAskResult> => {
-  let result: OtherPlayersAskResult;
-
-  while (true) {
-    result = await askOtherPlayers(game.otherPlayers, discard);
-
-    if (result.ron) {
-      return result;
-    }
-
-    if (result.chi) {
-      // todo
-    }
-    if (result.pon) {
-      // todo
-    }
-    if (result.kan) {
-      // todo
-    }
-  }
-};
+import { askPlayerLoop, askOtherPlayersLoop } from "./lib/AskPlayer";
 
 const gameRoundHandLoop = async (game: Game) => {
   let player = game.currentPlayer;
