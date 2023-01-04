@@ -1,31 +1,22 @@
 import { Game } from "../src/lib/Game";
 import { Player } from "../src/lib/Player";
 
-const game = new Game();
-game.setPlayers([
+const players = [
   new Player("player1"),
   new Player("player2"),
   new Player("player3"),
   new Player("player4"),
-]);
+];
+
+const game = new Game(players);
 game.start();
-game.startHand();
-game.buildWalls();
 
 const allTilesCount = 136;
+const dealedTiles = 13 * 4;
+const deadWallTiles = 7 * 2;
 
-test(`initialized tiles is ${allTilesCount}.`, () => {
-  expect(game.restTilesCount).toBe(136);
-});
-
-const dealedTilesCount = 13;
-test(`deal tiles is ${dealedTilesCount}.`, () => {
-  const dealedTiles = game.dealTiles(dealedTilesCount);
-  expect(dealedTiles.length).toBe(dealedTilesCount);
-});
-
-test(`rest tiles is ${
-  allTilesCount - dealedTilesCount
-} after deal ${dealedTilesCount} tiles.`, () => {
-  expect(game.restTilesCount).toBe(allTilesCount - dealedTilesCount);
+test(`tiles is ${
+  allTilesCount - dealedTiles - deadWallTiles
+} after game started.`, () => {
+  expect(game.restTilesCount).toBe(allTilesCount - dealedTiles - deadWallTiles);
 });
