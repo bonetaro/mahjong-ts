@@ -11,25 +11,37 @@ export class PlayerAskResult {
   private _kan: boolean = false;
   private _tsumo: boolean = false;
 
-  get isValid(): boolean {
-    return this._discard || this._kan || this._tsumo;
+  get kan(): boolean {
+    return this._kan;
   }
 
-  get tile(): 牌 {
-    return this._tile;
+  get tsumo(): boolean {
+    return this._tsumo;
   }
 
-  set discard(tile: 牌) {
+  get discard(): boolean {
+    return this._discard;
+  }
+
+  get dicardTile(): 牌 {
+    return this._discard ? this._tile : null;
+  }
+
+  isValid(): boolean {
+    return !(this._kan && !this._tsumo && !this._discard);
+  }
+
+  doDiscard(tile: 牌) {
     this._discard = true;
     this._tile = tile;
   }
 
-  set kan(tile: 牌) {
+  doKan(tile: 牌) {
     this._kan = true;
     this._tile = tile;
   }
 
-  set tsumo(tile: 牌) {
+  doTsumo(tile: 牌) {
     this._tsumo = true;
     this._tile = tile;
   }
@@ -130,7 +142,7 @@ export const askPlayerLoop = async (
 
   while (true) {
     result = await askPlayer(player);
-    if (result.isValid) {
+    if (result.isValid()) {
       return result;
     }
 
@@ -140,14 +152,15 @@ export const askPlayerLoop = async (
 
 export const askOtherPlayersLoop = async (
   game: Game,
-  discard: 牌
+  discardTile: 牌
 ): Promise<OtherPlayersAskResult> => {
   let result: OtherPlayersAskResult;
 
   while (true) {
-    result = await askOtherPlayers(game.otherPlayers, discard);
+    result = await askOtherPlayers(game.otherPlayers, discardTile);
 
     if (result.ron) {
+      // todo
       return result;
     }
 

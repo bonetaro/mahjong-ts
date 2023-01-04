@@ -13,16 +13,21 @@ export class GameRoundHand {
     return this._table;
   }
 
-  TsumoEnd(player: Player) {
+  tsumoEnd(player: Player) {
     logger.info(`${player.name} ツモ和了`);
     logger.info(player.handStatus);
   }
 
-  RonEnd(winner: Player, looser: Player, tile: 牌) {
+  ronEnd(winner: Player, looser: Player, tile: 牌) {
     logger.info(
       `${looser.name}が${winner.name}に${toMoji(tile)}で振り込みました`
     );
     logger.info(`${winner.name}の手配 ${winner.handStatus}`);
+  }
+
+  // 局の終了
+  end(): void {
+    LogEvent("局終了");
   }
 
   drawEnd(): void {

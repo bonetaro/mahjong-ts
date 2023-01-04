@@ -52,7 +52,7 @@ export class Player {
     return null;
   }
 
-  discard(num: number) {
+  discard(num: number): 牌 {
     const tile = this._hand[num];
 
     this._discardTiles.push(tile);

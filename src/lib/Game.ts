@@ -15,7 +15,9 @@ export class Game {
   private _rounds: GameRound[] = [];
   private _playerIndex: number = 0;
 
-  constructor() {
+  constructor(players: Player[]) {
+    this.setPlayers(players);
+
     logger.debug(`半荘が作成されました`);
   }
 
@@ -162,21 +164,11 @@ export class Game {
     return label.join(", ");
   }
 
-  showStatus(
-    option: { round: boolean; player: boolean; dora: boolean } | null = null
-  ): void {
-    const label = this.status(option);
-
-    if (label.length > 0) {
-      logger.info(label);
-    }
-  }
-
   nextRoundHand(): void {
+    this.endHand();
+
     this.createGameRoundHand();
     this.startHand();
-
-    LogEvent(this.status());
   }
 
   // 半荘開始
@@ -192,7 +184,13 @@ export class Game {
 
     // 東場生成
     this.createGameRound();
+
+    // 東場第1局
+    this.startHand();
   }
+
+  // 半荘終了
+  end(): void {}
 
   startHand(): void {
     this.players.map((player) => player.init());
@@ -204,7 +202,13 @@ export class Game {
     // todo サイコロを振っているが王牌と無関係
     this.currentRoundHand.table.makeDeadWall();
 
+    LogEvent(this.status());
+
     this.dealTilesToPlayers(); // 配牌
+  }
+
+  endHand(): void {
+    this.currentRoundHand.end();
   }
 
   //牌を配る

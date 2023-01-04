@@ -1,36 +1,37 @@
-import { LogEvent, logger } from "./logging";
 import { Game } from "./lib/Game";
 import { Player } from "./lib/Player";
 import { askPlayerLoop, askOtherPlayersLoop } from "./lib/AskPlayer";
 
 const gameRoundHandLoop = async (game: Game) => {
   let player = game.currentPlayer;
+
+  // 親の第1ツモ
   player.drawTile(game.pickTile());
 
   while (true) {
+    // 牌をツモったプレイヤーのターン
     const playerResult = await askPlayerLoop(player);
-
     if (playerResult.tsumo) {
-      game.currentRoundHand.TsumoEnd(player);
+      game.currentRoundHand.tsumoEnd(player);
       return;
     }
 
+    // 牌をツモったプレイヤー以外のプレイヤーのターン
     const otherPlayersResult = await askOtherPlayersLoop(
       game,
-      playerResult.tile
+      playerResult.dicardTile
     );
-
     if (otherPlayersResult.ron) {
-      game.currentRoundHand.RonEnd(
+      game.currentRoundHand.ronEnd(
         otherPlayersResult.Player,
         player,
-        playerResult.tile
+        playerResult.dicardTile
       );
       return;
     }
 
     if (!game.hasRestTiles()) {
-      game.currentRoundHand.drawEnd();
+      game.currentRoundHand.end();
       break;
     }
 
@@ -39,34 +40,25 @@ const gameRoundHandLoop = async (game: Game) => {
   }
 };
 
-const game = new Game();
+const main = async (players: Player[]) => {
+  const game = new Game(players);
+  game.start();
 
-game.setPlayers([
+  while (true) {
+    await gameRoundHandLoop(game);
+
+    if (game.isLastRoundHand()) {
+      break;
+    }
+    game.nextRoundHand();
+  }
+
+  game.end();
+};
+
+main([
   new Player("Aさん"),
   new Player("Bさん"),
   new Player("Cさん"),
   new Player("Dさん"),
 ]);
-
-// 半荘開始
-game.start();
-
-// 東場第1局
-game.startHand();
-
-LogEvent(game.status());
-
-// メインループ
-const main = async (game: Game) => {
-  while (true) {
-    await gameRoundHandLoop(game); // 局のループ
-
-    if (game.isLastRoundHand()) {
-      break;
-    }
-
-    game.nextRoundHand();
-  }
-};
-
-main(game);

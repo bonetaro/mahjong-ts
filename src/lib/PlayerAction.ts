@@ -21,22 +21,23 @@ export const playerAction = (
   const result = new PlayerAskResult();
 
   if (isSelectNumber(answer)) {
-    result.discard = player.discard(Number(answer));
+    result.doDiscard(player.discard(Number(answer)));
     resolve(result);
   }
 
   const tile = player.hand.tiles[Number(answer)];
   switch (answer.toLowerCase()) {
     case "k":
-      result.kan = tile;
+      result.doKan(tile);
       break;
     case "t":
-      result.tsumo = tile;
+      result.doTsumo(tile);
       break;
     default:
-      resolve(result);
       break;
   }
+
+  resolve(result);
 };
 
 // todo 鳴き　要実装
