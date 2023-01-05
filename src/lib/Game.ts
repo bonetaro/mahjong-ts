@@ -1,12 +1,23 @@
 import { List } from "linqts";
 import { logger, LogEvent } from "../logging";
-import { WindsLabel } from "./Constants";
+import { readCommand } from "../readline";
+import { WindsLabel, PlayerCommandType } from "./Constants";
 import { 牌 } from "./Types";
 import { toMoji } from "./Functions";
 import { Player } from "./Player";
 import { Dice } from "./Dice";
 import { GameRound } from "./GameRound";
 import { GameRoundHand } from "./GameRoundHand";
+import {
+  PlayerCommand,
+  OtherPlayersCommand,
+  AnKanCommand,
+  KaKanCommand,
+  TsumoCommand,
+  RonCommand,
+  DiscardCommand,
+} from "./Command";
+import { anyKeyAsk, askPlayer, askOtherPlayers } from "./AskPlayer";
 
 export class Game {
   private _dices: [Dice, Dice] = [new Dice(), new Dice()];
@@ -56,20 +67,15 @@ export class Game {
     return this.currentPlayer;
   }
 
+  nextRoundHand = async () => {
+    await anyKeyAsk("次の局に進みます...");
+
+    this.createGameRoundHand();
+    this.startHand();
+  };
+
   isLastRoundHand(): boolean {
     return this._rounds.length == 2 && this.currentRound.hands.length == 4;
-  }
-
-  pickTile(): 牌 {
-    return this.currentRoundHand.table.pickTile();
-  }
-
-  hasRestTiles(): boolean {
-    logger.info(
-      `残りの山の牌：${this.currentRoundHand.table.restTilesCount}枚`
-    );
-
-    return this.currentRoundHand.table.restTilesCount > 0;
   }
 
   incrementPlayerIndex(): void {
@@ -132,6 +138,12 @@ export class Game {
     this.currentRound.hands.push(new GameRoundHand());
   }
 
+  roundHandName(): string {
+    return `${WindsLabel[this._rounds.length - 1]}${
+      this.currentRound.hands.length
+    }局`;
+  }
+
   status(
     option: { round: boolean; player: boolean; dora: boolean } | null = null
   ): string {
@@ -140,11 +152,7 @@ export class Game {
     option ??= { round: true, player: true, dora: true };
 
     if (option.round) {
-      label.push(
-        `${WindsLabel[this._rounds.length - 1]}${
-          this.currentRound.hands.length
-        }局`
-      );
+      label.push(this.roundHandName());
     }
 
     if (option.dora) {
@@ -164,15 +172,8 @@ export class Game {
     return label.join(", ");
   }
 
-  nextRoundHand(): void {
-    this.endHand();
-
-    this.createGameRoundHand();
-    this.startHand();
-  }
-
   // 半荘開始
-  start(): void {
+  start(): GameRoundHand {
     logger.info("半荘開始");
 
     if (!this.validateForStart()) {
@@ -190,7 +191,9 @@ export class Game {
   }
 
   // 半荘終了
-  end(): void {}
+  end(): void {
+    logger.info("半荘終了");
+  }
 
   startHand(): void {
     this.players.map((player) => player.init());
@@ -207,8 +210,8 @@ export class Game {
     this.dealTilesToPlayers(); // 配牌
   }
 
-  endHand(): void {
-    this.currentRoundHand.end();
+  endRoundHand(): void {
+    LogEvent(`${this.roundHandName()} 終了`);
   }
 
   //牌を配る
@@ -255,4 +258,89 @@ export class Game {
 
     logger.debug(`${player.name}が参加しました`);
   }
+
+  roundHandLoop = async () => {
+    const roundHand = this.currentRoundHand;
+
+    let player = this.currentPlayer;
+
+    // 親の第1ツモ
+    player.drawTile(roundHand.pickTile());
+
+    let playerCommand: PlayerCommand;
+    let otherPlayersCommand: OtherPlayersCommand;
+
+    while (true) {
+      // 牌をツモったプレイヤーのターン
+      while (true) {
+        playerCommand = await askPlayer(player);
+
+        switch (playerCommand.type) {
+          case PlayerCommandType.Kan:
+            if (playerCommand instanceof AnKanCommand) {
+            }
+
+            if (playerCommand instanceof KaKanCommand) {
+              // todo 槍槓できる場合
+              otherPlayersCommand = await askOtherPlayers(
+                this.otherPlayers,
+                (playerCommand as KaKanCommand).tile,
+                player
+              );
+
+              if (otherPlayersCommand.type === PlayerCommandType.Ron) {
+                roundHand.ronEnd(otherPlayersCommand as RonCommand);
+                return;
+              }
+            }
+
+            // player.drawTile() // 王牌からのツモ
+            continue;
+          case PlayerCommandType.Tsumo:
+            roundHand.tsumoEnd(playerCommand as TsumoCommand);
+            return;
+        }
+
+        // 牌をすてた(DiscardCommand)
+        break;
+      }
+
+      // 牌をツモったプレイヤー以外のプレイヤーのターン
+      while (true) {
+        otherPlayersCommand = await askOtherPlayers(
+          this.otherPlayers,
+          (playerCommand as DiscardCommand).tile,
+          player
+        );
+
+        switch (otherPlayersCommand.type) {
+          case PlayerCommandType.Chi:
+          case PlayerCommandType.Pon:
+          case PlayerCommandType.Kan:
+            player = otherPlayersCommand.who;
+
+            let num = await readCommand(
+              `${player.name} 捨て牌選択[0-${player.hand.tiles.length}]`
+            );
+
+            continue;
+        }
+
+        break;
+      }
+
+      if (otherPlayersCommand.type === PlayerCommandType.Ron) {
+        roundHand.ronEnd(otherPlayersCommand as RonCommand);
+        return;
+      }
+
+      if (!roundHand.hasRestTiles()) {
+        roundHand.drawEnd();
+        return;
+      }
+
+      player = this.nextPlayer;
+      player.drawTile(roundHand.pickTile());
+    }
+  };
 }

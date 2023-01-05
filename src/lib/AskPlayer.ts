@@ -1,120 +1,56 @@
 import { logger } from "../logging";
-import { rl } from "../readline";
+import { readCommand } from "../readline";
+import { isRangeNumber } from "./Functions";
 import { 牌 } from "./Types";
-import { Game } from "./Game";
 import { Player } from "./Player";
-import { playerAction, otherPlayersAction } from "./PlayerAction";
+import {
+  AnKanCommand,
+  ChiCommand,
+  DiscardCommand,
+  KaKanCommand,
+  DaiMinKanCommand,
+  NothingCommand,
+  OtherPlayersCommand,
+  PlayerCommand,
+  PonCommand,
+  RonCommand,
+  TsumoCommand,
+} from "./Command";
 
-export class PlayerAskResult {
-  private _tile: 牌;
-  private _discard: boolean = false;
-  private _kan: boolean = false;
-  private _tsumo: boolean = false;
+export const anyKeyAsk = async (msg: string): Promise<string> => {
+  return readCommand(`${msg} [press any key]`);
+};
 
-  get kan(): boolean {
-    return this._kan;
+export const askPlayer = async (player: Player): Promise<PlayerCommand> => {
+  const answer = await readCommand(
+    `${player.name} 捨て牌選択[0-13] ツモ[(t)umo] カン[(k)an] >\n`,
+    (input) => isRangeNumber(input, 13) || ["t", "k"].includes(input)
+  );
+
+  if (isRangeNumber(answer, 13)) {
+    const discardTile = player.discard(Number(answer));
+    return new DiscardCommand(player, discardTile);
   }
 
-  get tsumo(): boolean {
-    return this._tsumo;
+  switch (answer) {
+    case "t":
+      return new TsumoCommand(player);
+    case "k":
+      // 暗カン or 加カン
+      const answer = await readCommand(
+        `${player.name} 選択[0-3] >\n`,
+        (input) => isRangeNumber(input, 3)
+      );
   }
 
-  get discard(): boolean {
-    return this._discard;
-  }
-
-  get dicardTile(): 牌 {
-    return this._discard ? this._tile : null;
-  }
-
-  isValid(): boolean {
-    return !(this._kan && !this._tsumo && !this._discard);
-  }
-
-  doDiscard(tile: 牌) {
-    this._discard = true;
-    this._tile = tile;
-  }
-
-  doKan(tile: 牌) {
-    this._kan = true;
-    this._tile = tile;
-  }
-
-  doTsumo(tile: 牌) {
-    this._tsumo = true;
-    this._tile = tile;
-  }
-}
-
-export class OtherPlayersAskResult {
-  private _tile: 牌;
-  private _kan: boolean = false;
-  private _pon: boolean = false;
-  private _ron: boolean = false;
-  private _chi: boolean = false;
-  private _player: Player;
-
-  get Player(): Player {
-    return this._player;
-  }
-
-  get kan(): boolean {
-    return this._kan;
-  }
-
-  get pon(): boolean {
-    return this._pon;
-  }
-
-  get chi(): boolean {
-    return this._chi;
-  }
-
-  get ron(): boolean {
-    return this._ron;
-  }
-
-  doKan(tile: 牌, player: Player) {
-    this._kan = true;
-    this._tile = tile;
-    this._player = player;
-  }
-
-  doPon(tile: 牌, player: Player) {
-    this._pon = true;
-    this._tile = tile;
-    this._player = player;
-  }
-
-  doRon(tile: 牌, player: Player) {
-    this._ron = true;
-    this._tile = tile;
-    this._player = player;
-  }
-
-  doChi(tile: 牌, player: Player) {
-    this._chi = true;
-    this._tile = tile;
-    this._player = player;
-  }
-}
-
-export const askPlayer = async (player: Player): Promise<PlayerAskResult> => {
-  return new Promise((resolve, reject) => {
-    rl.question(
-      `> ${player.name} 捨て牌選択[0-13] ツモ[(t)umo] カン[(k)an]\n`,
-      (answer) => {
-        return playerAction(player, answer, resolve, reject);
-      }
-    );
-  });
+  throw new Error(answer);
 };
 
 export const askOtherPlayers = async (
   players: Player[],
-  tile: 牌
-): Promise<OtherPlayersAskResult> => {
+  tile: 牌,
+  player: Player
+): Promise<OtherPlayersCommand> => {
   logger.info(
     "ほかのプレイヤーたち\n" +
       players
@@ -125,53 +61,30 @@ export const askOtherPlayers = async (
         .join("\n")
   );
 
-  return new Promise((resolve, reject) => {
-    rl.question(
-      `> ロン[(r)on] ポン[(p)on] カン[(k)an] チー[(c)hi] 何もしない[rpkcq以外]\n`,
-      (answer) => {
-        return otherPlayersAction(players, answer, tile, resolve, reject);
-      }
+  const action = await readCommand(
+    `> ロン[(r)on] ポン[(p)on] カン[(k)an] チー[(c)hi] 何もしない[rpkcq以外]\n`
+  );
+
+  let command = new NothingCommand();
+
+  if (["p", "k", "c", "r"].includes(action)) {
+    const whoNum = await readCommand(`> 誰が?[0-3]\n`, (input) =>
+      isRangeNumber(input, 3)
     );
-  });
-};
 
-export const askPlayerLoop = async (
-  player: Player
-): Promise<PlayerAskResult> => {
-  let result: PlayerAskResult;
-
-  while (true) {
-    result = await askPlayer(player);
-    if (result.isValid()) {
-      return result;
-    }
-
-    logger.error("無効な操作");
-  }
-};
-
-export const askOtherPlayersLoop = async (
-  game: Game,
-  discardTile: 牌
-): Promise<OtherPlayersAskResult> => {
-  let result: OtherPlayersAskResult;
-
-  while (true) {
-    result = await askOtherPlayers(game.otherPlayers, discardTile);
-
-    if (result.ron) {
-      // todo
-      return result;
-    }
-
-    if (result.chi) {
-      // todo
-    }
-    if (result.pon) {
-      // todo
-    }
-    if (result.kan) {
-      // todo
+    switch (action.toLowerCase()) {
+      case "p":
+        command = new PonCommand(player, players[Number(whoNum)], tile);
+      case "k":
+        command = new DaiMinKanCommand(player, players[Number(whoNum)], tile);
+      case "c":
+        command = new ChiCommand(player, players[Number(whoNum)], tile);
+      case "r":
+        command = new RonCommand(player, players[Number(whoNum)], tile);
+      default:
+        throw new Error(action);
     }
   }
+
+  return command;
 };

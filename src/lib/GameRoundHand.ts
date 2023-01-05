@@ -1,8 +1,8 @@
 import { LogEvent, logger } from "../logging";
 import { 牌 } from "./Types";
-import { Player } from "./Player";
 import { Table } from "./Table";
 import { toMoji } from "./Functions";
+import { RonCommand, TsumoCommand } from "./Command";
 
 // 局
 export class GameRoundHand {
@@ -13,21 +13,28 @@ export class GameRoundHand {
     return this._table;
   }
 
-  tsumoEnd(player: Player) {
-    logger.info(`${player.name} ツモ和了`);
-    logger.info(player.handStatus);
+  pickTile(): 牌 {
+    return this.table.pickTile();
   }
 
-  ronEnd(winner: Player, looser: Player, tile: 牌) {
+  hasRestTiles(): boolean {
+    logger.info(`残りの山の牌：${this.table.restTilesCount}枚`);
+
+    return this.table.restTilesCount > 0;
+  }
+
+  tsumoEnd(command: TsumoCommand) {
+    logger.info(`${command.who.name} ツモ和了`);
+    logger.info(command.who.handStatus);
+  }
+
+  ronEnd(command: RonCommand) {
     logger.info(
-      `${looser.name}が${winner.name}に${toMoji(tile)}で振り込みました`
+      `${command.who.name}が${command.whom.name}に${toMoji(
+        command.tile
+      )}で振り込みました`
     );
-    logger.info(`${winner.name}の手配 ${winner.handStatus}`);
-  }
-
-  // 局の終了
-  end(): void {
-    LogEvent("局終了");
+    logger.info(`${command.who.name}の手配 ${command.who.handStatus}`);
   }
 
   drawEnd(): void {

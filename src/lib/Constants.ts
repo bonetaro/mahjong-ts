@@ -72,10 +72,11 @@ export {
   dragonSortMap,
 };
 
-export class PlayerAction {
-  static Pon: string = "pon";
-  static Kan: string = "kan";
-  static Chi: string = "chi";
-  static Tsumo: string = "tsumo";
-  static Ron: string = "ron";
+export enum PlayerCommandType {
+  discard = "discard", // 牌を捨てる
+  Pon = "pon",
+  Kan = "kan",
+  Chi = "chi",
+  Tsumo = "tsumo",
+  Ron = "ron",
 }

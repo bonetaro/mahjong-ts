@@ -267,3 +267,6 @@ export function nextTile(tile: 牌): 牌 {
     throw new Error(tile);
   }
 }
+
+export const isRangeNumber = (input: string, max: number) =>
+  input && 0 <= Number(input) && Number(input) <= max;
