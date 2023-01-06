@@ -291,7 +291,6 @@ export class Game {
           case PlayerCommandType.Kan:
             if (playerCommand instanceof AnKanCommand) {
               (playerCommand as AnKanCommand).execute();
-              console.log(player);
             } else if (playerCommand instanceof KaKanCommand) {
               // todo 槍槓できる場合
               otherPlayersCommand = await askOtherPlayers(

@@ -3,13 +3,17 @@ import { Player } from "./Player";
 import { 牌 } from "./Types";
 
 export abstract class Mentsu {
+  protected _tiles: 牌[];
+
+  get tiles(): 牌[] {
+    return this._tiles;
+  }
+
   abstract status(): string;
 }
 
 // 暗槓
 export class AnKanMentsu extends Mentsu {
-  private _tiles: 牌[];
-
   constructor(tiles: 牌[]) {
     super();
 
@@ -43,7 +47,6 @@ export class AnKouMentsu extends Mentsu {
 export class OpenMentsu extends Mentsu {
   private _fromPlayer: Player;
   private _tile: 牌;
-  private _tiles: 牌[];
 
   constructor(tile: 牌, tiles: 牌[], player: Player) {
     super();

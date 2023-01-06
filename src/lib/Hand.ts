@@ -33,7 +33,9 @@ export class Hand {
       " " +
       `[${toKanjiFromArray(this.tiles)}]` +
       " 副露牌" +
-      this._openMentsuList.map((m) => m.status()).join("|")
+      this._openMentsuList
+        .map((m) => `${m.status()} [${toKanjiFromArray(m.tiles)}]`)
+        .join("|")
     );
   }
 
