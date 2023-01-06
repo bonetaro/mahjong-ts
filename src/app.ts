@@ -1,9 +1,12 @@
-import { Game } from "./lib/Game";
+import { initCheatGame, initGame } from "./initGame";
+import { GameOption } from "./lib/GameOption";
 import { Player } from "./lib/Player";
 
-const main = async (players: Player[]) => {
-  const game = new Game(players);
+const main = async (players: Player[], option?: GameOption) => {
+  const game = option?.cheat ? initCheatGame(players) : initGame(players);
   game.start();
+
+  game.startRoundHand();
 
   while (true) {
     await game.roundHandLoop();
@@ -20,9 +23,14 @@ const main = async (players: Player[]) => {
   game.end();
 };
 
-main([
+const players = [
   new Player("Aさん"),
   new Player("Bさん"),
   new Player("Cさん"),
   new Player("Dさん"),
-]);
+];
+
+const option: GameOption = new GameOption();
+option.cheat = true;
+
+main(players, option);

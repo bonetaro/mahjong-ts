@@ -1,13 +1,17 @@
 import { LogEvent, logger } from "../logging";
 import { 牌 } from "./Types";
-import { Table } from "./Table";
+import { CheatTable, Table } from "./Table";
 import { toMoji } from "./Functions";
 import { RonCommand, TsumoCommand } from "./Command";
 
 // 局
 export class GameRoundHand {
   private _isDraw: boolean = false; // 流局
-  private _table: Table = new Table();
+  protected _table: Table = new Table();
+
+  constructor() {
+    logger.debug("gameRoundHand create");
+  }
 
   get table(): Table {
     return this._table;
@@ -41,5 +45,15 @@ export class GameRoundHand {
     this._isDraw = true;
 
     LogEvent("流局");
+  }
+}
+
+export class CheatGameRoundHand extends GameRoundHand {
+  set table(table: CheatTable) {
+    this._table = table;
+  }
+
+  get table(): Table {
+    return this._table;
   }
 }

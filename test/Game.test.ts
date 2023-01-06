@@ -9,7 +9,9 @@ const players = [
 ];
 
 const game = new Game(players);
+game.init();
 game.start();
+game.startRoundHand();
 
 const allTilesCount = 136;
 const dealedTiles = 13 * 4;

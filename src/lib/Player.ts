@@ -6,7 +6,7 @@ import { toEmojiFromArray, toKanjiFromArray, toMoji } from "./Functions";
 
 export class Player {
   private _name: string;
-  private _hand: Array<牌> = [];
+  private _hand: Hand;
   private _discardTiles: Array<牌> = [];
 
   constructor(name: string) {
@@ -18,11 +18,13 @@ export class Player {
   }
 
   get hand(): Hand {
-    return new Hand(this._hand);
+    return this._hand;
   }
 
   init(): void {
-    this._hand = [];
+    logger.debug("player init");
+
+    this._hand = new Hand();
   }
 
   show(): void {
@@ -33,11 +35,7 @@ export class Player {
   }
 
   get handStatus(): string {
-    return (
-      `[${toEmojiFromArray(this.hand.tiles)}]` +
-      " " +
-      `[${toKanjiFromArray(this.hand.tiles)}]`
-    );
+    return this._hand.status;
   }
 
   get discardStatus(): string {
@@ -48,17 +46,13 @@ export class Player {
     );
   }
 
-  meld(num: number, action: string): 牌 {
-    return null;
-  }
-
-  discard(num: number): 牌 {
-    const tile = this._hand[num];
+  doDiscard(num: number): 牌 {
+    const tile = this._hand.tiles[num];
 
     this._discardTiles.push(tile);
-    this._hand = new List(this._hand)
-      .Where((i, index) => index != num)
-      .ToArray();
+    this._hand = new Hand(
+      new List(this._hand.tiles).Where((_, index) => index != num).ToArray()
+    );
 
     logger.info(`${this.name}が${toMoji(tile)}を捨てました`);
 
@@ -66,18 +60,13 @@ export class Player {
   }
 
   drawTile(tile: 牌) {
-    this._hand.push(tile);
+    this._hand.tiles.push(tile);
 
-    logger.info(`${this.name}が${toMoji(tile)}をツモりました`, {
-      tiles: this.hand.tiles.join(""),
-      length: this.hand.tiles.length,
-      emoji: toEmojiFromArray(this.hand.tiles),
-      kanji: toKanjiFromArray(this.hand.tiles),
-    });
+    logger.info(`${this.name}が${toMoji(tile)}をツモりました`);
   }
 
   drawTiles(tiles: Array<牌>) {
-    tiles.forEach((tile) => this._hand.push(tile));
+    tiles.forEach((tile) => this._hand.tiles.push(tile));
 
     logger.debug(`${this.name}が牌を${tiles.length}枚とりました`, {
       tiles: this.hand.tiles,
@@ -86,7 +75,7 @@ export class Player {
   }
 
   sortHandTiles(): void {
-    this._hand = new Hand(this._hand).sort();
+    this._hand = new Hand(this._hand.sort());
 
     logger.debug(`${this.name}が牌を並び替えました`, {
       tiles: this.hand.tiles.join(""),

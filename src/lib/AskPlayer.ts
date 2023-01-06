@@ -1,13 +1,11 @@
 import { logger } from "../logging";
 import { readCommand } from "../readline";
-import { isRangeNumber } from "./Functions";
+import { isRangeNumber, toEmojiFromArray } from "./Functions";
 import { 牌 } from "./Types";
 import { Player } from "./Player";
 import {
-  AnKanCommand,
   ChiCommand,
   DiscardCommand,
-  KaKanCommand,
   DaiMinKanCommand,
   NothingCommand,
   OtherPlayersCommand,
@@ -15,20 +13,86 @@ import {
   PonCommand,
   RonCommand,
   TsumoCommand,
+  AnKanCommand,
 } from "./Command";
+import { MentsuCalculator } from "./MetsuCalculator";
+import { PlayerCommandType } from "./Constants";
+import { CommandCreator } from "./CommandCreator";
+import { Hand } from "./Hand";
 
 export const anyKeyAsk = async (msg: string): Promise<string> => {
   return readCommand(`${msg} [press any key]`);
 };
 
+class CommandAranger {
+  private _hand: Hand;
+  private _calculator: MentsuCalculator;
+
+  constructor(hand: Hand) {
+    this._hand = hand;
+    this._calculator = new MentsuCalculator(this._hand);
+  }
+
+  calculate(): MentsuCalculator {
+    return this._calculator;
+  }
+
+  parse = (): Map<PlayerCommandType, 牌[]> => {
+    const commandList: PlayerCommandType[] = [];
+    const map = new Map<PlayerCommandType, 牌[]>();
+
+    commandList.push(PlayerCommandType.Discard);
+    map.set(PlayerCommandType.Discard, this._hand.tiles);
+
+    // todo ツモ
+
+    const ankanCandidateTiles = this._calculator.ankanCandidate();
+    if (ankanCandidateTiles.length > 0) {
+      commandList.push(PlayerCommandType.Kan);
+      map.set(PlayerCommandType.Kan, ankanCandidateTiles);
+    }
+
+    // todo 加槓
+
+    return map;
+  };
+}
+
+const askKan = async (ankanCandidateTiles: 牌[]): Promise<牌> => {
+  let ankanTile: 牌;
+
+  if (ankanCandidateTiles.length === 1) {
+    ankanTile = ankanCandidateTiles[0];
+  } else {
+    const answer = await readCommand(
+      `${toEmojiFromArray(ankanCandidateTiles)} どの牌を槓しますか？ [0-${
+        ankanCandidateTiles.length - 1
+      }] >\n`,
+      (input) =>
+        input &&
+        0 <= Number(input) &&
+        Number(input) < ankanCandidateTiles.length
+    );
+    ankanTile = ankanCandidateTiles[Number(answer)];
+  }
+
+  return ankanTile;
+};
+
 export const askPlayer = async (player: Player): Promise<PlayerCommand> => {
+  const result = new CommandAranger(player.hand).parse();
+  const commandText = new CommandCreator().createText(
+    Array.from(result.keys()),
+    player.hand
+  );
+
   const answer = await readCommand(
-    `${player.name} 捨て牌選択[0-13] ツモ[(t)umo] カン[(k)an] >\n`,
+    `${commandText} > `,
     (input) => isRangeNumber(input, 13) || ["t", "k"].includes(input)
   );
 
   if (isRangeNumber(answer, 13)) {
-    const discardTile = player.discard(Number(answer));
+    const discardTile = player.doDiscard(Number(answer));
     return new DiscardCommand(player, discardTile);
   }
 
@@ -37,10 +101,8 @@ export const askPlayer = async (player: Player): Promise<PlayerCommand> => {
       return new TsumoCommand(player);
     case "k":
       // 暗カン or 加カン
-      const answer = await readCommand(
-        `${player.name} 選択[0-3] >\n`,
-        (input) => isRangeNumber(input, 3)
-      );
+      const ankanTile = await askKan(result.get(PlayerCommandType.Kan));
+      return new AnKanCommand(player, ankanTile);
   }
 
   throw new Error(answer);
@@ -75,15 +137,21 @@ export const askOtherPlayers = async (
     switch (action.toLowerCase()) {
       case "p":
         command = new PonCommand(player, players[Number(whoNum)], tile);
+        break;
       case "k":
         command = new DaiMinKanCommand(player, players[Number(whoNum)], tile);
+        break;
       case "c":
         command = new ChiCommand(player, players[Number(whoNum)], tile);
+        break;
       case "r":
         command = new RonCommand(player, players[Number(whoNum)], tile);
+        break;
       default:
         throw new Error(action);
     }
+
+    command.execute();
   }
 
   return command;

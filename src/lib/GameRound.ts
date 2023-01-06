@@ -1,4 +1,5 @@
 import { List } from "linqts";
+import { logger } from "../logging";
 import { GameRoundHand } from "./GameRoundHand";
 
 // 場（東場、南場）
@@ -6,7 +7,7 @@ export class GameRound {
   private _hands: GameRoundHand[] = [];
 
   constructor() {
-    this._hands.push(new GameRoundHand());
+    logger.debug("gameRound create");
   }
 
   get hands(): GameRoundHand[] {

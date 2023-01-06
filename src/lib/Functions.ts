@@ -30,8 +30,7 @@ import {
   三元牌,
   字牌,
 } from "./Types";
-import { TileTypeSort, WindsSort, DragonsSort } from "./Constants";
-import { List } from "linqts";
+import { WindsSort, DragonsSort } from "./Constants";
 
 export function toTile(value: unknown): 牌 {
   if (isSuits(value) || isHonours(value)) return value;
@@ -164,15 +163,20 @@ export function ToHonours(value: unknown): 字牌 {
 }
 
 export function toEmojiFromArray(values: Array<牌>): string {
-  return values.map((v) => toEmoji(v)).join("");
+  return values.map((v) => toEmoji(v)).join(" ");
 }
 
-export function toEmoji(value: 牌): string {
+export function toEmoji(value: 牌, hide: boolean = false): string {
   const manzuList = ["🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏"];
   const pinzuList = ["🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟", "🀠", "🀡"];
   const souzuList = ["🀐", "🀑", "🀒", "🀓", "🀔", "🀕", "🀖", "🀗", "🀘"];
   const kazehaiList: any = { e: "🀀", s: "🀁", w: "🀂", n: "🀃" };
   const sangenpaiList: any = { w: "🀆", g: "🀅", r: "🀄" };
+  const hideTile: string = "🀫";
+
+  if (hide) {
+    return hideTile;
+  }
 
   if (isManzu(value)) {
     return manzuList[Number(value[0]) - 1];
@@ -270,3 +274,7 @@ export function nextTile(tile: 牌): 牌 {
 
 export const isRangeNumber = (input: string, max: number) =>
   input && 0 <= Number(input) && Number(input) <= max;
+
+export const splitBy2Chars = (text: string): string[] => {
+  return text.match(/.{2}/g);
+};

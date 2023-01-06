@@ -10,10 +10,10 @@ export class Table {
   private _deadWall: DeadWall;
   private _walls: Array<Wall>; //牌の山
   private _initializedTiles: Array<牌> = [];
-  private _washedTiles: Array<牌> = [];
+  protected _washedTiles: Array<牌> = [];
 
   constructor() {
-    this._initializedTiles = this.initializeTiles();
+    this._initializedTiles = Table.initializeTiles();
   }
 
   get deadWall(): DeadWall {
@@ -68,7 +68,7 @@ export class Table {
   }
 
   //洗牌
-  washTiles(): void {
+  washInitializedTiles(): void {
     this._washedTiles = new List(this._initializedTiles)
       .OrderBy(() => Math.random())
       .ToArray();
@@ -76,7 +76,11 @@ export class Table {
     logger.debug("洗牌");
   }
 
-  initializeTiles(): Array<牌> {
+  static shuffleTiles(tiles: 牌[]): 牌[] {
+    return new List(tiles).OrderBy(() => Math.random()).ToArray();
+  }
+
+  static initializeTiles(): Array<牌> {
     let tiles = new List<牌>();
 
     tiles.AddRange(this.initializeSuits(ManduChar));
@@ -90,7 +94,7 @@ export class Table {
   }
 
   // 数牌を初期化
-  initializeSuits(color: 色): Array<牌> {
+  static initializeSuits(color: 色): Array<牌> {
     return Enumerable.Range(1, 9)
       .Select((n) => {
         switch (color) {
@@ -106,7 +110,7 @@ export class Table {
   }
 
   // 字牌を初期化
-  initializeHonors(): Array<牌> {
+  static initializeHonors(): Array<牌> {
     const tiles: Array<牌> = [];
     tiles.push(...this.initializeKazehai());
     tiles.push(...this.initializeSangenpai());
@@ -114,7 +118,7 @@ export class Table {
     return tiles;
   }
 
-  initializeKazehai(): Array<牌> {
+  static initializeKazehai(): Array<牌> {
     return new List(Winds)
       .Select((n) => {
         return ToKazehai(n);
@@ -122,11 +126,18 @@ export class Table {
       .ToArray();
   }
 
-  initializeSangenpai(): Array<牌> {
+  static initializeSangenpai(): Array<牌> {
     return new List(Dragons)
       .Select((n) => {
         return ToSangenpai(n);
       })
       .ToArray();
+  }
+}
+
+export class CheatTable extends Table {
+  constructor(washedTiles: 牌[]) {
+    super();
+    this._washedTiles = washedTiles;
   }
 }

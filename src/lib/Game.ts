@@ -27,9 +27,9 @@ export class Game {
   private _playerIndex: number = 0;
 
   constructor(players: Player[]) {
-    this.setPlayers(players);
+    logger.debug(`game create`);
 
-    logger.debug(`半荘が作成されました`);
+    this.setPlayers(players);
   }
 
   get players(): Array<Player> {
@@ -71,7 +71,7 @@ export class Game {
     await anyKeyAsk("次の局に進みます...");
 
     this.createGameRoundHand();
-    this.startHand();
+    this.startRoundHand();
   };
 
   isLastRoundHand(): boolean {
@@ -117,12 +117,16 @@ export class Game {
   }
 
   buildWalls(): void {
-    this.currentRoundHand.table.washTiles();
+    logger.debug("game buidwalls");
+
+    this.currentRoundHand.table.washInitializedTiles();
     this.currentRoundHand.table.buildWalls();
   }
 
   // 起家決め
   pickUpDealer(): void {
+    logger.debug("picupDealer");
+
     this._dealer = this.pickUpPlayerAtRandom();
     logger.debug(`仮親：${this.dealer.name}`);
 
@@ -172,22 +176,28 @@ export class Game {
     return label.join(", ");
   }
 
+  init(): void {
+    logger.debug("game init");
+
+    // 起家決め
+    this.pickUpDealer();
+  }
+
   // 半荘開始
-  start(): GameRoundHand {
-    logger.info("半荘開始");
+  start(): void {
+    logger.debug("game start");
 
     if (!this.validateForStart()) {
       return;
     }
 
-    // 起家決め
-    this.pickUpDealer();
-
     // 東場生成
     this.createGameRound();
 
-    // 東場第1局
-    this.startHand();
+    // 局生成
+    this.createGameRoundHand();
+
+    logger.info("半荘開始");
   }
 
   // 半荘終了
@@ -195,8 +205,8 @@ export class Game {
     logger.info("半荘終了");
   }
 
-  startHand(): void {
-    this.players.map((player) => player.init());
+  startRoundHand(): void {
+    logger.debug("gameRoundHand start");
 
     this.buildWalls(); // 牌の山を積む
 
@@ -205,9 +215,11 @@ export class Game {
     // todo サイコロを振っているが王牌と無関係
     this.currentRoundHand.table.makeDeadWall();
 
-    LogEvent(this.status());
+    this.players.map((player) => player.init());
+    this.dealStartTilesToPlayers(this.players); // 配牌
+    this.players.forEach((player) => player.sortHandTiles()); // 牌を整列
 
-    this.dealTilesToPlayers(); // 配牌
+    LogEvent(this.status());
   }
 
   endRoundHand(): void {
@@ -230,17 +242,16 @@ export class Game {
     return tile;
   }
 
-  dealTilesToPlayers(): void {
+  dealStartTilesToPlayers(players: Player[]): void {
+    logger.debug("game dealStartTilesToPlayers");
+
     // 各プレイヤー4枚ずつ3回牌をつもる
     for (let i = 0; i < 3; i++) {
-      this._players.forEach((player) => player.drawTiles(this.dealTiles(4)));
+      players.forEach((player) => player.drawTiles(this.dealTiles(4)));
     }
 
     // 各プレイヤー1枚牌をつもる
-    this.players.forEach((player) => player.drawTiles(this.dealTiles(1)));
-
-    // 牌を整列
-    this.players.forEach((player) => player.sortHandTiles());
+    players.forEach((player) => player.drawTiles(this.dealTiles(1)));
   }
 
   setPlayers(players: Array<Player>): void {
@@ -270,6 +281,7 @@ export class Game {
     let playerCommand: PlayerCommand;
     let otherPlayersCommand: OtherPlayersCommand;
 
+    // 局のループ
     while (true) {
       // 牌をツモったプレイヤーのターン
       while (true) {
@@ -278,9 +290,9 @@ export class Game {
         switch (playerCommand.type) {
           case PlayerCommandType.Kan:
             if (playerCommand instanceof AnKanCommand) {
-            }
-
-            if (playerCommand instanceof KaKanCommand) {
+              (playerCommand as AnKanCommand).execute();
+              console.log(player);
+            } else if (playerCommand instanceof KaKanCommand) {
               // todo 槍槓できる場合
               otherPlayersCommand = await askOtherPlayers(
                 this.otherPlayers,
@@ -292,6 +304,8 @@ export class Game {
                 roundHand.ronEnd(otherPlayersCommand as RonCommand);
                 return;
               }
+
+              (playerCommand as KaKanCommand).execute();
             }
 
             // player.drawTile() // 王牌からのツモ
@@ -343,4 +357,22 @@ export class Game {
       player.drawTile(roundHand.pickTile());
     }
   };
+}
+
+export class CheatGame extends Game {
+  constructor(players: Player[]) {
+    logger.debug("cheatGame create");
+
+    super(players);
+  }
+
+  start(): void {
+    // do nothing
+    logger.debug("cheatGame start");
+  }
+
+  startRoundHand(): void {
+    // do nothing
+    logger.debug("cheatGame startRoundHand");
+  }
 }

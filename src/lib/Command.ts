@@ -1,4 +1,6 @@
+import { List } from "linqts";
 import { PlayerCommandType } from "./Constants";
+import { AnKanMentsu } from "./Mentsu";
 import { Player } from "./Player";
 import { 牌 } from "./Types";
 
@@ -34,7 +36,7 @@ export abstract class OtherPlayersCommand extends BaseCommand {
 
 export class DiscardCommand extends PlayerCommand {
   private _tile: 牌;
-  _type = PlayerCommandType.discard;
+  _type = PlayerCommandType.Discard;
 
   get tile(): 牌 {
     return this._tile;
@@ -77,7 +79,15 @@ export class AnKanCommand extends PlayerCommand {
     this._tile = tile;
   }
 
-  execute(): void {}
+  execute(): void {
+    this.who.hand.tiles = new List(this.who.hand.tiles)
+      .Where((tile) => this._tile != tile)
+      .ToArray();
+
+    this.who.hand.openMentsuList.push(
+      new AnKanMentsu([this._tile, this._tile, this._tile, this._tile])
+    );
+  }
 }
 
 export class KaKanCommand extends PlayerCommand {

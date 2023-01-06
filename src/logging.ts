@@ -22,7 +22,7 @@ export const logger = createLogger({
 });
 
 export function LogEvent(text: string): void {
-  logger.info("--------------");
+  logger.info("--------------------------------------------------------");
   logger.info(text);
-  logger.info("--------------");
+  logger.info("--------------------------------------------------------");
 }

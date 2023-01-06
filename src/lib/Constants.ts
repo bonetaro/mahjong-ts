@@ -73,7 +73,7 @@ export {
 };
 
 export enum PlayerCommandType {
-  discard = "discard", // 牌を捨てる
+  Discard = "discard", // 牌を捨てる
   Pon = "pon",
   Kan = "kan",
   Chi = "chi",
