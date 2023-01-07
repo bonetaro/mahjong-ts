@@ -77,35 +77,21 @@ const createCheatGameRoundHand = (game: Game, hand: Hand): void => {
   game.currentRound.hands.push(roundHand);
 };
 
-const reverse = (tiles: 牌[]): List<牌> => {
-  const reversedTiles = new List(tiles)
-    .Select((tile, index) => {
-      return {
-        tile: tile,
-        index,
-      };
-    })
-    .OrderByDescending((item) => item.index)
-    .Select((item) => item.tile);
-
-  return reversedTiles;
-};
-
 // 引数の牌を加えることで、全ての牌(1種の牌が4枚ずつ136枚)がそろうように残りの牌を生成する
 const createRestTiles = (handTiles: 牌[]): 牌[] => {
   const suffleTiles = Table.shuffleTiles(Table.initializeTiles());
 
-  // イカサマ牌を先頭に足して、逆順にする(末尾にイカサマ牌)
-  const reversedTiles = reverse(handTiles.concat(suffleTiles));
+  // イカサマ牌を先頭に足して、逆順にする(末尾にイカサマ牌を末尾にもってくる)
+  const reversedTiles = new List(handTiles.concat(suffleTiles)).Reverse();
 
-  // 先頭から多すぎる牌を消していく
+  // todo パフォーマンス改善
   while (true) {
     const group = reversedTiles.GroupBy((t) => t);
-    const keys = new List(Object.keys(group)).Where(
-      (key) => group[key].length !== 4
-    );
 
-    keys.ForEach((key) => reversedTiles.Remove(toTile(key)));
+    // 4つより多い牌を先頭から消していく
+    new List(Object.keys(group))
+      .Where((key) => group[key].length !== 4)
+      .ForEach((key) => reversedTiles.Remove(toTile(key)));
 
     if (Validator.isValidAllTiles(reversedTiles.ToArray())) {
       break;
@@ -113,9 +99,6 @@ const createRestTiles = (handTiles: 牌[]): 牌[] => {
   }
 
   // handTiles以外の残りの牌
-  const restTiles = reverse(reversedTiles.ToArray())
-    .Skip(handTiles.length)
-    .ToArray();
-
+  const restTiles = reversedTiles.Reverse().Skip(handTiles.length).ToArray();
   return restTiles;
 };
