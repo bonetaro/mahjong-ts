@@ -160,8 +160,8 @@ export class Game {
     }
 
     if (option.dora) {
-      const dora = this.currentRoundHand.table.deadWall.dora;
-      label.push(`ドラ:${toMoji(dora)}`);
+      const doras = this.currentRoundHand.table.deadWall.doras;
+      label.push(`ドラ:${doras.map((dora) => toMoji(dora)).join(" ")}`);
     }
 
     if (option.player) {
@@ -285,14 +285,13 @@ export class Game {
     while (true) {
       // 牌をツモったプレイヤーのターン
       while (true) {
+        LogEvent(this.status({ dora: true, round: false, player: false }));
         playerCommand = await askPlayer(player);
 
         switch (playerCommand.type) {
           case PlayerCommandType.Kan:
-            if (playerCommand instanceof AnKanCommand) {
-              (playerCommand as AnKanCommand).execute();
-            } else if (playerCommand instanceof KaKanCommand) {
-              // todo 槍槓できる場合
+            // todo 槍槓できる場合
+            if (playerCommand instanceof KaKanCommand) {
               otherPlayersCommand = await askOtherPlayers(
                 this.otherPlayers,
                 (playerCommand as KaKanCommand).tile,
@@ -303,11 +302,9 @@ export class Game {
                 roundHand.ronEnd(otherPlayersCommand as RonCommand);
                 return;
               }
-
-              (playerCommand as KaKanCommand).execute();
             }
 
-            // player.drawTile() // 王牌からのツモ
+            roundHand.executeCommand(playerCommand);
             continue;
           case PlayerCommandType.Tsumo:
             roundHand.tsumoEnd(playerCommand as TsumoCommand);

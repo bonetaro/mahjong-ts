@@ -1,25 +1,30 @@
-import { Enumerable, List } from "linqts";
+import { Enumerable } from "linqts";
 import { 牌 } from "./Types";
 
 export class Wall {
-  private _upperTiles: 牌[] = []; // 山の上段
-  private _lowerTiles: 牌[] = []; // 山の下段
-  private _isUpper: boolean = true;
+  private _tiles: 牌[];
 
   constructor(tiles: Array<牌>) {
-    const half = Math.ceil(tiles.length / 2);
+    this._tiles = tiles;
+  }
 
-    this._upperTiles = tiles.slice(0, half);
-    this._lowerTiles = tiles.slice(half);
+  get tiles(): 牌[] {
+    return this._tiles;
   }
 
   get tilesCount(): number {
-    return this._upperTiles.length + this._lowerTiles.length;
+    return this._tiles.length;
+  }
+
+  splitHalf(tiles: 牌[]): [牌[], 牌[]] {
+    const half = Math.floor(tiles.length / 2);
+
+    return [tiles.slice(0, half), tiles.slice(half)];
   }
 
   // 山の中のとあるポジションの牌
   tile(num: number, isUpper: boolean = true): 牌 {
-    return isUpper ? this._upperTiles[num] : this._lowerTiles[num];
+    return this._tiles[num];
   }
 
   pickTiles(num: number): Array<牌> {
@@ -31,12 +36,16 @@ export class Wall {
   }
 
   pickTile(): 牌 {
-    const tile = this._isUpper
-      ? this._upperTiles.shift()
-      : this._lowerTiles.shift();
-
-    this._isUpper = !this._isUpper;
-
+    const tile = this._tiles.shift();
     return tile;
+  }
+
+  popTile(): 牌 {
+    const tile = this._tiles.pop();
+    return tile;
+  }
+
+  pushTile(tile: 牌): void {
+    this._tiles.push(tile);
   }
 }

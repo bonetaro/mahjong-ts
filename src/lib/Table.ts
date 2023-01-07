@@ -67,6 +67,10 @@ export class Table {
       .pickTile();
   }
 
+  popTile(): 牌 {
+    return new List(this._walls).Last((wall) => wall.tilesCount > 0).popTile();
+  }
+
   //洗牌
   washInitializedTiles(): void {
     this._washedTiles = new List(this._initializedTiles)

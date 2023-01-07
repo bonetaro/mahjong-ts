@@ -2,7 +2,8 @@ import { LogEvent, logger } from "../logging";
 import { 牌 } from "./Types";
 import { CheatTable, Table } from "./Table";
 import { toMoji } from "./Functions";
-import { RonCommand, TsumoCommand } from "./Command";
+import { AnKanCommand, BaseCommand, RonCommand, TsumoCommand } from "./Command";
+import { PlayerCommandType } from "./Constants";
 
 // 局
 export class GameRoundHand {
@@ -15,6 +16,18 @@ export class GameRoundHand {
 
   get table(): Table {
     return this._table;
+  }
+
+  executeCommand(command: BaseCommand): void {
+    switch (command.type) {
+      case PlayerCommandType.Kan:
+        if (command instanceof AnKanCommand) {
+          (command as AnKanCommand).execute();
+          const lastTile = this._table.popTile();
+          const tile = this._table.deadWall.pickupTileByKan(lastTile);
+          command.who.drawTile(tile);
+        }
+    }
   }
 
   pickTile(): 牌 {
