@@ -24,7 +24,7 @@ export const anyKeyAsk = async (msg: string): Promise<string> => {
   return readCommand(`${msg} [press any key]`);
 };
 
-class CommandAranger {
+class HandParser {
   private _hand: Hand;
   private _calculator: MentsuCalculator;
 
@@ -73,6 +73,7 @@ const askKan = async (ankanCandidateTiles: 牌[]): Promise<牌> => {
         0 <= Number(input) &&
         Number(input) < ankanCandidateTiles.length
     );
+
     ankanTile = ankanCandidateTiles[Number(answer)];
   }
 
@@ -80,15 +81,19 @@ const askKan = async (ankanCandidateTiles: 牌[]): Promise<牌> => {
 };
 
 export const askPlayer = async (player: Player): Promise<PlayerCommand> => {
-  const result = new CommandAranger(player.hand).parse();
+  const parsedCommand = new HandParser(player.hand).parse();
   const commandText = new CommandCreator().createText(
-    Array.from(result.keys()),
+    Array.from(parsedCommand.keys()),
     player.hand
   );
 
   const answer = await readCommand(
-    `${commandText} > `,
-    (input) => isRangeNumber(input, 13) || ["t", "k"].includes(input)
+    `${player.name}の手牌：${player.hand.status}\n${commandText} > `,
+    (input) =>
+      isRangeNumber(input, 13) ||
+      Array.from(parsedCommand.keys())
+        .map((k) => k.slice(0, 1))
+        .includes(input)
   );
 
   if (isRangeNumber(answer, 13)) {
@@ -101,7 +106,7 @@ export const askPlayer = async (player: Player): Promise<PlayerCommand> => {
       return new TsumoCommand(player);
     case "k":
       // 暗カン or 加カン
-      const ankanTile = await askKan(result.get(PlayerCommandType.Kan));
+      const ankanTile = await askKan(parsedCommand.get(PlayerCommandType.Kan));
       return new AnKanCommand(player, ankanTile);
   }
 

@@ -4,10 +4,12 @@ import { typeSortMap, windSortMap, dragonSortMap } from "./Constants";
 import { isKazehai, isSangenpai, isSuits, toEmoji } from "./Functions";
 import { Mentsu } from "./Mentsu";
 import { toEmojiFromArray, toKanjiFromArray } from "./Functions";
+import { Tile } from "./Tile";
 
 export class Hand {
   private _tiles: Array<牌>;
   private _openMentsuList: Mentsu[] = [];
+  private _drawingTile: Tile;
 
   constructor(tiles?: Array<牌>);
 
@@ -23,20 +25,33 @@ export class Hand {
     this._tiles = tiles;
   }
 
+  get drawingTile(): Tile {
+    return this._drawingTile;
+  }
+
+  set drawingTile(tile: Tile) {
+    this._drawingTile = tile;
+    this.tiles.push(tile.tile);
+  }
+
   get openMentsuList(): Mentsu[] {
     return this._openMentsuList;
   }
 
   get status(): string {
-    return (
+    let text =
       `[${toEmojiFromArray(this.tiles)}]` +
       " " +
-      `[${toKanjiFromArray(this.tiles)}]` +
-      " 副露牌" +
-      this._openMentsuList
-        .map((m) => `${m.status()} [${toKanjiFromArray(m.tiles)}]`)
-        .join("|")
-    );
+      `[${toKanjiFromArray(this.tiles)}]`;
+    if (this.openMentsuList.length > 0) {
+      text +=
+        " 副露牌" +
+        this._openMentsuList
+          .map((m) => `${m.status()} [${toKanjiFromArray(m.tiles)}]`)
+          .join("|");
+    }
+
+    return text;
   }
 
   debugStatus(): any {

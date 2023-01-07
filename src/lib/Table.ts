@@ -16,6 +16,10 @@ export class Table {
     this._initializedTiles = Table.initializeTiles();
   }
 
+  get walls(): Wall[] {
+    return this._walls;
+  }
+
   get deadWall(): DeadWall {
     return this._deadWall;
   }
@@ -28,11 +32,15 @@ export class Table {
     return new List(this._walls).Sum((wall) => wall.tilesCount);
   }
 
-  makeDeadWall(): void {
-    // todo 常に先頭の山から14枚を王牌としている
-    this._deadWall = new DeadWall(new Wall(this._walls[0].pickTiles(14)));
+  set deadWall(deadWall: DeadWall) {
+    this._deadWall = deadWall;
 
     logger.debug("王牌を作成しました");
+  }
+
+  makeDeadWall(): void {
+    // todo 常に先頭の山から14枚を王牌としている
+    this.deadWall = new DeadWall(new Wall(this._walls[0].pickTiles(14)));
   }
 
   buildWalls(): void {

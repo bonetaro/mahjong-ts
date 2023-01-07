@@ -5,13 +5,13 @@ import { WindsLabel, PlayerCommandType } from "./Constants";
 import { 牌 } from "./Types";
 import { toMoji } from "./Functions";
 import { Player } from "./Player";
+import { Tile } from "./Tile";
 import { Dice } from "./Dice";
 import { GameRound } from "./GameRound";
 import { GameRoundHand } from "./GameRoundHand";
 import {
   PlayerCommand,
   OtherPlayersCommand,
-  AnKanCommand,
   KaKanCommand,
   TsumoCommand,
   RonCommand,
@@ -276,7 +276,7 @@ export class Game {
     let player = this.currentPlayer;
 
     // 親の第1ツモ
-    player.drawTile(roundHand.pickTile());
+    player.drawTile(new Tile(roundHand.pickTile()));
 
     let playerCommand: PlayerCommand;
     let otherPlayersCommand: OtherPlayersCommand;
@@ -350,7 +350,7 @@ export class Game {
       }
 
       player = this.nextPlayer;
-      player.drawTile(roundHand.pickTile());
+      player.drawTile(new Tile(roundHand.pickTile()));
     }
   };
 }

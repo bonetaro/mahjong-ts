@@ -24,6 +24,6 @@ export class CommandCreator {
       textList.push(`カン[${PlayerCommandType.Kan[0].toLowerCase()}]`);
     }
 
-    return `${hand.status}\n${textList.join(" ")}`;
+    return textList.join(" ");
   }
 }

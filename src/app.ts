@@ -31,6 +31,7 @@ const players = [
 ];
 
 const option: GameOption = new GameOption();
+option.debug = true;
 option.cheat = true;
 
 main(players, option);

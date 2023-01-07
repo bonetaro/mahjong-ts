@@ -26,15 +26,13 @@ export const initCheatGame = (players: Player[]): CheatGame => {
   game.createGameRound();
 
   const cheatHand = new Hand(createCheatTiles().map((tile) => toTile(tile)));
-  game.players[0].drawTiles(cheatHand.tiles);
 
   createCheatGameRoundHand(game, cheatHand);
 
   game.currentRoundHand.table.buildWalls();
   game.currentRoundHand.table.makeDeadWall();
 
-  // チート配牌ずみなので、配牌分だけ牌を捨てる
-  game.dealTiles(cheatHand.tiles.length);
+  game.players[0].drawTiles(cheatHand.tiles);
 
   const otherPlayers = new List(game.players)
     .Where((player, index) => index > 0)
@@ -73,7 +71,9 @@ const createCheatTiles = (): string[] => {
 const createCheatGameRoundHand = (game: Game, hand: Hand): void => {
   const restTiles = createRestTiles(hand.tiles);
   const roundHand = new CheatGameRoundHand();
-  roundHand.table = new CheatTable(hand.tiles.concat(restTiles));
+  // 先頭14牌は王牌になるのでその後ろに挿入
+  restTiles.splice(14, 0, ...hand.tiles);
+  roundHand.table = new CheatTable(restTiles);
   game.currentRound.hands.push(roundHand);
 };
 
@@ -114,7 +114,7 @@ const createRestTiles = (handTiles: 牌[]): 牌[] => {
 
   // handTiles以外の残りの牌
   const restTiles = reverse(reversedTiles.ToArray())
-    .Take(reversedTiles.Count() - handTiles.length)
+    .Skip(handTiles.length)
     .ToArray();
 
   return restTiles;

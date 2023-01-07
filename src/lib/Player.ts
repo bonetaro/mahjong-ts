@@ -1,6 +1,7 @@
 import { List } from "linqts";
 import { logger } from "../logging";
 import { Hand } from "./Hand";
+import { Tile } from "./Tile";
 import { 牌 } from "./Types";
 import { toEmojiFromArray, toKanjiFromArray, toMoji } from "./Functions";
 
@@ -50,6 +51,7 @@ export class Player {
     const tile = this._hand.tiles[num];
 
     this._discardTiles.push(tile);
+
     this._hand = new Hand(
       new List(this._hand.tiles).Where((_, index) => index != num).ToArray()
     );
@@ -59,10 +61,10 @@ export class Player {
     return tile;
   }
 
-  drawTile(tile: 牌) {
-    this._hand.tiles.push(tile);
+  drawTile(tile: Tile) {
+    this._hand.drawingTile = tile;
 
-    logger.info(`${this.name}が${toMoji(tile)}をツモりました`);
+    logger.info(`${this.name}が${toMoji(tile.tile)}をツモりました`);
   }
 
   drawTiles(tiles: Array<牌>) {

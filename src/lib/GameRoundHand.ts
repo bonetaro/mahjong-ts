@@ -1,5 +1,6 @@
 import { LogEvent, logger } from "../logging";
 import { 牌 } from "./Types";
+import { Tile } from "./Tile";
 import { CheatTable, Table } from "./Table";
 import { toMoji } from "./Functions";
 import { AnKanCommand, BaseCommand, RonCommand, TsumoCommand } from "./Command";
@@ -23,9 +24,11 @@ export class GameRoundHand {
       case PlayerCommandType.Kan:
         if (command instanceof AnKanCommand) {
           (command as AnKanCommand).execute();
+
+          // 王牌に1枚足して、嶺上牌をツモる
           const lastTile = this._table.popTile();
           const tile = this._table.deadWall.pickupTileByKan(lastTile);
-          command.who.drawTile(tile);
+          command.who.drawTile(new Tile(tile, true));
         }
     }
   }

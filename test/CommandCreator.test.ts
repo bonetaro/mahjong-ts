@@ -12,7 +12,7 @@ test("捨て牌 [0]", () => {
     new Hand(splitBy2Chars("1m").map((s) => toTile(s)))
   );
 
-  expect(text).toBe("捨て牌 [0]");
+  expect(text).toBe("捨て牌[0]");
 });
 
 test("捨て牌 [0-1]", () => {
@@ -21,7 +21,7 @@ test("捨て牌 [0-1]", () => {
     new Hand(splitBy2Chars("1m2m").map((s) => toTile(s)))
   );
 
-  expect(text).toBe("捨て牌 [0-1]");
+  expect(text).toBe("捨て牌[0-1]");
 });
 
 test("捨て牌 [0-1] ツモ(t)", () => {
@@ -32,7 +32,7 @@ test("捨て牌 [0-1] ツモ(t)", () => {
     new Hand(splitBy2Chars("1m2m").map((s) => toTile(s)))
   );
 
-  expect(text).toBe("捨て牌 [0-1] ツモ(t)");
+  expect(text).toBe("捨て牌[0-1] ツモ[t]");
 });
 
 test("捨て牌 [0-1] ツモ(t) カン(k)", () => {
@@ -44,5 +44,5 @@ test("捨て牌 [0-1] ツモ(t) カン(k)", () => {
     new Hand(splitBy2Chars("1m2m").map((s) => toTile(s)))
   );
 
-  expect(text).toBe("捨て牌 [0-1] ツモ(t) カン(k)");
+  expect(text).toBe("捨て牌[0-1] ツモ[t] カン[k]");
 });
