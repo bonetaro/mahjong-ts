@@ -2,7 +2,7 @@ import { PlayerCommandType } from "./Constants";
 import { Hand } from "./Hand";
 
 export class CommandCreator {
-  createText(commands: PlayerCommandType[], hand: Hand): string {
+  createPlayerCommandText(commands: PlayerCommandType[], hand: Hand): string {
     const textList: string[] = [];
 
     if (commands.includes(PlayerCommandType.Discard)) {
@@ -22,6 +22,35 @@ export class CommandCreator {
 
     if (commands.includes(PlayerCommandType.Kan)) {
       textList.push(`カン[${PlayerCommandType.Kan[0].toLowerCase()}]`);
+    }
+
+    return textList.join(" ");
+  }
+
+  createOtherPlayersCommandText(
+    commands: PlayerCommandType[],
+    hand: Hand
+  ): string {
+    const textList: string[] = [];
+
+    if (commands.includes(PlayerCommandType.Ron)) {
+      textList.push(`ロン[${PlayerCommandType.Ron[0].toLowerCase()}]`);
+    }
+
+    if (commands.includes(PlayerCommandType.Chi)) {
+      textList.push(`チー[${PlayerCommandType.Chi[0].toLowerCase()}]`);
+    }
+
+    if (commands.includes(PlayerCommandType.Pon)) {
+      textList.push(`ポン[${PlayerCommandType.Pon[0].toLowerCase()}]`);
+    }
+
+    if (commands.includes(PlayerCommandType.Kan)) {
+      textList.push(`カン[${PlayerCommandType.Kan[0].toLowerCase()}]`);
+    }
+
+    if (commands.includes(PlayerCommandType.Nothing)) {
+      textList.push(`何もしない`);
     }
 
     return textList.join(" ");

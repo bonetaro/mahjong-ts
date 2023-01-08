@@ -48,12 +48,16 @@ export class OpenMentsu extends Mentsu {
   private _fromPlayer: Player;
   private _tile: 牌;
 
-  constructor(tile: 牌, tiles: 牌[], player: Player) {
+  constructor(public tile: 牌, tiles: 牌[], fromPlayer: Player) {
     super();
 
-    this._fromPlayer = player;
+    this._fromPlayer = fromPlayer;
     this._tile = tile;
     this._tiles = tiles;
+  }
+
+  get fromPlayer(): Player {
+    return this._fromPlayer;
   }
 
   status(): string {
@@ -65,7 +69,23 @@ export class OpenMentsu extends Mentsu {
 export class ChiMentsu extends OpenMentsu {}
 
 // 明刻
-export class MinKouMentsu extends OpenMentsu {}
+export class MinKouMentsu extends OpenMentsu {
+  status(): string {
+    return (
+      `${toEmoji(this._tiles[0], true)}` +
+      ` ${toEmoji(this._tiles[1])}` +
+      ` ${toEmoji(this._tiles[2])}`
+    );
+  }
+}
 
 // 明槓
-export class MinKanMentsu extends OpenMentsu {}
+export class MinKanMentsu extends OpenMentsu {
+  status(): string {
+    return (
+      `${toEmoji(this._tiles[0], true)}` +
+      ` ${toEmoji(this._tiles[1])}` +
+      ` ${toEmoji(this._tiles[2])}`
+    );
+  }
+}

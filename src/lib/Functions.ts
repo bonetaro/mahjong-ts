@@ -30,7 +30,8 @@ import {
   三元牌,
   字牌,
 } from "./Types";
-import { WindsSort, DragonsSort } from "./Constants";
+import { WindsSort, DragonsSort, PlayerDirection } from "./Constants";
+import { Player } from "./Player";
 
 export function toTile(value: unknown): 牌 {
   if (isSuits(value) || isHonours(value)) return value;
@@ -166,13 +167,13 @@ export function toEmojiFromArray(values: Array<牌>): string {
   return values.map((v) => toEmoji(v)).join(" ");
 }
 
-export function toEmoji(value: 牌, hide: boolean = false): string {
+export function toEmoji(value: 牌, hide = false): string {
   const manzuList = ["🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏"];
   const pinzuList = ["🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟", "🀠", "🀡"];
   const souzuList = ["🀐", "🀑", "🀒", "🀓", "🀔", "🀕", "🀖", "🀗", "🀘"];
-  const kazehaiList: any = { e: "🀀", s: "🀁", w: "🀂", n: "🀃" };
-  const sangenpaiList: any = { w: "🀆", g: "🀅", r: "🀄" };
-  const hideTile: string = "🀫";
+  const kazehaiList = { e: "🀀", s: "🀁", w: "🀂", n: "🀃" };
+  const sangenpaiList = { w: "🀆", g: "🀅", r: "🀄" };
+  const hideTile = "🀫";
 
   if (hide) {
     return hideTile;
@@ -185,9 +186,9 @@ export function toEmoji(value: 牌, hide: boolean = false): string {
   } else if (isSouzu(value)) {
     return souzuList[Number(value[0]) - 1];
   } else if (isKazehai(value)) {
-    return kazehaiList[value[0]];
+    return kazehaiList[value[0] as keyof typeof kazehaiList];
   } else if (isSangenpai(value)) {
-    return sangenpaiList[value[0]];
+    return sangenpaiList[value[0] as keyof typeof sangenpaiList];
   } else {
     return "?";
   }
@@ -277,4 +278,21 @@ export const isRangeNumber = (input: string, max: number) =>
 
 export const splitBy2Chars = (text: string): string[] => {
   return text.match(/.{2}/g);
+};
+
+export const calucatePlayerDirection = (
+  who: Player,
+  whom: Player,
+  players: Player[]
+): PlayerDirection => {
+  const whoIndex = players.indexOf(who);
+  const whomIndex = players.indexOf(whom);
+
+  if (whomIndex == whoIndex - 1) {
+    return PlayerDirection.ToTheLeft;
+  } else if (whoIndex == whoIndex + 1) {
+    return PlayerDirection.ToTheRight;
+  } else {
+    return PlayerDirection.Opposite;
+  }
 };

@@ -1,4 +1,5 @@
 import { List } from "linqts";
+import { WindsLabel } from "./constants";
 import { logger } from "../logging";
 import { Hand } from "./Hand";
 import { Tile } from "./Tile";
@@ -35,11 +36,11 @@ export class Player {
     });
   }
 
-  get handStatus(): string {
-    return this._hand.status;
-  }
-
   get discardStatus(): string {
+    if (this._discardTiles.length == 0) {
+      return "[]";
+    }
+
     return (
       `[${toEmojiFromArray(this._discardTiles)}]` +
       " " +
@@ -47,24 +48,26 @@ export class Player {
     );
   }
 
-  doDiscard(num: number): 牌 {
-    const tile = this._hand.tiles[num];
-
+  doDiscard(tile: 牌): void {
     this._discardTiles.push(tile);
 
-    this._hand = new Hand(
-      new List(this._hand.tiles).Where((_, index) => index != num).ToArray()
+    this._hand.tiles = new List(this._hand.tiles)
+      .Where((t) => t != tile)
+      .ToArray();
+
+    logger.info(
+      `${this.name}が${toMoji(tile)}を捨てました`,
+      this.hand.debugStatus()
     );
-
-    logger.info(`${this.name}が${toMoji(tile)}を捨てました`);
-
-    return tile;
   }
 
   drawTile(tile: Tile) {
     this._hand.drawingTile = tile;
 
-    logger.info(`${this.name}が${toMoji(tile.tile)}をツモりました`);
+    logger.info(
+      `${this.name}が${toMoji(tile.tile)}をツモりました`,
+      this.hand.debugStatus()
+    );
   }
 
   drawTiles(tiles: Array<牌>) {
@@ -77,7 +80,7 @@ export class Player {
   }
 
   sortHandTiles(): void {
-    this._hand = new Hand(this._hand.sort());
+    this._hand.tiles = this._hand.sortTiles();
 
     logger.debug(`${this.name}が牌を並び替えました`, {
       tiles: this.hand.tiles.join(""),
@@ -85,5 +88,17 @@ export class Player {
       emoji: toEmojiFromArray(this.hand.tiles),
       kanji: toKanjiFromArray(this.hand.tiles),
     });
+  }
+}
+
+export class RoundHandPlayer {
+  private _index: number;
+
+  constructor(public player: Player, index: number) {
+    this._index = index;
+  }
+
+  get windName(): string {
+    return `${WindsLabel[this._index]}家`;
   }
 }

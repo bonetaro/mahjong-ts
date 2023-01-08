@@ -79,4 +79,11 @@ export enum PlayerCommandType {
   Chi = "chi",
   Tsumo = "tsumo",
   Ron = "ron",
+  Nothing = "nothing",
+}
+
+export enum PlayerDirection {
+  ToTheLeft = 0, // 上家
+  Opposite = 1, // 対面
+  ToTheRight = 2, // 下家
 }

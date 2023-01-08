@@ -1,3 +1,4 @@
+/* eslint-disable no-constant-condition */
 import { logger, LogEvent } from "./logging";
 import { List } from "linqts";
 import { 牌 } from "./lib/Types";
@@ -32,7 +33,7 @@ export const initCheatGame = (players: Player[]): CheatGame => {
   game.currentRoundHand.table.buildWalls();
   game.currentRoundHand.table.makeDeadWall();
 
-  game.players[0].drawTiles(cheatHand.tiles);
+  game.players[0].drawTiles(game.dealTiles(cheatHand.tiles.length));
 
   const otherPlayers = new List(game.players)
     .Where((player, index) => index > 0)
@@ -70,7 +71,7 @@ const createCheatTiles = (): string[] => {
 
 const createCheatGameRoundHand = (game: Game, hand: Hand): void => {
   const restTiles = createRestTiles(hand.tiles);
-  const roundHand = new CheatGameRoundHand();
+  const roundHand = new CheatGameRoundHand(game.players);
   // 先頭14牌は王牌になるのでその後ろに挿入
   restTiles.splice(14, 0, ...hand.tiles);
   roundHand.table = new CheatTable(restTiles);

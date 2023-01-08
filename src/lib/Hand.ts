@@ -1,7 +1,7 @@
 import { List } from "linqts";
 import { 牌 } from "./Types";
 import { typeSortMap, windSortMap, dragonSortMap } from "./Constants";
-import { isKazehai, isSangenpai, isSuits, toEmoji } from "./Functions";
+import { isKazehai, isSangenpai, isSuits } from "./Functions";
 import { Mentsu } from "./Mentsu";
 import { toEmojiFromArray, toKanjiFromArray } from "./Functions";
 import { Tile } from "./Tile";
@@ -43,11 +43,12 @@ export class Hand {
       `[${toEmojiFromArray(this.tiles)}]` +
       " " +
       `[${toKanjiFromArray(this.tiles)}]`;
+
     if (this.openMentsuList.length > 0) {
       text +=
         " 副露牌" +
         this._openMentsuList
-          .map((m) => `${m.status()} [${toKanjiFromArray(m.tiles)}]`)
+          .map((m) => `[${m.status()} ${toKanjiFromArray(m.tiles)}]`)
           .join("|");
     }
 
@@ -64,11 +65,11 @@ export class Hand {
     };
   }
 
-  sort(): Array<牌> {
+  sortTiles(): Array<牌> {
     return new List(this.tiles)
-      .OrderBy((x) => typeSortMap.get(x[1]))
+      .OrderBy((x) => typeSortMap.get(x[1])) // 2文字目で整列
       .ThenBy((x) => {
-        const key = x[0];
+        const key = x[0]; // 1文字目で整列
 
         if (isSuits(x)) return key;
         if (isKazehai(x)) return windSortMap.get(key);

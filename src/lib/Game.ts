@@ -1,6 +1,8 @@
-import { List } from "linqts";
+/* eslint-disable no-constant-condition */
+import { List, Enumerable } from "linqts";
 import { logger, LogEvent } from "../logging";
 import { readCommand } from "../readline";
+import { isRangeNumber } from "./Functions";
 import { WindsLabel, PlayerCommandType } from "./Constants";
 import { 牌 } from "./Types";
 import { toMoji } from "./Functions";
@@ -24,7 +26,6 @@ export class Game {
   private _players: Array<Player> = [];
   private _dealer: Player;
   private _rounds: GameRound[] = [];
-  private _playerIndex: number = 0;
 
   constructor(players: Player[]) {
     logger.debug(`game create`);
@@ -52,35 +53,24 @@ export class Game {
     return new List(this.currentRound.hands).Last();
   }
 
-  get currentPlayer(): Player {
-    return this._players[this._playerIndex];
-  }
-
-  get otherPlayers(): Player[] {
-    return new List(this.players)
-      .Where((_, index) => index != this._playerIndex)
-      .ToArray();
-  }
-
-  get nextPlayer(): Player {
-    this.incrementPlayerIndex();
-    return this.currentPlayer;
-  }
-
   nextRoundHand = async () => {
     await anyKeyAsk("次の局に進みます...");
 
-    this.createGameRoundHand();
+    this.createGameRoundHand(this.nextPlayers());
     this.startRoundHand();
   };
 
-  isLastRoundHand(): boolean {
-    return this._rounds.length == 2 && this.currentRound.hands.length == 4;
+  nextPlayers(): Player[] {
+    const num = this.currentRound.hands.length % 4;
+    const players = Enumerable.Range(0, 4)
+      .Select((i) => this.players[(num + i) % 4])
+      .ToArray();
+
+    return players;
   }
 
-  incrementPlayerIndex(): void {
-    let index = this._playerIndex;
-    this._playerIndex = index + 1 > 3 ? 0 : index + 1;
+  isLastRoundHand(): boolean {
+    return this._rounds.length == 2 && this.currentRound.hands.length == 4;
   }
 
   validateForStart(): boolean {
@@ -138,8 +128,8 @@ export class Game {
     this._rounds.push(new GameRound());
   }
 
-  createGameRoundHand(): void {
-    this.currentRound.hands.push(new GameRoundHand());
+  createGameRoundHand(players: Player[]): void {
+    this.currentRound.hands.push(new GameRoundHand(players));
   }
 
   roundHandName(): string {
@@ -195,7 +185,7 @@ export class Game {
     this.createGameRound();
 
     // 局生成
-    this.createGameRoundHand();
+    this.createGameRoundHand(this.players);
 
     logger.info("半荘開始");
   }
@@ -218,8 +208,6 @@ export class Game {
     this.players.map((player) => player.init());
     this.dealStartTilesToPlayers(this.players); // 配牌
     this.players.forEach((player) => player.sortHandTiles()); // 牌を整列
-
-    LogEvent(this.status());
   }
 
   endRoundHand(): void {
@@ -228,7 +216,7 @@ export class Game {
 
   //牌を配る
   dealTiles(num: number): Array<牌> {
-    let tiles: Array<牌> = [];
+    const tiles: Array<牌> = [];
 
     for (let i = 0; i < num; i++) {
       tiles.push(this.dealTile());
@@ -272,8 +260,7 @@ export class Game {
 
   roundHandLoop = async () => {
     const roundHand = this.currentRoundHand;
-
-    let player = this.currentPlayer;
+    let player = roundHand.currentPlayer;
 
     // 親の第1ツモ
     player.drawTile(new Tile(roundHand.pickTile()));
@@ -285,7 +272,6 @@ export class Game {
     while (true) {
       // 牌をツモったプレイヤーのターン
       while (true) {
-        LogEvent(this.status({ dora: true, round: false, player: false }));
         playerCommand = await askPlayer(player);
 
         switch (playerCommand.type) {
@@ -293,7 +279,7 @@ export class Game {
             // todo 槍槓できる場合
             if (playerCommand instanceof KaKanCommand) {
               otherPlayersCommand = await askOtherPlayers(
-                this.otherPlayers,
+                roundHand.players,
                 (playerCommand as KaKanCommand).tile,
                 player
               );
@@ -311,37 +297,54 @@ export class Game {
             return;
         }
 
-        // 牌をすてた(DiscardCommand)
+        roundHand.executeCommand(playerCommand);
         break;
       }
 
-      // 牌をツモったプレイヤー以外のプレイヤーのターン
+      // 牌をツモったプレイヤー以外のプレイヤーのターン(プレイヤーが捨てた牌へのアクション)
       while (true) {
         otherPlayersCommand = await askOtherPlayers(
-          this.otherPlayers,
+          this.currentRoundHand.players,
           (playerCommand as DiscardCommand).tile,
           player
         );
+
+        // 鳴きの中では、ロンが最優先で処理される
+        if (otherPlayersCommand.type === PlayerCommandType.Ron) {
+          roundHand.ronEnd(otherPlayersCommand as RonCommand);
+          return;
+        }
+
+        roundHand.executeCommand(otherPlayersCommand);
 
         switch (otherPlayersCommand.type) {
           case PlayerCommandType.Chi:
           case PlayerCommandType.Pon:
           case PlayerCommandType.Kan:
-            player = otherPlayersCommand.who;
+            // eslint-disable-next-line no-case-declarations
+            const callingPlayer = otherPlayersCommand.who;
 
-            let num = await readCommand(
-              `${player.name} 捨て牌選択[0-${player.hand.tiles.length}]`
+            // eslint-disable-next-line no-case-declarations
+            const isDiscardTileNumber = (input: string) =>
+              isRangeNumber(input, callingPlayer.hand.tiles.length - 1);
+
+            // eslint-disable-next-line no-case-declarations
+            const answer = await readCommand(
+              `${callingPlayer.name}の手牌：${callingPlayer.hand.status} 捨牌：${callingPlayer.discardStatus}\n` +
+                `${callingPlayer.name} 捨て牌選択[0-${callingPlayer.hand.tiles.length}]`,
+              (input: string) => isDiscardTileNumber(input)
             );
 
+            playerCommand = new DiscardCommand(
+              callingPlayer,
+              callingPlayer.hand.tiles[Number(answer)]
+            );
+
+            roundHand.executeCommand(playerCommand);
             continue;
         }
 
         break;
-      }
-
-      if (otherPlayersCommand.type === PlayerCommandType.Ron) {
-        roundHand.ronEnd(otherPlayersCommand as RonCommand);
-        return;
       }
 
       if (!roundHand.hasRestTiles()) {
@@ -349,7 +352,7 @@ export class Game {
         return;
       }
 
-      player = this.nextPlayer;
+      player = roundHand.nextPlayer;
       player.drawTile(new Tile(roundHand.pickTile()));
     }
   };
