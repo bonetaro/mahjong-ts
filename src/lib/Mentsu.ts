@@ -3,29 +3,23 @@ import { Player } from "./Player";
 import { 牌 } from "./Types";
 
 export abstract class Mentsu {
-  protected _tiles: 牌[];
-
-  get tiles(): 牌[] {
-    return this._tiles;
-  }
+  constructor(public tiles: 牌[]) {}
 
   abstract status(): string;
 }
 
 // 暗槓
 export class AnKanMentsu extends Mentsu {
-  constructor(tiles: 牌[]) {
-    super();
-
-    this._tiles = tiles;
+  constructor(tile: 牌) {
+    super([tile, tile, tile, tile]);
   }
 
   status(): string {
     return (
-      `${toEmoji(this._tiles[0], true)}` +
-      ` ${toEmoji(this._tiles[1])}` +
-      ` ${toEmoji(this._tiles[2])}` +
-      ` ${toEmoji(this._tiles[3], true)}`
+      `${toEmoji(this.tiles[0], true)}` +
+      ` ${toEmoji(this.tiles[1])}` +
+      ` ${toEmoji(this.tiles[2])}` +
+      ` ${toEmoji(this.tiles[3], true)}`
     );
   }
 }
@@ -45,19 +39,10 @@ export class AnKouMentsu extends Mentsu {
 }
 
 export class OpenMentsu extends Mentsu {
-  private _fromPlayer: Player;
-  private _tile: 牌;
+  constructor(public tile: 牌, public tiles: 牌[], public fromPlayer: Player) {
+    tiles.push(tile);
 
-  constructor(public tile: 牌, tiles: 牌[], fromPlayer: Player) {
-    super();
-
-    this._fromPlayer = fromPlayer;
-    this._tile = tile;
-    this._tiles = tiles;
-  }
-
-  get fromPlayer(): Player {
-    return this._fromPlayer;
+    super(tiles);
   }
 
   status(): string {
@@ -70,22 +55,31 @@ export class ChiMentsu extends OpenMentsu {}
 
 // 明刻
 export class MinKouMentsu extends OpenMentsu {
+  constructor(tile: 牌, fromPlayer: Player) {
+    super(tile, [tile, tile], fromPlayer);
+  }
+
   status(): string {
     return (
-      `${toEmoji(this._tiles[0], true)}` +
-      ` ${toEmoji(this._tiles[1])}` +
-      ` ${toEmoji(this._tiles[2])}`
+      `${toEmoji(this.tiles[0])}` +
+      ` ${toEmoji(this.tiles[1])}` +
+      ` ${toEmoji(this.tile)}`
     );
   }
 }
 
 // 明槓
 export class MinKanMentsu extends OpenMentsu {
+  constructor(tile: 牌, fromPlayer: Player) {
+    super(tile, [tile, tile, tile], fromPlayer);
+  }
+
   status(): string {
     return (
-      `${toEmoji(this._tiles[0], true)}` +
-      ` ${toEmoji(this._tiles[1])}` +
-      ` ${toEmoji(this._tiles[2])}`
+      `${toEmoji(this.tiles[0])}` +
+      ` ${toEmoji(this.tiles[1])}` +
+      ` ${toEmoji(this.tiles[2])}` +
+      ` ${toEmoji(this.tile)}`
     );
   }
 }

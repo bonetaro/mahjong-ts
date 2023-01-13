@@ -27,6 +27,7 @@ export class Player {
     logger.debug("player init");
 
     this._hand = new Hand();
+    this._discardTiles = [];
   }
 
   show(): void {
@@ -51,9 +52,8 @@ export class Player {
   doDiscard(tile: 牌): void {
     this._discardTiles.push(tile);
 
-    this._hand.tiles = new List(this._hand.tiles)
-      .Where((t) => t != tile)
-      .ToArray();
+    const index = this._hand.tiles.indexOf(tile);
+    this._hand.tiles.splice(index, 1);
 
     logger.info(
       `${this.name}が${toMoji(tile)}を捨てました`,

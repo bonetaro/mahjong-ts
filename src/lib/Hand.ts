@@ -1,9 +1,6 @@
-import { List } from "linqts";
-import { 牌 } from "./Types";
-import { typeSortMap, windSortMap, dragonSortMap } from "./Constants";
-import { isKazehai, isSangenpai, isSuits } from "./Functions";
+import { toEmojiFromArray, toKanjiFromArray, sortTiles } from "./Functions";
 import { Mentsu } from "./Mentsu";
-import { toEmojiFromArray, toKanjiFromArray } from "./Functions";
+import { 牌 } from "./Types";
 import { Tile } from "./Tile";
 
 export class Hand {
@@ -11,9 +8,11 @@ export class Hand {
   private _openMentsuList: Mentsu[] = [];
   private _drawingTile: Tile;
 
-  constructor(tiles?: Array<牌>);
-
   constructor(tiles?: Array<牌>) {
+    if (tiles && tiles.length != 13) {
+      throw new Error("hand tiles count must be 13");
+    }
+
     this._tiles = tiles ?? [];
   }
 
@@ -66,17 +65,7 @@ export class Hand {
   }
 
   sortTiles(): Array<牌> {
-    return new List(this.tiles)
-      .OrderBy((x) => typeSortMap.get(x[1])) // 2文字目で整列
-      .ThenBy((x) => {
-        const key = x[0]; // 1文字目で整列
-
-        if (isSuits(x)) return key;
-        if (isKazehai(x)) return windSortMap.get(key);
-        if (isSangenpai(x)) return dragonSortMap.get(key);
-        throw new Error(x);
-      })
-      .ToArray();
+    return sortTiles(this.tiles);
   }
 
   //シャンテン数（向聴数）を計算する

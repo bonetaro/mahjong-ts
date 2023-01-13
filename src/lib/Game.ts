@@ -1,5 +1,5 @@
 /* eslint-disable no-constant-condition */
-import { List, Enumerable } from "linqts";
+import { List } from "linqts";
 import { logger, LogEvent } from "../logging";
 import { readCommand } from "../readline";
 import { isRangeNumber } from "./Functions";
@@ -11,15 +11,9 @@ import { Tile } from "./Tile";
 import { Dice } from "./Dice";
 import { GameRound } from "./GameRound";
 import { GameRoundHand } from "./GameRoundHand";
-import {
-  PlayerCommand,
-  OtherPlayersCommand,
-  KaKanCommand,
-  TsumoCommand,
-  RonCommand,
-  DiscardCommand,
-} from "./Command";
+import { KaKanCommand, TsumoCommand, RonCommand, DiscardCommand } from "./Command";
 import { anyKeyAsk, askPlayer, askOtherPlayers } from "./AskPlayer";
+import { BaseCommand, PlayerCommand } from "./Command";
 
 export class Game {
   private _dices: [Dice, Dice] = [new Dice(), new Dice()];
@@ -56,15 +50,13 @@ export class Game {
   nextRoundHand = async () => {
     await anyKeyAsk("次の局に進みます...");
 
-    this.createGameRoundHand(this.nextPlayers());
+    this.createGameRoundHand(this.nextRoundHandPlayers());
     this.startRoundHand();
   };
 
-  nextPlayers(): Player[] {
+  nextRoundHandPlayers(): Player[] {
     const num = this.currentRound.hands.length % 4;
-    const players = Enumerable.Range(0, 4)
-      .Select((i) => this.players[(num + i) % 4])
-      .ToArray();
+    const players = [...Array(this.players.length)].map((i) => this.players[(num + i) % 4]);
 
     return players;
   }
@@ -109,7 +101,6 @@ export class Game {
   buildWalls(): void {
     logger.debug("game buidwalls");
 
-    this.currentRoundHand.table.washInitializedTiles();
     this.currentRoundHand.table.buildWalls();
   }
 
@@ -133,14 +124,10 @@ export class Game {
   }
 
   roundHandName(): string {
-    return `${WindsLabel[this._rounds.length - 1]}${
-      this.currentRound.hands.length
-    }局`;
+    return `${WindsLabel[this._rounds.length - 1]}${this.currentRound.hands.length}局`;
   }
 
-  status(
-    option: { round: boolean; player: boolean; dora: boolean } | null = null
-  ): string {
+  status(option: { round: boolean; player: boolean; dora: boolean } | null = null): string {
     const label: string[] = [];
 
     option ??= { round: true, player: true, dora: true };
@@ -226,7 +213,7 @@ export class Game {
   }
 
   dealTile(): 牌 {
-    const tile = this.currentRoundHand.table.pickTile();
+    const tile = this.currentRoundHand.table.drawTile();
     return tile;
   }
 
@@ -234,9 +221,9 @@ export class Game {
     logger.debug("game dealStartTilesToPlayers");
 
     // 各プレイヤー4枚ずつ3回牌をつもる
-    for (let i = 0; i < 3; i++) {
+    [...Array(3)].forEach(() => {
       players.forEach((player) => player.drawTiles(this.dealTiles(4)));
-    }
+    });
 
     // 各プレイヤー1枚牌をつもる
     players.forEach((player) => player.drawTiles(this.dealTiles(1)));
@@ -258,102 +245,115 @@ export class Game {
     logger.debug(`${player.name}が参加しました`);
   }
 
-  roundHandLoop = async () => {
-    const roundHand = this.currentRoundHand;
-    let player = roundHand.currentPlayer;
+  async doKanProcess(player: Player, playerCommand: PlayerCommand): Promise<BaseCommand> {
+    if (playerCommand instanceof KaKanCommand) {
+      // 槍槓できる場合
+      return await askOtherPlayers(this.currentRoundHand.players, (playerCommand as KaKanCommand).tile, player);
+    }
 
-    // 親の第1ツモ
-    player.drawTile(new Tile(roundHand.pickTile()));
+    this.currentRoundHand.executeCommand(playerCommand);
+    return null;
+  }
 
+  pickTile(): Tile {
+    return new Tile(this.currentRoundHand.pickTile());
+  }
+
+  playerTurn = async (currentPlayer: Player): Promise<TurnResult> => {
     let playerCommand: PlayerCommand;
-    let otherPlayersCommand: OtherPlayersCommand;
+    let otherPlayersCommand: BaseCommand;
+
+    while (true) {
+      playerCommand = await askPlayer(currentPlayer);
+
+      switch (playerCommand.type) {
+        case PlayerCommandType.Kan:
+          otherPlayersCommand = await this.doKanProcess(currentPlayer, playerCommand);
+
+          if (otherPlayersCommand?.type === PlayerCommandType.Ron) {
+            // 槍槓
+            this.currentRoundHand.ronEnd(otherPlayersCommand as RonCommand);
+            return new TurnResult(otherPlayersCommand, true);
+          }
+          continue;
+        case PlayerCommandType.Tsumo:
+          this.currentRoundHand.tsumoEnd(playerCommand as TsumoCommand);
+          return new TurnResult(playerCommand, true);
+      }
+
+      this.currentRoundHand.executeCommand(playerCommand);
+      break;
+    }
+
+    return new TurnResult(playerCommand, false);
+  };
+
+  otherPlayersTurn = async (playerCommand: PlayerCommand, currentPlayer: Player): Promise<TurnResult> => {
+    while (true) {
+      const otherPlayersCommand = await askOtherPlayers(this.currentRoundHand.players, (playerCommand as DiscardCommand).tile, currentPlayer);
+
+      // 鳴きの中では、ロンが最優先で処理される
+      if (otherPlayersCommand.type === PlayerCommandType.Ron) {
+        this.currentRoundHand.ronEnd(otherPlayersCommand as RonCommand);
+        return new TurnResult(otherPlayersCommand, true);
+      }
+
+      this.currentRoundHand.executeCommand(otherPlayersCommand);
+
+      switch (otherPlayersCommand.type) {
+        case PlayerCommandType.Chi:
+        case PlayerCommandType.Pon:
+        case PlayerCommandType.Kan:
+          // 鳴いた人の手番にする
+          currentPlayer = this.currentRoundHand.setCurrentPlayer(otherPlayersCommand.who);
+
+          // eslint-disable-next-line no-case-declarations
+          const discardTileNumber = await readCommand(
+            `${currentPlayer.name}の手牌：${currentPlayer.hand.status} 捨牌：${currentPlayer.discardStatus}\n` +
+              `${currentPlayer.name} 捨て牌選択[0-${currentPlayer.hand.tiles.length - 1}] > `,
+            (input: string) => isRangeNumber(input, currentPlayer.hand.tiles.length - 1)
+          );
+
+          playerCommand = new DiscardCommand(currentPlayer, currentPlayer.hand.tiles[Number(discardTileNumber)]);
+          this.currentRoundHand.executeCommand(playerCommand);
+          continue;
+      }
+
+      break;
+    }
+
+    return new TurnResult(null, false);
+  };
+
+  roundHandLoop = async (currentPlayer: Player) => {
+    // 親の第1ツモ
+    currentPlayer.drawTile(this.pickTile());
+
+    let turnResult: TurnResult;
 
     // 局のループ
     while (true) {
       // 牌をツモったプレイヤーのターン
-      while (true) {
-        playerCommand = await askPlayer(player);
-
-        switch (playerCommand.type) {
-          case PlayerCommandType.Kan:
-            // todo 槍槓できる場合
-            if (playerCommand instanceof KaKanCommand) {
-              otherPlayersCommand = await askOtherPlayers(
-                roundHand.players,
-                (playerCommand as KaKanCommand).tile,
-                player
-              );
-
-              if (otherPlayersCommand.type === PlayerCommandType.Ron) {
-                roundHand.ronEnd(otherPlayersCommand as RonCommand);
-                return;
-              }
-            }
-
-            roundHand.executeCommand(playerCommand);
-            continue;
-          case PlayerCommandType.Tsumo:
-            roundHand.tsumoEnd(playerCommand as TsumoCommand);
-            return;
-        }
-
-        roundHand.executeCommand(playerCommand);
-        break;
-      }
-
-      // 牌をツモったプレイヤー以外のプレイヤーのターン(プレイヤーが捨てた牌へのアクション)
-      while (true) {
-        otherPlayersCommand = await askOtherPlayers(
-          this.currentRoundHand.players,
-          (playerCommand as DiscardCommand).tile,
-          player
-        );
-
-        // 鳴きの中では、ロンが最優先で処理される
-        if (otherPlayersCommand.type === PlayerCommandType.Ron) {
-          roundHand.ronEnd(otherPlayersCommand as RonCommand);
-          return;
-        }
-
-        roundHand.executeCommand(otherPlayersCommand);
-
-        switch (otherPlayersCommand.type) {
-          case PlayerCommandType.Chi:
-          case PlayerCommandType.Pon:
-          case PlayerCommandType.Kan:
-            // eslint-disable-next-line no-case-declarations
-            const callingPlayer = otherPlayersCommand.who;
-
-            // eslint-disable-next-line no-case-declarations
-            const isDiscardTileNumber = (input: string) =>
-              isRangeNumber(input, callingPlayer.hand.tiles.length - 1);
-
-            // eslint-disable-next-line no-case-declarations
-            const answer = await readCommand(
-              `${callingPlayer.name}の手牌：${callingPlayer.hand.status} 捨牌：${callingPlayer.discardStatus}\n` +
-                `${callingPlayer.name} 捨て牌選択[0-${callingPlayer.hand.tiles.length}]`,
-              (input: string) => isDiscardTileNumber(input)
-            );
-
-            playerCommand = new DiscardCommand(
-              callingPlayer,
-              callingPlayer.hand.tiles[Number(answer)]
-            );
-
-            roundHand.executeCommand(playerCommand);
-            continue;
-        }
-
-        break;
-      }
-
-      if (!roundHand.hasRestTiles()) {
-        roundHand.drawEnd();
+      turnResult = await this.playerTurn(currentPlayer);
+      if (turnResult.roundHandEnd) {
+        // todo
         return;
       }
 
-      player = roundHand.nextPlayer;
-      player.drawTile(new Tile(roundHand.pickTile()));
+      // 牌をツモったプレイヤー以外のプレイヤーのターン(プレイヤーが捨てた牌へのアクション)
+      turnResult = await this.otherPlayersTurn(turnResult.command, currentPlayer);
+      if (turnResult.roundHandEnd) {
+        // todo
+        return;
+      }
+
+      if (!this.currentRoundHand.hasRestTiles()) {
+        this.currentRoundHand.drawEnd();
+        return;
+      }
+
+      currentPlayer = this.currentRoundHand.nextPlayer;
+      currentPlayer.drawTile(this.pickTile());
     }
   };
 }
@@ -374,4 +374,8 @@ export class CheatGame extends Game {
     // do nothing
     logger.debug("cheatGame startRoundHand");
   }
+}
+
+class TurnResult {
+  constructor(public command: BaseCommand, public roundHandEnd: boolean) {}
 }

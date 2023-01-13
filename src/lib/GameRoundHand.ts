@@ -4,14 +4,7 @@ import { 牌 } from "./Types";
 import { Tile } from "./Tile";
 import { CheatTable, Table } from "./Table";
 import { toMoji } from "./Functions";
-import {
-  AnKanCommand,
-  BaseCommand,
-  RonCommand,
-  TsumoCommand,
-  DaiMinKanCommand,
-  KaKanCommand,
-} from "./Command";
+import { AnKanCommand, BaseCommand, RonCommand, TsumoCommand, DaiMinKanCommand, KaKanCommand } from "./Command";
 import { PlayerCommandType } from "./Constants";
 import { Player } from "./Player";
 
@@ -42,28 +35,29 @@ export class GameRoundHand {
   }
 
   get otherPlayers(): Player[] {
-    return new List(this.players)
-      .Where((_, index) => index != this._playerIndex)
-      .ToArray();
+    return new List(this.players).Where((_, index) => index != this._playerIndex).ToArray();
   }
 
   get nextPlayer(): Player {
-    this.incrementPlayerIndex();
+    const index = this._playerIndex;
+    this.setPlayerIndex(index + 1);
     return this.currentPlayer;
   }
 
-  set playerIndex(index: number) {
-    this._playerIndex = index + 1 > this.players.length - 1 ? 0 : index + 1;
-  }
-
-  incrementPlayerIndex(): void {
-    const index = this._playerIndex;
-    this._playerIndex = index + 1 > 3 ? 0 : index + 1;
-  }
-
-  changePlayerIndexNext(player: Player) {
+  nextPlayerOf(player: Player): Player {
     const index = this.players.indexOf(player);
-    this.playerIndex = index + 1;
+    this.setPlayerIndex(index + 1);
+    return this.currentPlayer;
+  }
+
+  setCurrentPlayer(player: Player): Player {
+    const index = this.players.indexOf(player);
+    this.setPlayerIndex(index);
+    return this.currentPlayer;
+  }
+
+  setPlayerIndex(index: number): void {
+    this._playerIndex = index % this._players.length;
   }
 
   executeCommand(command: BaseCommand): void {
@@ -88,7 +82,6 @@ export class GameRoundHand {
         break;
       case PlayerCommandType.Pon:
         command.execute(this);
-        this.changePlayerIndexNext(command.who);
 
         break;
       case PlayerCommandType.Discard:
@@ -98,7 +91,7 @@ export class GameRoundHand {
   }
 
   pickTile(): 牌 {
-    return this.table.pickTile();
+    return this.table.drawTile();
   }
 
   hasRestTiles(): boolean {
@@ -113,11 +106,7 @@ export class GameRoundHand {
   }
 
   ronEnd(command: RonCommand) {
-    logger.info(
-      `${command.who.name}が${command.whomPlayer(this).name}に${toMoji(
-        command.tile
-      )}で振り込みました`
-    );
+    logger.info(`${command.who.name}が${command.whomPlayer(this).name}に${toMoji(command.tile)}で振り込みました`);
     logger.info(`${command.who.name}の手配 ${command.who.hand.status}`);
   }
 
@@ -129,7 +118,7 @@ export class GameRoundHand {
 }
 
 export class CheatGameRoundHand extends GameRoundHand {
-  set table(table: CheatTable) {
+  set table(table: Table) {
     this._table = table;
   }
 

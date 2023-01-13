@@ -32,6 +32,8 @@ import {
 } from "./Types";
 import { WindsSort, DragonsSort, PlayerDirection } from "./Constants";
 import { Player } from "./Player";
+import { typeSortMap } from "./Constants";
+import { List } from "linqts";
 
 export function toTile(value: unknown): 牌 {
   if (isSuits(value) || isHonours(value)) return value;
@@ -295,4 +297,18 @@ export const calucatePlayerDirection = (
   } else {
     return PlayerDirection.Opposite;
   }
+};
+
+export const sortTiles = (tiles: 牌[]): 牌[] => {
+  return new List(tiles)
+    .OrderBy((x) => typeSortMap.get(x[1])) // 2文字目で整列
+    .ThenBy((x) => {
+      const key = x[0]; // 1文字目で整列
+
+      if (isSuits(x)) return key;
+      if (isKazehai(x)) return windSortMap.get(key);
+      if (isSangenpai(x)) return dragonSortMap.get(key);
+      throw new Error(x);
+    })
+    .ToArray();
 };

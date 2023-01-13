@@ -5,23 +5,36 @@ import { DeadWall } from "./DeadWall";
 import { ManduChar, PinduChar, SouduChar, Winds, Dragons } from "./Constants";
 import { toManzu, toPinzu, toSouzu, ToSangenpai, ToKazehai } from "./Functions";
 import { 牌, 色 } from "./Types";
+import { Validator } from "./Validator";
 
 export class Table {
   private _deadWall: DeadWall;
   private _walls: Array<Wall>; //牌の山
-  private _initializedTiles: Array<牌> = [];
   protected _washedTiles: Array<牌> = [];
 
-  constructor() {
-    this._initializedTiles = Table.initializeTiles();
+  constructor(washedTiles?: Array<牌>) {
+    if (washedTiles) {
+      this._washedTiles = washedTiles;
+    } else {
+      this.washInitializeTiles(Table.initializeTiles());
+    }
+
+    if (!Validator.isValidAllTiles(this._washedTiles)) {
+      throw new Error(
+        JSON.stringify({
+          tiles: this._washedTiles,
+          length: this.washedTiles?.length,
+        })
+      );
+    }
   }
 
   get walls(): Wall[] {
     return this._walls;
   }
 
-  get deadWall(): DeadWall {
-    return this._deadWall;
+  set walls(walls: Wall[]) {
+    this._walls = walls;
   }
 
   get washedTiles(): Array<牌> {
@@ -32,6 +45,11 @@ export class Table {
     return new List(this._walls).Sum((wall) => wall.tilesCount);
   }
 
+  get deadWall(): DeadWall {
+    return this._deadWall;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/adjacent-overload-signatures
   set deadWall(deadWall: DeadWall) {
     this._deadWall = deadWall;
 
@@ -44,32 +62,34 @@ export class Table {
   }
 
   buildWalls(): void {
+    // 山を4つにわける
     this._walls = Enumerable.Range(0, 4)
-      .Select((n) => this.buildWall())
+      .Select(() => this.buildWall())
       .ToArray();
 
     logger.debug("山を積みました");
   }
 
   buildWall(): Wall {
+    // 17 x 2 ずつ山(wall)を分けていく
     return new Wall(
       Enumerable.Range(0, 17 * 2)
-        .Select((n) => {
+        .Select(() => {
           return this._washedTiles.shift();
         })
         .ToArray()
     );
   }
 
-  pickTiles(num: number): Array<牌> {
+  drawTiles(num: number): Array<牌> {
     return Enumerable.Range(0, num)
-      .Select((n) => {
-        return this.pickTile();
+      .Select(() => {
+        return this.drawTile();
       })
       .ToArray();
   }
 
-  pickTile(): 牌 {
+  drawTile(): 牌 {
     return new List(this._walls)
       .First((wall) => wall.tilesCount > 0)
       .pickTile();
@@ -80,10 +100,8 @@ export class Table {
   }
 
   //洗牌
-  washInitializedTiles(): void {
-    this._washedTiles = new List(this._initializedTiles)
-      .OrderBy(() => Math.random())
-      .ToArray();
+  washInitializeTiles(tiles: 牌[]): void {
+    this._washedTiles = new List(tiles).OrderBy(() => Math.random()).ToArray();
 
     logger.debug("洗牌");
   }
@@ -101,7 +119,6 @@ export class Table {
     tiles.AddRange(this.initializeHonors());
 
     tiles = tiles.Concat(tiles).Concat(tiles).Concat(tiles);
-
     return tiles.ToArray();
   }
 
@@ -147,9 +164,23 @@ export class Table {
   }
 }
 
-export class CheatTable extends Table {
-  constructor(washedTiles: 牌[]) {
-    super();
-    this._washedTiles = washedTiles;
+export class CheatTable {
+  constructor(public washedTiles: 牌[]) {}
+
+  drawTiles(num: number): Array<牌> {
+    return Enumerable.Range(0, num)
+      .Select(() => {
+        return this.drawTile();
+      })
+      .ToArray();
+  }
+
+  drawTile(): 牌 {
+    return this.washedTiles.shift();
+  }
+
+  pickTile(tile: 牌) {
+    const index = this.washedTiles.indexOf(tile);
+    return this.washedTiles.splice(index, 1);
   }
 }

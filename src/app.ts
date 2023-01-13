@@ -10,7 +10,7 @@ const main = async (players: Player[], option?: GameOption) => {
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    await game.roundHandLoop();
+    await game.roundHandLoop(game.currentRoundHand.currentPlayer);
 
     game.endRoundHand();
 
@@ -24,12 +24,7 @@ const main = async (players: Player[], option?: GameOption) => {
   game.end();
 };
 
-const players = [
-  new Player("Aさん"),
-  new Player("Bさん"),
-  new Player("Cさん"),
-  new Player("Dさん"),
-];
+const players = [new Player("Aさん"), new Player("Bさん"), new Player("Cさん"), new Player("Dさん")];
 
 const option: GameOption = new GameOption();
 option.debug = true;

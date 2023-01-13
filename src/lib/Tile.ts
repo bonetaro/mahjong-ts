@@ -2,11 +2,11 @@ import { 牌 } from "./Types";
 
 export class Tile {
   private _tile: 牌;
-  private _kingsTile: boolean = false;
+  private _kingsTile: boolean;
 
-  constructor(tile: 牌, kingsTile: boolean = false) {
+  constructor(tile: 牌, kingsTile = false) {
     this._tile = tile;
-    this._kingsTile = true;
+    this._kingsTile = kingsTile;
   }
 
   get tile(): 牌 {

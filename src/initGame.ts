@@ -1,15 +1,13 @@
 /* eslint-disable no-constant-condition */
 import { logger, LogEvent } from "./logging";
-import { List } from "linqts";
 import { 牌 } from "./lib/Types";
-import { Validator } from "./lib/Validator";
 import { toTile } from "./lib/Functions";
-import { Hand } from "./lib/Hand";
 import { Player } from "./lib/Player";
-import { CheatTable } from "./lib/Table";
 import { Game, CheatGame } from "./lib/Game";
 import { Table } from "./lib/Table";
 import { CheatGameRoundHand } from "./lib/GameRoundHand";
+import { CheatTableBuilder, PlayerDealedTiles } from "./lib/CheatTableBuilder";
+import { Hand } from "./lib/Hand";
 
 export const initGame = (players: Player[]): Game => {
   const game = new Game(players);
@@ -21,27 +19,23 @@ export const initGame = (players: Player[]): Game => {
 export const initCheatGame = (players: Player[]): CheatGame => {
   const game = new CheatGame(players);
   game.init();
-
   game.players.map((player) => player.init());
 
+  // 東場作成
   game.createGameRound();
 
-  const cheatHand = new Hand(createCheatTiles().map((tile) => toTile(tile)));
+  const builder = new CheatTableBuilder();
+  builder.set(new PlayerDealedTiles(new Hand(createCheatTiles()), []), 0);
+  builder.set(new PlayerDealedTiles(new Hand(), ["3m"]), 1);
 
-  createCheatGameRoundHand(game, cheatHand);
+  const roundHand = new CheatGameRoundHand(game.players);
+  roundHand.table = new Table(builder.createCheatTable().washedTiles);
+  game.currentRound.hands.push(roundHand);
 
   game.currentRoundHand.table.buildWalls();
   game.currentRoundHand.table.makeDeadWall();
 
-  game.players[0].drawTiles(game.dealTiles(cheatHand.tiles.length));
-
-  const otherPlayers = new List(game.players)
-    .Where((player, index) => index > 0)
-    .Select((player) => player)
-    .ToArray();
-
-  game.dealStartTilesToPlayers(otherPlayers);
-
+  game.dealStartTilesToPlayers(game.players);
   players.forEach((player) => player.sortHandTiles());
 
   logger.info("チート半荘開始");
@@ -50,7 +44,7 @@ export const initCheatGame = (players: Player[]): CheatGame => {
   return game;
 };
 
-const createCheatTiles = (): string[] => {
+const createCheatTiles = (): 牌[] => {
   const tiles: string[] = [];
   tiles.push("1m"); // 1
   tiles.push("1m"); // 2
@@ -60,46 +54,11 @@ const createCheatTiles = (): string[] => {
   tiles.push("3m"); // 6
   tiles.push("1m"); // 7
   tiles.push("1p"); // 8
-  tiles.push("4m"); // 9
+  tiles.push("3m"); // 9
   tiles.push("4m"); // 10
   tiles.push("4m"); // 11
   tiles.push("1s"); // 12
   tiles.push("2s"); // 13
 
-  return tiles;
-};
-
-const createCheatGameRoundHand = (game: Game, hand: Hand): void => {
-  const restTiles = createRestTiles(hand.tiles);
-  const roundHand = new CheatGameRoundHand(game.players);
-  // 先頭14牌は王牌になるのでその後ろに挿入
-  restTiles.splice(14, 0, ...hand.tiles);
-  roundHand.table = new CheatTable(restTiles);
-  game.currentRound.hands.push(roundHand);
-};
-
-// 引数の牌を加えることで、全ての牌(1種の牌が4枚ずつ136枚)がそろうように残りの牌を生成する
-const createRestTiles = (handTiles: 牌[]): 牌[] => {
-  const suffleTiles = Table.shuffleTiles(Table.initializeTiles());
-
-  // イカサマ牌を先頭に足して、逆順にする(末尾にイカサマ牌を末尾にもってくる)
-  const reversedTiles = new List(handTiles.concat(suffleTiles)).Reverse();
-
-  // todo パフォーマンス改善
-  while (true) {
-    const group = reversedTiles.GroupBy((t) => t);
-
-    // 4つより多い牌を先頭から消していく
-    new List(Object.keys(group))
-      .Where((key) => group[key].length !== 4)
-      .ForEach((key) => reversedTiles.Remove(toTile(key)));
-
-    if (Validator.isValidAllTiles(reversedTiles.ToArray())) {
-      break;
-    }
-  }
-
-  // handTiles以外の残りの牌
-  const restTiles = reversedTiles.Reverse().Skip(handTiles.length).ToArray();
-  return restTiles;
+  return tiles.map((tile) => toTile(tile));
 };

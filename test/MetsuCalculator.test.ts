@@ -17,7 +17,6 @@ test("canAnkan is 1", () => {
   tiles.push("4m"); // 11
   tiles.push("1s"); // 12
   tiles.push("2s"); // 13
-  tiles.push("2s"); // 14
 
   const hand = new Hand(tiles.map((t) => toTile(t)));
   const calc = new MentsuCalculator(hand);
@@ -40,7 +39,6 @@ test("canAnkan is 2", () => {
   tiles.push("4m"); // 11
   tiles.push("4m"); // 12
   tiles.push("2s"); // 13
-  tiles.push("2s"); // 14
 
   const hand = new Hand(tiles.map((t) => toTile(t)));
   const calc = new MentsuCalculator(hand);
@@ -63,7 +61,6 @@ test("canAnkan is 3", () => {
   tiles.push("4m"); // 11
   tiles.push("4m"); // 12
   tiles.push("rd"); // 13
-  tiles.push("gd"); // 14
 
   const hand = new Hand(tiles.map((t) => toTile(t)));
   const calc = new MentsuCalculator(hand);
