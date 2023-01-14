@@ -4,63 +4,64 @@ import { Hand } from "./Hand";
 import { Tile } from "./Tile";
 import { 牌 } from "./Types";
 import { toEmojiFromArray, toKanjiFromArray, toMoji } from "./Functions";
+import { v4 as uuid } from "uuid";
 
 export class Player {
-  private _name: string;
-  private _hand: Hand;
-  private _discardTiles: Array<牌> = [];
+  protected _id: string;
+  protected _name: string;
 
-  constructor(name: string) {
+  constructor(name: string, public hand = new Hand(), public discardTiles: 牌[] = []) {
+    this._id = uuid();
     this._name = name;
+  }
+
+  get id(): string {
+    return this._id;
   }
 
   get name(): string {
     return this._name;
   }
 
-  get hand(): Hand {
-    return this._hand;
-  }
-
   init(): void {
     logger.debug("player init");
 
-    this._hand = new Hand();
-    this._discardTiles = [];
+    this.hand = new Hand();
+    this.discardTiles = [];
   }
 
   show(): void {
     logger.info(`${this.name}`, {
       hand: toEmojiFromArray(this.hand.tiles),
-      discard: toEmojiFromArray(this._discardTiles),
+      discard: toEmojiFromArray(this.discardTiles),
     });
   }
 
   get discardStatus(): string {
-    if (this._discardTiles.length == 0) {
+    if (this.discardTiles.length == 0) {
       return "[]";
     }
 
-    return `[${toEmojiFromArray(this._discardTiles)}]` + " " + `[${toKanjiFromArray(this._discardTiles)}]`;
+    return `[${toEmojiFromArray(this.discardTiles)} (${toKanjiFromArray(this.discardTiles)})]`;
   }
 
   doDiscard(tile: 牌): void {
-    this._discardTiles.push(tile);
+    this.discardTiles.push(tile);
 
-    const index = this._hand.tiles.indexOf(tile);
-    this._hand.tiles.splice(index, 1);
+    const index = this.hand.tiles.indexOf(tile);
+    this.hand.tiles.splice(index, 1);
 
     logger.info(`${this.name}が${toMoji(tile)}を捨てました`, this.hand.debugStatus());
   }
 
   drawTile(tile: Tile) {
-    this._hand.drawingTile = tile;
+    this.hand.drawingTile = tile;
 
     logger.info(`${this.name}が${toMoji(tile.tile)}をツモりました`, this.hand.debugStatus());
   }
 
   drawTiles(tiles: Array<牌>) {
-    tiles.forEach((tile) => this._hand.tiles.push(tile));
+    this.hand.tiles = this.hand.tiles.concat(tiles);
 
     logger.debug(`${this.name}が牌を${tiles.length}枚とりました`, {
       tiles: this.hand.tiles,
@@ -69,7 +70,7 @@ export class Player {
   }
 
   sortHandTiles(): void {
-    this._hand.tiles = this._hand.sortTiles();
+    this.hand.tiles = this.hand.sortTiles();
 
     logger.debug(`${this.name}が牌を並び替えました`, {
       tiles: this.hand.tiles.join(""),
@@ -80,14 +81,16 @@ export class Player {
   }
 }
 
-export class RoundHandPlayer {
-  private _index: number;
+export class RoundHandPlayer extends Player {
+  constructor(player: Player, public index: number) {
+    super(player.name);
 
-  constructor(public player: Player, index: number) {
-    this._index = index;
+    this._id = player.id;
+    this.hand = player.hand;
+    this.discardTiles = player.discardTiles;
   }
 
   get windName(): string {
-    return `${WindsLabel[this._index]}家`;
+    return `${WindsLabel[this.index]}家`;
   }
 }

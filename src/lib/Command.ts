@@ -1,19 +1,19 @@
 import { List } from "linqts";
 import { PlayerCommandType, PlayerDirection } from "./Constants";
 import { AnKanMentsu, MinKanMentsu, MinKouMentsu } from "./Mentsu";
-import { Player } from "./Player";
+import { Player, RoundHandPlayer } from "./Player";
 import { 牌 } from "./Types";
 import { GameRoundHand } from "./GameRoundHand";
 
 export abstract class BaseCommand {
   protected _type: PlayerCommandType;
-  protected _who: Player;
+  protected _who: RoundHandPlayer;
 
-  constructor(who: Player) {
+  constructor(who: RoundHandPlayer) {
     this._who = who;
   }
 
-  get who(): Player {
+  get who(): RoundHandPlayer {
     return this._who;
   }
 
@@ -30,13 +30,13 @@ export abstract class OtherPlayersCommand extends BaseCommand {
   protected _direction: PlayerDirection;
   protected _tile: 牌;
 
-  constructor(who: Player, direction: PlayerDirection, tile: 牌) {
+  constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who);
     this._direction = direction;
     this._tile = tile;
   }
 
-  whomPlayer(roundHand: GameRoundHand): Player {
+  whomPlayer(roundHand: GameRoundHand): RoundHandPlayer {
     return roundHand.players[this._direction as number];
   }
 
@@ -58,7 +58,7 @@ export class DiscardCommand extends PlayerCommand {
     return this._tile;
   }
 
-  constructor(who: Player, tile: 牌) {
+  constructor(who: RoundHandPlayer, tile: 牌) {
     super(who);
     this._tile = tile;
   }
@@ -72,7 +72,7 @@ export class DiscardCommand extends PlayerCommand {
 export class TsumoCommand extends PlayerCommand {
   protected _type = PlayerCommandType.Tsumo;
 
-  constructor(who: Player) {
+  constructor(who: RoundHandPlayer) {
     super(who);
   }
 
@@ -87,7 +87,7 @@ export class AnKanCommand extends PlayerCommand {
     return this._tile;
   }
 
-  constructor(who: Player, tile: 牌) {
+  constructor(who: RoundHandPlayer, tile: 牌) {
     super(who);
     this._tile = tile;
   }
@@ -109,7 +109,7 @@ export class KaKanCommand extends PlayerCommand {
     return this._tile;
   }
 
-  constructor(who: Player, tile: 牌) {
+  constructor(who: RoundHandPlayer, tile: 牌) {
     super(who);
     this._tile = tile;
   }
@@ -131,7 +131,7 @@ export class KaKanCommand extends PlayerCommand {
       .AddRange(new List(mentsuList).Where((mentsu) => !(mentsu instanceof MinKouMentsu && mentsu.tiles.includes(this.tile))).ToArray());
 
     // 加槓面子を作成して追加
-    this.who.hand.openMentsuList.push(new MinKanMentsu(this.tile, minkouMentsu.fromPlayer));
+    this.who.hand.openMentsuList.push(new MinKanMentsu(this.tile, minkouMentsu.fromPlayerDirection));
   }
 }
 
@@ -147,7 +147,7 @@ export class RonCommand extends OtherPlayersCommand {
   protected _type = PlayerCommandType.Ron;
   _tile: 牌;
 
-  constructor(who: Player, direction: PlayerDirection, tile: 牌) {
+  constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who, direction, tile);
   }
 
@@ -157,7 +157,7 @@ export class RonCommand extends OtherPlayersCommand {
 export class PonCommand extends OtherPlayersCommand {
   protected _type = PlayerCommandType.Pon;
 
-  constructor(who: Player, direction: PlayerDirection, tile: 牌) {
+  constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who, direction, tile);
   }
 
@@ -169,7 +169,7 @@ export class PonCommand extends OtherPlayersCommand {
       tiles = tiles.concat(this.who.hand.tiles.splice(index, 1));
     });
 
-    const mentsu = new MinKouMentsu(this._tile, this.whomPlayer(roundHand));
+    const mentsu = new MinKouMentsu(this._tile, this.direction);
     this.who.hand.openMentsuList.push(mentsu);
   }
 }
@@ -177,7 +177,7 @@ export class PonCommand extends OtherPlayersCommand {
 export class DaiMinKanCommand extends OtherPlayersCommand {
   protected _type = PlayerCommandType.Kan;
 
-  constructor(who: Player, direction: PlayerDirection, tile: 牌) {
+  constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who, direction, tile);
   }
 
@@ -187,7 +187,7 @@ export class DaiMinKanCommand extends OtherPlayersCommand {
 export class ChiCommand extends OtherPlayersCommand {
   protected _type = PlayerCommandType.Chi;
 
-  constructor(who: Player, direction: PlayerDirection, tile: 牌) {
+  constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who, direction, tile);
   }
 

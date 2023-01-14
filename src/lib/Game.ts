@@ -7,8 +7,10 @@ import { Player } from "./Player";
 import { GameRound } from "./GameRound";
 import { GameRoundHand } from "./GameRoundHand";
 import { anyKeyAsk } from "./AskPlayer";
+import { Dice } from "./Dice";
 
 export class Game {
+  private _dices: [Dice, Dice] = [new Dice(), new Dice()];
   private _players: Array<Player> = [];
   private _firstDealer: Player;
   private _rounds: GameRound[] = [];
@@ -49,14 +51,13 @@ export class Game {
 
     roundHand.table.buildWalls(); // 牌の山を積む
 
-    roundHand.rollDices(); // サイコロを振る
+    this.rollDices(); // サイコロを振る
 
     // todo サイコロを振っているが王牌と無関係
     roundHand.table.makeDeadWall();
 
     roundHand.players.forEach((player) => player.init());
-    roundHand.dealStartTilesToPlayers(this.players); // 配牌
-
+    roundHand.dealStartTilesToPlayers(); // 配牌
     roundHand.players.forEach((player) => player.sortHandTiles()); // 牌を整列
 
     LogEvent(this.status());
@@ -78,7 +79,6 @@ export class Game {
   nextRoundHandPlayers(): Player[] {
     const num = this.currentRound.hands.length % 4;
     const players = [...Array(this.players.length)].map((i) => this.players[(num + i) % 4]);
-
     return players;
   }
 
@@ -107,11 +107,19 @@ export class Game {
     return new List(this._players).OrderBy(() => Math.random()).First();
   }
 
+  rollDices(): number {
+    this._dices.forEach((dice) => dice.roll());
+
+    logger.debug(`サイコロを振りました: ${this._dices[0].toEmoji()} ${this._dices[1].toEmoji()} `);
+
+    return this._dices.reduce((sum: number, dice: Dice) => (sum += dice.num), 0);
+  }
+
   // 起家決め
   decideFirstDealer(): void {
-    logger.debug("picupDealer");
+    logger.debug("decideFirstDealer");
 
-    const randomNumber = (): number => Math.floor(Math.random() * 4);
+    const randomNumber = (): number => this.rollDices() % this.players.length;
 
     logger.debug(`仮親：${this.players[randomNumber()]}`);
 
@@ -141,6 +149,10 @@ export class Game {
     if (option.dora) {
       const doras = this.currentRoundHand.table.deadWall.doras;
       label.push(`ドラ:${doras.map((dora) => toMoji(dora)).join(" ")}`);
+    }
+
+    if (label.length > 0) {
+      label.push("|");
     }
 
     if (option.player) {

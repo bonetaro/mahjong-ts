@@ -1,6 +1,6 @@
-import { toEmoji } from "./Functions";
-import { Player } from "./Player";
+import { toEmoji, toKanji } from "./Functions";
 import { 牌 } from "./Types";
+import { PlayerDirection } from "./Constants";
 
 export abstract class Mentsu {
   constructor(public tiles: 牌[]) {}
@@ -15,12 +15,7 @@ export class AnKanMentsu extends Mentsu {
   }
 
   status(): string {
-    return (
-      `${toEmoji(this.tiles[0], true)}` +
-      ` ${toEmoji(this.tiles[1])}` +
-      ` ${toEmoji(this.tiles[2])}` +
-      ` ${toEmoji(this.tiles[3], true)}`
-    );
+    return `${toEmoji(this.tiles[0], true)}` + ` ${toEmoji(this.tiles[1])}` + ` ${toEmoji(this.tiles[2])}` + ` ${toEmoji(this.tiles[3], true)}`;
   }
 }
 
@@ -39,7 +34,7 @@ export class AnKouMentsu extends Mentsu {
 }
 
 export class OpenMentsu extends Mentsu {
-  constructor(public tile: 牌, public tiles: 牌[], public fromPlayer: Player) {
+  constructor(public tile: 牌, public tiles: 牌[], public fromPlayerDirection: PlayerDirection) {
     tiles.push(tile);
 
     super(tiles);
@@ -55,31 +50,36 @@ export class ChiMentsu extends OpenMentsu {}
 
 // 明刻
 export class MinKouMentsu extends OpenMentsu {
-  constructor(tile: 牌, fromPlayer: Player) {
-    super(tile, [tile, tile], fromPlayer);
+  constructor(tile: 牌, fromPlayerDirection: PlayerDirection) {
+    super(tile, [tile, tile], fromPlayerDirection);
   }
 
   status(): string {
-    return (
-      `${toEmoji(this.tiles[0])}` +
-      ` ${toEmoji(this.tiles[1])}` +
-      ` ${toEmoji(this.tile)}`
-    );
+    return [...Array(3)]
+      .map((_, index) => {
+        const text = index == (this.fromPlayerDirection as number) ? `(${toEmoji(this.tile)} )` : toEmoji(this.tile);
+        return text;
+      })
+      .join(" ");
+  }
+
+  statusKanji(): string {
+    return [...Array(3)]
+      .map((_, index) => {
+        const text = index == (this.fromPlayerDirection as number) ? `(${toKanji(this.tile)} )` : toKanji(this.tile);
+        return text;
+      })
+      .join(" ");
   }
 }
 
 // 明槓
 export class MinKanMentsu extends OpenMentsu {
-  constructor(tile: 牌, fromPlayer: Player) {
-    super(tile, [tile, tile, tile], fromPlayer);
+  constructor(tile: 牌, fromPlayerDirection: PlayerDirection) {
+    super(tile, [tile, tile, tile], fromPlayerDirection);
   }
 
   status(): string {
-    return (
-      `${toEmoji(this.tiles[0])}` +
-      ` ${toEmoji(this.tiles[1])}` +
-      ` ${toEmoji(this.tiles[2])}` +
-      ` ${toEmoji(this.tile)}`
-    );
+    return `${toEmoji(this.tiles[0])}` + ` ${toEmoji(this.tiles[1])}` + ` ${toEmoji(this.tiles[2])}` + ` ${toEmoji(this.tile)}`;
   }
 }

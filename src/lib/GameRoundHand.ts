@@ -6,43 +6,41 @@ import { Table } from "./Table";
 import { isRangeNumber, toMoji } from "./Functions";
 import { AnKanCommand, BaseCommand, RonCommand, TsumoCommand, DaiMinKanCommand, KaKanCommand, PlayerCommand, DiscardCommand } from "./Command";
 import { PlayerCommandType, WindsLabel } from "./Constants";
-import { Player } from "./Player";
-import { Dice } from "./Dice";
+import { Player, RoundHandPlayer } from "./Player";
 import { askOtherPlayers, askPlayer } from "./AskPlayer";
 import { Game } from "./Game";
 import { CommandCreator } from "./CommandCreator";
 
 // 局
 export class GameRoundHand {
-  private _dices: [Dice, Dice] = [new Dice(), new Dice()];
   protected _table: Table = new Table();
-  protected _players: Player[];
+  protected _players: RoundHandPlayer[];
   private _playerIndex = 0;
   private _isDraw: boolean = false; // 流局
 
   constructor(players: Player[]) {
     logger.debug("gameRoundHand create");
 
-    this._players = players;
+    this._players = players.map((player, index) => new RoundHandPlayer(player, index));
   }
 
   get table(): Table {
     return this._table;
   }
 
-  get players(): Player[] {
+  get players(): RoundHandPlayer[] {
     return this._players;
   }
 
-  get otherPlayers(): Player[] {
-    return this.players.filter((_, index) => index != this._playerIndex);
+  get otherPlayers(): RoundHandPlayer[] {
+    return this._players.filter((_, index) => index != this._playerIndex);
   }
 
-  get currentPlayer(): Player {
+  get currentPlayer(): RoundHandPlayer {
     return this._players[this._playerIndex];
   }
 
-  get nextPlayer(): Player {
+  get nextPlayer(): RoundHandPlayer {
     const index = this._playerIndex;
     this.setPlayerIndex(index + 1);
     return this.currentPlayer;
@@ -52,36 +50,24 @@ export class GameRoundHand {
     return `${WindsLabel[game.roundCount - 1]}${game.currentRound.hands.length}局`;
   }
 
-  rollDices(): number {
-    const dice = this._dices[0];
-    const dice2 = this._dices[1];
-
-    dice.roll();
-    dice2.roll();
-
-    logger.debug(`サイコロを振りました: ${dice.toEmoji()} ${dice2.toEmoji()} `);
-
-    return dice.num + dice2.num;
-  }
-
   dealTiles(num: number): Array<牌> {
     const tiles = [...Array(num)].map(() => this.table.pickTile());
     return tiles;
   }
 
-  dealStartTilesToPlayers(players: Player[]): void {
+  dealStartTilesToPlayers(): void {
     logger.debug("game dealStartTilesToPlayers");
 
     // 各プレイヤー4枚ずつ3回牌をつもる
     [...Array(3)].forEach(() => {
-      players.forEach((player) => player.drawTiles(this.dealTiles(4)));
+      this.players.forEach((player) => player.drawTiles(this.dealTiles(4)));
     });
 
     // 各プレイヤー1枚牌をつもる
-    players.forEach((player) => player.drawTiles(this.dealTiles(1)));
+    this.players.forEach((player) => player.drawTiles(this.dealTiles(1)));
   }
 
-  async doKanProcess(player: Player, playerCommand: PlayerCommand): Promise<BaseCommand> {
+  async doKanProcess(player: RoundHandPlayer, playerCommand: PlayerCommand): Promise<BaseCommand> {
     if (playerCommand instanceof KaKanCommand) {
       // 槍槓できる場合
       return await askOtherPlayers(this.players, (playerCommand as KaKanCommand).tile, player);
@@ -91,7 +77,7 @@ export class GameRoundHand {
     return playerCommand;
   }
 
-  playerTurn = async (currentPlayer: Player): Promise<TurnResult> => {
+  playerTurn = async (currentPlayer: RoundHandPlayer): Promise<TurnResult> => {
     let playerCommand: PlayerCommand;
     let otherPlayersCommand: BaseCommand;
 
@@ -119,14 +105,14 @@ export class GameRoundHand {
     return new TurnResult(playerCommand, false);
   };
 
-  otherPlayersAction = async (playerCommand: PlayerCommand, currentPlayer: Player): Promise<BaseCommand> => {
+  otherPlayersAction = async (playerCommand: PlayerCommand, currentPlayer: RoundHandPlayer): Promise<BaseCommand> => {
     const otherPlayersCommand = await askOtherPlayers(this.players, (playerCommand as DiscardCommand).tile, currentPlayer);
     this.executeCommand(otherPlayersCommand);
 
     return otherPlayersCommand;
   };
 
-  otherPlayersTurn = async (playerCommand: PlayerCommand, currentPlayer: Player): Promise<TurnResult> => {
+  otherPlayersTurn = async (playerCommand: PlayerCommand, currentPlayer: RoundHandPlayer): Promise<TurnResult> => {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const otherPlayersCommand = await this.otherPlayersAction(playerCommand, currentPlayer);
@@ -195,14 +181,18 @@ export class GameRoundHand {
     }
   };
 
-  nextPlayerOf(player: Player): Player {
-    const index = this.players.indexOf(player);
+  nextPlayerOf(player: RoundHandPlayer): RoundHandPlayer {
+    const index = this.players.findIndex((p) => p.id == player.id);
     this.setPlayerIndex(index + 1);
     return this.currentPlayer;
   }
 
-  setCurrentPlayer(player: Player): Player {
-    const index = this.players.indexOf(player);
+  setCurrentPlayer(player: RoundHandPlayer): RoundHandPlayer {
+    const index = this.players.findIndex((p) => p.id == player.id);
+    if (index < 0) {
+      throw new Error();
+    }
+
     this.setPlayerIndex(index);
     return this.currentPlayer;
   }

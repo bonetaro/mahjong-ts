@@ -22,10 +22,14 @@ export class CommandCreator {
     let commandText = `${textList.join(" ")}> `;
 
     if (player) {
-      commandText = `${player.name}の手牌：${player.hand.status} 捨牌：${player.discardStatus}\n${commandText}`;
+      commandText = `${this.createPlayerStatusText(player)}\n${commandText}`;
     }
 
     return commandText;
+  }
+
+  createPlayerStatusText(player: Player): string {
+    return `${player.name}の手牌 ${player.hand.status} 捨牌 ${player.discardStatus}`;
   }
 
   createCommandTextList(commands: PlayerCommandType[]): string[] {
@@ -60,6 +64,6 @@ export class CommandCreator {
 
   createOtherPlayersCommandText(commands: PlayerCommandType[], hand: Hand): string {
     const textList: string[] = this.createCommandTextList(commands);
-    return textList.join(" ");
+    return `${textList.join(" ")}> `;
   }
 }

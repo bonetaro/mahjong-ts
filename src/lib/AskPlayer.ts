@@ -70,7 +70,7 @@ class HandParser {
   };
 }
 
-const askKan = async (kanCandidateTiles: 牌[], player: Player): Promise<PlayerCommand> => {
+const askKan = async (kanCandidateTiles: 牌[], player: RoundHandPlayer): Promise<PlayerCommand> => {
   let kanTile: 牌;
 
   if (kanCandidateTiles.length === 1) {
@@ -93,7 +93,7 @@ const askKan = async (kanCandidateTiles: 牌[], player: Player): Promise<PlayerC
   }
 };
 
-export const askPlayer = async (player: Player): Promise<PlayerCommand> => {
+export const askPlayer = async (player: RoundHandPlayer): Promise<PlayerCommand> => {
   const parsedPlayerCommand = new HandParser(player.hand).parseAsPlayerCommand();
 
   const playerCommandTypeList = Array.from(parsedPlayerCommand.keys());
@@ -117,22 +117,18 @@ export const askPlayer = async (player: Player): Promise<PlayerCommand> => {
   throw new Error(answer);
 };
 
-export const askOtherPlayers = async (players: Player[], tile: 牌, whom: Player): Promise<BaseCommand> => {
-  const otherPlayers = new List(players).Select((player, index) => new RoundHandPlayer(player, index)).Where((item) => item.player != whom);
+export const askOtherPlayers = async (players: RoundHandPlayer[], tile: 牌, whom: Player): Promise<BaseCommand> => {
+  const otherPlayers = players.filter((player) => player != whom).map((player, index) => new RoundHandPlayer(player, index));
 
   logger.info(
-    "ほかのプレイヤー\n" +
-      otherPlayers
-        .Select((player, index) => `${player.windName}:${player.player.name}(${index}) 手牌: ${player.player.hand.status} 捨牌: ${player.player.discardStatus}`)
-        .ToArray()
-        .join("\n")
+    "ほかのプレイヤー\n" + otherPlayers.map((player, index) => `${player.windName}(${index}) ${new CommandCreator().createPlayerStatusText(player)}`).join("\n")
   );
 
   players.forEach((player) => logger.debug("debug:", player.hand.debugStatus()));
 
-  const possibleCommandMap = new Map<Player, Map<PlayerCommandType, 牌[]>>();
-  otherPlayers.ForEach((player) => {
-    possibleCommandMap.set(player.player, new HandParser(player.player.hand).parseAsOtherPlayersCommand(tile));
+  const possibleCommandMap = new Map<RoundHandPlayer, Map<PlayerCommandType, 牌[]>>();
+  otherPlayers.forEach((player) => {
+    possibleCommandMap.set(player, new HandParser(player.hand).parseAsOtherPlayersCommand(tile));
   });
 
   const possibleCommandTypeList = Array.from(possibleCommandMap.values()).flatMap((value) => {
@@ -140,11 +136,7 @@ export const askOtherPlayers = async (players: Player[], tile: 牌, whom: Player
   });
 
   const commandText = new CommandCreator().createOtherPlayersCommandText(new List(possibleCommandTypeList).Distinct().ToArray(), whom.hand);
-
-  const answer = await readCommand(
-    // `> ロン[(r)on] ポン[(p)on] カン[(k)an] チー[(c)hi] 何もしない[rpkcq以外]\n`
-    `${commandText} > `
-  );
+  const answer = await readCommand(commandText);
 
   let command: PlayerCommand = new NothingCommand(null, null, null);
 

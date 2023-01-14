@@ -13,23 +13,7 @@ import {
   windSortMap,
   dragonSortMap,
 } from "./Constants";
-import {
-  牌,
-  萬子牌,
-  筒子牌,
-  索子牌,
-  数牌,
-  東,
-  南,
-  西,
-  北,
-  風牌,
-  白,
-  發,
-  中,
-  三元牌,
-  字牌,
-} from "./Types";
+import { 牌, 萬子牌, 筒子牌, 索子牌, 数牌, 東, 南, 西, 北, 風牌, 白, 發, 中, 三元牌, 字牌 } from "./Types";
 import { WindsSort, DragonsSort, PlayerDirection } from "./Constants";
 import { Player } from "./Player";
 import { typeSortMap } from "./Constants";
@@ -201,39 +185,9 @@ export function toKanjiFromArray(values: Array<牌>): string {
 }
 
 export function toKanji(value: 牌): string {
-  const manzuList = [
-    "一萬",
-    "二萬",
-    "三萬",
-    "四萬",
-    "五萬",
-    "六萬",
-    "七萬",
-    "八萬",
-    "九萬",
-  ];
-  const pinzuList = [
-    "一筒",
-    "二筒",
-    "三筒",
-    "四筒",
-    "五筒",
-    "六筒",
-    "七筒",
-    "八筒",
-    "九筒",
-  ];
-  const souzuList = [
-    "一索",
-    "二索",
-    "三索",
-    "四索",
-    "五索",
-    "六索",
-    "七索",
-    "八索",
-    "九索",
-  ];
+  const manzuList = ["一萬", "二萬", "三萬", "四萬", "五萬", "六萬", "七萬", "八萬", "九萬"];
+  const pinzuList = ["一筒", "二筒", "三筒", "四筒", "五筒", "六筒", "七筒", "八筒", "九筒"];
+  const souzuList = ["一索", "二索", "三索", "四索", "五索", "六索", "七索", "八索", "九索"];
   const kazehaiList: any = { e: "東", s: "南", w: "西", n: "北" };
   const sangenpaiList: any = { w: "白", g: "發", r: "中" };
 
@@ -253,7 +207,7 @@ export function toKanji(value: 牌): string {
 }
 
 export function toMoji(value: 牌): string {
-  return `${toEmoji(value)} ${toKanji(value)}`;
+  return `${toEmoji(value)} (${toKanji(value)})`;
 }
 
 export function nextTile(tile: 牌): 牌 {
@@ -261,34 +215,23 @@ export function nextTile(tile: 牌): 牌 {
     const nextNumber = Number(tile[0]) + 1;
     return toSuits(`${nextNumber == 10 ? 1 : nextNumber}${tile[1]}`);
   } else if (isKazehai(tile)) {
-    return ToKazehai(
-      `${WindsSort[(Number(windSortMap.get(tile[0])) + 1) % 4]}${KazehaiChar}`
-    );
+    return ToKazehai(`${WindsSort[(Number(windSortMap.get(tile[0])) + 1) % 4]}${KazehaiChar}`);
   } else if (isSangenpai(tile)) {
-    return ToSangenpai(
-      `${
-        DragonsSort[(Number(dragonSortMap.get(tile[0])) + 1) % 3]
-      }${SangenpaiChar}`
-    );
+    return ToSangenpai(`${DragonsSort[(Number(dragonSortMap.get(tile[0])) + 1) % 3]}${SangenpaiChar}`);
   } else {
     throw new Error(tile);
   }
 }
 
-export const isRangeNumber = (input: string, max: number) =>
-  input && 0 <= Number(input) && Number(input) <= max;
+export const isRangeNumber = (input: string, max: number) => input && 0 <= Number(input) && Number(input) <= max;
 
 export const splitBy2Chars = (text: string): string[] => {
   return text.match(/.{2}/g);
 };
 
-export const calucatePlayerDirection = (
-  who: Player,
-  whom: Player,
-  players: Player[]
-): PlayerDirection => {
-  const whoIndex = players.indexOf(who);
-  const whomIndex = players.indexOf(whom);
+export const calucatePlayerDirection = (who: Player, whom: Player, players: Player[]): PlayerDirection => {
+  const whoIndex = players.findIndex((player) => player.id == who.id);
+  const whomIndex = players.findIndex((player) => player.id == whom.id);
 
   if (whomIndex == whoIndex - 1) {
     return PlayerDirection.ToTheLeft;

@@ -19,6 +19,9 @@ export const initCheatGame = (players: Player[]): CheatGame => {
 
   const game = new CheatGame(players);
 
+  // 起家決め
+  game.decideFirstDealer();
+
   // 東場作成
   game.createGameRound();
 

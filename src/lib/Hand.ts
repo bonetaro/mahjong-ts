@@ -38,17 +38,10 @@ export class Hand {
   }
 
   get status(): string {
-    let text =
-      `[${toEmojiFromArray(this.tiles)}]` +
-      " " +
-      `[${toKanjiFromArray(this.tiles)}]`;
+    let text = `[${toEmojiFromArray(this.tiles)}]` + " " + `[${toKanjiFromArray(this.tiles)}]`;
 
     if (this.openMentsuList.length > 0) {
-      text +=
-        " 副露牌" +
-        this._openMentsuList
-          .map((m) => `[${m.status()} ${toKanjiFromArray(m.tiles)}]`)
-          .join("|");
+      text += " 副露牌" + this._openMentsuList.map((mentsu) => `[${mentsu.status()} ${toKanjiFromArray(mentsu.tiles)}]`).join("|");
     }
 
     return text;
