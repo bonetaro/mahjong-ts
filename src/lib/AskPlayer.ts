@@ -3,14 +3,24 @@ import { List } from "linqts";
 import { readCommand, readChoices } from "./readline";
 import { isRangeNumber, toEmojiFromArray, calucatePlayerDirection } from "./Functions";
 import { 牌 } from "./Types";
-import { Player, RoundHandPlayer } from "./Player";
-import { ChiCommand, DiscardCommand, DaiMinKanCommand, NothingCommand, PlayerCommand, PonCommand, RonCommand, TsumoCommand, AnKanCommand } from "./Command";
+import { Player, RoundHandPlayer } from "./models/Player";
+import {
+  ChiCommand,
+  DiscardCommand,
+  DaiMinKanCommand,
+  NothingCommand,
+  PlayerCommand,
+  PonCommand,
+  RonCommand,
+  TsumoCommand,
+  AnKanCommand,
+} from "./models/Command";
 import { MentsuCalculator } from "./MetsuCalculator";
 import { PlayerCommandType } from "./Constants";
 import { CommandCreator } from "./CommandCreator";
-import { Hand } from "./Hand";
-import { MinKouMentsu } from "./Mentsu";
-import { KaKanCommand, BaseCommand } from "./Command";
+import { Hand } from "./models/Hand";
+import { MinKouMentsu } from "./models/Mentsu";
+import { KaKanCommand, BaseCommand } from "./models/Command";
 
 export const anyKeyAsk = async (msg: string): Promise<string> => {
   return readCommand(`${msg} [press any key]`);

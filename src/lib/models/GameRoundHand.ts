@@ -1,16 +1,16 @@
 / eslint-disable no-case-declarations */;
-import { LogEvent, logger } from "./logging";
-import { 牌 } from "./Types";
+import { LogEvent, logger } from "../logging";
+import { 牌 } from "../Types";
 import { Tile } from "./Tile";
 import { Table } from "./Table";
-import { toMoji } from "./Functions";
+import { toMoji } from "../Functions";
 import { AnKanCommand, BaseCommand, RonCommand, TsumoCommand, DaiMinKanCommand, KaKanCommand, PlayerCommand, DiscardCommand } from "./Command";
-import { PlayerCommandType, WindsLabel } from "./Constants";
+import { PlayerCommandType, WindsLabel } from "../Constants";
 import { Player, RoundHandPlayer } from "./Player";
-import { askOtherPlayers, askPlayer } from "./AskPlayer";
+import { askOtherPlayers, askPlayer } from "../AskPlayer";
 import { Game } from "./Game";
-import { CommandCreator } from "./CommandCreator";
-import { readChoices } from "./readline";
+import { CommandCreator } from "../CommandCreator";
+import { readChoices } from "../readline";
 
 // 局
 export class GameRoundHand {

@@ -2,12 +2,12 @@
 import { logger } from "./lib/logging";
 import { 牌 } from "./lib/Types";
 import { toTile } from "./lib/Functions";
-import { Player } from "./lib/Player";
-import { Game, CheatGame } from "./lib/Game";
-import { Table } from "./lib/Table";
-import { CheatGameRoundHand } from "./lib/GameRoundHand";
+import { Player } from "./lib/models/Player";
+import { Game, CheatGame } from "./lib/models/Game";
+import { Table } from "./lib/models/Table";
+import { CheatGameRoundHand } from "./lib/models/GameRoundHand";
 import { CheatTableBuilder, PlayerDealedTiles } from "./lib/CheatTableBuilder";
-import { Hand } from "./lib/Hand";
+import { Hand } from "./lib/models/Hand";
 
 export const initGame = (players: Player[]): Game => {
   const game = new Game(players);

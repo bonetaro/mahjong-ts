@@ -1,6 +1,6 @@
 import * as readline from "readline";
 import { logger } from "./logging";
-import { Hand } from "./Hand";
+import { Hand } from "./models/Hand";
 import { toEmoji, toKanji } from "./Functions";
 import inquirer from "inquirer";
 import { PlayerCommandType } from "./Constants";

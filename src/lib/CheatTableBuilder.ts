@@ -1,7 +1,7 @@
 import { List } from "linqts";
-import { CheatTable } from "./Table";
-import { Hand } from "./Hand";
-import { Table } from "./Table";
+import { CheatTable } from "./models/Table";
+import { Hand } from "./models/Hand";
+import { Table } from "./models/Table";
 import { Validator } from "./Validator";
 import { 牌 } from "./Types";
 import { toTile, sortTiles } from "./Functions";

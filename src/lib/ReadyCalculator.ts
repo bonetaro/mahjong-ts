@@ -1,4 +1,4 @@
-import { Hand } from "./Hand";
+import { Hand } from "./models/Hand";
 
 export class ReadyCalculator {
   private _hand: Hand;

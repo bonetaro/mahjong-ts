@@ -1,12 +1,12 @@
 /* eslint-disable no-constant-condition */
 import { List } from "linqts";
-import { LogEvent, logger } from "./logging";
-import { WindsLabel } from "./Constants";
-import { toMoji } from "./Functions";
+import { LogEvent, logger } from "../logging";
+import { WindsLabel } from "../Constants";
+import { toMoji } from "../Functions";
 import { Player } from "./Player";
 import { GameRound } from "./GameRound";
-import { GameRoundHand } from "./GameRoundHand";
-import { anyKeyAsk } from "./AskPlayer";
+import { GameRoundHand } from "../models/GameRoundHand";
+import { anyKeyAsk } from "../AskPlayer";
 import { Dice } from "./Dice";
 
 export class Game {

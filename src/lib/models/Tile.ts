@@ -1,4 +1,4 @@
-import { 牌 } from "./Types";
+import { 牌 } from "../Types";
 
 export class Tile {
   private _tile: 牌;

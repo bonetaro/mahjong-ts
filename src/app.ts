@@ -1,6 +1,6 @@
 import { initCheatGame, initGame } from "./initGame";
-import { GameOption } from "./lib/GameOption";
-import { Player } from "./lib/Player";
+import { GameOption } from "./lib/models/GameOption";
+import { Player } from "./lib/models/Player";
 
 const main = async (players: Player[], option?: GameOption) => {
   const game = option?.cheat ? initCheatGame(players) : initGame(players);

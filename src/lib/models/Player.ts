@@ -1,9 +1,9 @@
-import { WindsLabel } from "./constants";
-import { logger } from "./logging";
+import { WindsLabel } from "../constants";
+import { logger } from "../logging";
 import { Hand } from "./Hand";
 import { Tile } from "./Tile";
-import { 牌 } from "./Types";
-import { toEmojiFromArray, toKanjiFromArray, toMoji } from "./Functions";
+import { 牌 } from "../Types";
+import { toEmojiFromArray, toKanjiFromArray, toMoji } from "../Functions";
 import { v4 as uuid } from "uuid";
 
 export class Player {

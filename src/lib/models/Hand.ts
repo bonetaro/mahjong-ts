@@ -1,6 +1,6 @@
-import { toEmojiFromArray, toKanjiFromArray, sortTiles } from "./Functions";
+import { toEmojiFromArray, toKanjiFromArray, sortTiles } from "../Functions";
 import { Mentsu } from "./Mentsu";
-import { 牌 } from "./Types";
+import { 牌 } from "../Types";
 import { Tile } from "./Tile";
 
 export class Hand {

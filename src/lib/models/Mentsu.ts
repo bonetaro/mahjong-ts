@@ -1,6 +1,6 @@
-import { toEmoji, toKanji } from "./Functions";
-import { 牌 } from "./Types";
-import { PlayerDirection } from "./Constants";
+import { toEmoji, toKanji } from "../Functions";
+import { 牌 } from "../Types";
+import { PlayerDirection } from "../Constants";
 
 export abstract class Mentsu {
   constructor(public tiles: 牌[]) {}

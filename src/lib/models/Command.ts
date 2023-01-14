@@ -1,11 +1,11 @@
 import { List } from "linqts";
-import { PlayerCommandType, PlayerDirection } from "./Constants";
+import { PlayerCommandType, PlayerDirection } from "../Constants";
 import { AnKanMentsu, MinKanMentsu, MinKouMentsu } from "./Mentsu";
 import { RoundHandPlayer } from "./Player";
-import { 牌 } from "./Types";
+import { 牌 } from "../Types";
 import { GameRoundHand } from "./GameRoundHand";
-import { logger } from "./logging";
-import { toEmoji } from "./Functions";
+import { logger } from "../logging";
+import { toEmoji } from "../Functions";
 
 export abstract class BaseCommand {
   protected _type: PlayerCommandType;

@@ -1,8 +1,8 @@
 import { List } from "linqts";
 import { toTile } from "./Functions";
-import { Hand } from "./Hand";
+import { Hand } from "./models/Hand";
 import { 牌 } from "./Types";
-import { MinKouMentsu } from "./Mentsu";
+import { MinKouMentsu } from "./models/Mentsu";
 
 export class MentsuCalculator {
   private _hand: Hand;
@@ -26,9 +26,7 @@ export class MentsuCalculator {
   }
 
   canKakan(tile: 牌): boolean {
-    return new List(this._hand.openMentsuList).Any(
-      (mentsu) => mentsu instanceof MinKouMentsu && mentsu.tiles.includes(tile)
-    );
+    return new List(this._hand.openMentsuList).Any((mentsu) => mentsu instanceof MinKouMentsu && mentsu.tiles.includes(tile));
   }
 
   canPon(tile: 牌): boolean {

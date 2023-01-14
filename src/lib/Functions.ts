@@ -15,7 +15,7 @@ import {
 } from "./Constants";
 import { 牌, 萬子牌, 筒子牌, 索子牌, 数牌, 東, 南, 西, 北, 風牌, 白, 發, 中, 三元牌, 字牌 } from "./Types";
 import { WindsSort, DragonsSort, PlayerDirection } from "./Constants";
-import { Player } from "./Player";
+import { Player } from "./models/Player";
 import { typeSortMap } from "./Constants";
 import { List } from "linqts";
 

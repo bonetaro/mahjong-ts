@@ -1,5 +1,5 @@
 import { Enumerable } from "linqts";
-import { 牌 } from "./Types";
+import { 牌 } from "../Types";
 
 export class Wall {
   private _tiles: 牌[];

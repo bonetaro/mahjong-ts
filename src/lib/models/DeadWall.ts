@@ -1,6 +1,6 @@
-import { 牌 } from "./Types";
+import { 牌 } from "../Types";
 import { Wall } from "./Wall";
-import { nextTile } from "./Functions";
+import { nextTile } from "../Functions";
 
 export class DeadWall {
   private _wall: Wall;
@@ -15,9 +15,7 @@ export class DeadWall {
   }
 
   get doras(): 牌[] {
-    return this._doraIndexList.map((doraIndex) =>
-      nextTile(this._wall.tile(doraIndex))
-    );
+    return this._doraIndexList.map((doraIndex) => nextTile(this._wall.tile(doraIndex)));
   }
 
   // 引数のtileは王牌に追加する牌
@@ -28,9 +26,7 @@ export class DeadWall {
   }
 
   increaseDora(): void {
-    this._doraIndexList.push(
-      this._doraIndexList[this._doraIndexList.length - 1] + 2
-    );
+    this._doraIndexList.push(this._doraIndexList[this._doraIndexList.length - 1] + 2);
     this._doraIndexList = this._doraIndexList.map((doraIndex) => doraIndex - 1);
   }
 }

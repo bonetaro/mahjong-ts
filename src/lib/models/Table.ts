@@ -1,11 +1,11 @@
-import { logger } from "./logging";
+import { logger } from "../logging";
 import { Enumerable, List } from "linqts";
 import { Wall } from "./Wall";
 import { DeadWall } from "./DeadWall";
-import { ManduChar, PinduChar, SouduChar, Winds, Dragons } from "./Constants";
-import { toManzu, toPinzu, toSouzu, ToSangenpai, ToKazehai } from "./Functions";
-import { 牌, 色 } from "./Types";
-import { Validator } from "./Validator";
+import { ManduChar, PinduChar, SouduChar, Winds, Dragons } from "../Constants";
+import { toManzu, toPinzu, toSouzu, ToSangenpai, ToKazehai } from "../Functions";
+import { 牌, 色 } from "../Types";
+import { Validator } from "../Validator";
 
 export class Table {
   private _walls: Array<Wall>; //牌の山

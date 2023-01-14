@@ -1,6 +1,6 @@
 import { PlayerCommandType } from "./Constants";
-import { Hand } from "./Hand";
-import { Player } from "./Player";
+import { Hand } from "./models/Hand";
+import { Player } from "./models/Player";
 
 export class CommandCreator {
   createPlayerCommandText(commands: PlayerCommandType[], hand: Hand, player?: Player): string {
