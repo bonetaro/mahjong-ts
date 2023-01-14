@@ -1,5 +1,5 @@
 /* eslint-disable no-constant-condition */
-import { logger } from "./logging";
+import { logger } from "./lib/logging";
 import { 牌 } from "./lib/Types";
 import { toTile } from "./lib/Functions";
 import { Player } from "./lib/Player";

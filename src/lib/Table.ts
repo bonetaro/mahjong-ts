@@ -1,4 +1,4 @@
-import { logger } from "../logging";
+import { logger } from "./logging";
 import { Enumerable, List } from "linqts";
 import { Wall } from "./Wall";
 import { DeadWall } from "./DeadWall";

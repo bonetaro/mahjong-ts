@@ -223,7 +223,7 @@ export function nextTile(tile: 牌): 牌 {
   }
 }
 
-export const isRangeNumber = (input: string, max: number) => input && 0 <= Number(input) && Number(input) <= max;
+export const isRangeNumber = (input: string, max: number, min = 0) => input && min <= Number(input) && Number(input) <= max;
 
 export const splitBy2Chars = (text: string): string[] => {
   return text.match(/.{2}/g);

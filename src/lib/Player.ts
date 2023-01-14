@@ -1,5 +1,5 @@
 import { WindsLabel } from "./constants";
-import { logger } from "../logging";
+import { logger } from "./logging";
 import { Hand } from "./Hand";
 import { Tile } from "./Tile";
 import { 牌 } from "./Types";
@@ -92,5 +92,9 @@ export class RoundHandPlayer extends Player {
 
   get windName(): string {
     return `${WindsLabel[this.index]}家`;
+  }
+
+  get fullName(): string {
+    return `${this.windName} ${this.name}`;
   }
 }

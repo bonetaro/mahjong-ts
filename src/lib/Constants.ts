@@ -31,22 +31,11 @@ const hatsu: 發 = `${GreenDragonChar}${SangenpaiChar}`;
 const chun: 中 = `${RedDragonChar}${SangenpaiChar}`;
 
 // 手牌を並び替えするときの牌種順
-const TileTypeSort = [
-  ManduChar,
-  PinduChar,
-  SouduChar,
-  KazehaiChar,
-  SangenpaiChar,
-];
+const TileTypeSort = [ManduChar, PinduChar, SouduChar, KazehaiChar, SangenpaiChar];
 
 export const WindsLabel = ["東", "南", "西", "北"];
 
-const WindsSort: string[] = [
-  EastWindChar,
-  SouthWindChar,
-  WestWindChar,
-  NorthWindChar,
-];
+const WindsSort: string[] = [EastWindChar, SouthWindChar, WestWindChar, NorthWindChar];
 const DragonsSort: string[] = [WhiteDragonChar, GreenDragonChar, RedDragonChar];
 
 const Winds: string[] = WindsSort.map((c) => c + KazehaiChar);
@@ -61,18 +50,9 @@ WindsSort.forEach((x, index) => windSortMap.set(x, index));
 const dragonSortMap = new Map<string, number>();
 DragonsSort.forEach((x, index) => dragonSortMap.set(x, index));
 
-export {
-  TileTypeSort,
-  Winds,
-  Dragons,
-  WindsSort,
-  DragonsSort,
-  typeSortMap,
-  windSortMap,
-  dragonSortMap,
-};
+export { TileTypeSort, Winds, Dragons, WindsSort, DragonsSort, typeSortMap, windSortMap, dragonSortMap };
 
-export enum PlayerCommandType {
+enum PlayerCommandType {
   Discard = "discard", // 牌を捨てる
   Pon = "pon",
   Kan = "kan",
@@ -81,6 +61,30 @@ export enum PlayerCommandType {
   Ron = "ron",
   Nothing = "nothing",
 }
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+namespace PlayerCommandType {
+  export function name(type: PlayerCommandType): string {
+    switch (type) {
+      case PlayerCommandType.Pon:
+        return "ポン";
+      case PlayerCommandType.Chi:
+        return "チー";
+      case PlayerCommandType.Kan:
+        return "カン";
+      case PlayerCommandType.Tsumo:
+        return "ツモ";
+      case PlayerCommandType.Ron:
+        return "ロン";
+      case PlayerCommandType.Discard:
+        return "牌を捨てる";
+      default:
+        throw new Error(type);
+    }
+  }
+}
+
+export { PlayerCommandType };
 
 export enum PlayerDirection {
   ToTheLeft = 0, // 上家

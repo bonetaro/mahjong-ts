@@ -1,9 +1,11 @@
 import { List } from "linqts";
 import { PlayerCommandType, PlayerDirection } from "./Constants";
 import { AnKanMentsu, MinKanMentsu, MinKouMentsu } from "./Mentsu";
-import { Player, RoundHandPlayer } from "./Player";
+import { RoundHandPlayer } from "./Player";
 import { 牌 } from "./Types";
 import { GameRoundHand } from "./GameRoundHand";
+import { logger } from "./logging";
+import { toEmoji } from "./Functions";
 
 export abstract class BaseCommand {
   protected _type: PlayerCommandType;
@@ -32,6 +34,7 @@ export abstract class OtherPlayersCommand extends BaseCommand {
 
   constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who);
+
     this._direction = direction;
     this._tile = tile;
   }
@@ -93,8 +96,9 @@ export class AnKanCommand extends PlayerCommand {
   }
 
   execute(): void {
-    this.who.hand.tiles = this.who.hand.tiles.filter((tile) => this._tile != tile);
+    logger.info(`${this.who.name}が${toEmoji(this.tile)} を暗槓しました`);
 
+    this.who.hand.tiles = this.who.hand.tiles.filter((tile) => this._tile != tile);
     this.who.hand.openMentsuList.push(new AnKanMentsu(this._tile));
     this.who.hand.sortTiles();
   }

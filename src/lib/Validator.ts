@@ -1,6 +1,6 @@
 import { List } from "linqts";
 import { 牌 } from "./Types";
-import { logger } from "../logging";
+import { logger } from "./logging";
 import { PlayerDealedTiles } from "./CheatTableBuilder";
 
 export class Validator {
@@ -29,9 +29,7 @@ export class Validator {
     return Object.keys(group).every((key) => group[key].length == 4);
   }
 
-  static isValidPlayerDealedTiles(
-    dealedTilesList: PlayerDealedTiles[]
-  ): boolean {
+  static isValidPlayerDealedTiles(dealedTilesList: PlayerDealedTiles[]): boolean {
     let tiles: 牌[] = [];
 
     dealedTilesList.forEach((dealedTiles) => {

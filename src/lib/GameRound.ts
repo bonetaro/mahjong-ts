@@ -1,5 +1,5 @@
 import { List } from "linqts";
-import { logger } from "../logging";
+import { logger } from "./logging";
 import { GameRoundHand } from "./GameRoundHand";
 
 // 場（東場、南場）

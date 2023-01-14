@@ -1,6 +1,6 @@
-import { logger } from "../logging";
+import { logger } from "./logging";
 import { List } from "linqts";
-import { readCommand } from "../readline";
+import { readCommand, readChoices } from "./readline";
 import { isRangeNumber, toEmojiFromArray, calucatePlayerDirection } from "./Functions";
 import { 牌 } from "./Types";
 import { Player, RoundHandPlayer } from "./Player";
@@ -98,18 +98,21 @@ export const askPlayer = async (player: RoundHandPlayer): Promise<PlayerCommand>
 
   const playerCommandTypeList = Array.from(parsedPlayerCommand.keys());
   const commandText = new CommandCreator().createPlayerCommandText(playerCommandTypeList, player.hand, player);
-  const isDiscardTileNumber = (input: string) => isRangeNumber(input, player.hand.tiles.length - 1);
 
-  const answer = await readCommand(commandText, (input) => isDiscardTileNumber(input) || playerCommandTypeList.map((k) => k.slice(0, 1)).includes(input));
+  const answer = await readChoices(commandText, player.hand, playerCommandTypeList);
+
+  const isDiscardTileNumber = (input: string) => isRangeNumber(input, player.hand.tiles.length);
+  // const inputCondition = (input: string) => isDiscardTileNumber(input) || playerCommandTypeList.map((k) => k.slice(0, 1)).includes(input);
+  // const answer = await readCommand(commandText, inputCondition);
 
   if (isDiscardTileNumber(answer)) {
     return new DiscardCommand(player, player.hand.tiles[Number(answer)]);
   }
 
   switch (answer) {
-    case PlayerCommandType.Tsumo[0]:
+    case PlayerCommandType.Tsumo:
       return new TsumoCommand(player);
-    case PlayerCommandType.Kan[0]:
+    case PlayerCommandType.Kan:
       // 暗カン or 加カン
       return await askKan(parsedPlayerCommand.get(PlayerCommandType.Kan), player);
   }

@@ -1,15 +1,16 @@
-import { readCommand } from "../readline";
-import { LogEvent, logger } from "../logging";
+/ eslint-disable no-case-declarations */;
+import { LogEvent, logger } from "./logging";
 import { 牌 } from "./Types";
 import { Tile } from "./Tile";
 import { Table } from "./Table";
-import { isRangeNumber, toMoji } from "./Functions";
+import { toMoji } from "./Functions";
 import { AnKanCommand, BaseCommand, RonCommand, TsumoCommand, DaiMinKanCommand, KaKanCommand, PlayerCommand, DiscardCommand } from "./Command";
 import { PlayerCommandType, WindsLabel } from "./Constants";
 import { Player, RoundHandPlayer } from "./Player";
 import { askOtherPlayers, askPlayer } from "./AskPlayer";
 import { Game } from "./Game";
 import { CommandCreator } from "./CommandCreator";
+import { readChoices } from "./readline";
 
 // 局
 export class GameRoundHand {
@@ -43,6 +44,9 @@ export class GameRoundHand {
   get nextPlayer(): RoundHandPlayer {
     const index = this._playerIndex;
     this.setPlayerIndex(index + 1);
+
+    logger.info(`${this.currentPlayer.fullName}の手番です`);
+
     return this.currentPlayer;
   }
 
@@ -129,11 +133,9 @@ export class GameRoundHand {
           // 鳴いた人に手番を変更する
           currentPlayer = this.setCurrentPlayer(otherPlayersCommand.who);
 
-          // eslint-disable-next-line no-case-declarations
-          const commandText = new CommandCreator().createPlayerCommandText([PlayerCommandType.Discard], currentPlayer.hand, currentPlayer);
-
-          // eslint-disable-next-line no-case-declarations
-          const discardTileNumber = await readCommand(commandText, (input: string) => isRangeNumber(input, currentPlayer.hand.tiles.length - 1));
+          const commandTypeList = [PlayerCommandType.Discard];
+          const commandText = new CommandCreator().createPlayerCommandText(commandTypeList, currentPlayer.hand, currentPlayer);
+          const discardTileNumber = await readChoices(commandText, currentPlayer.hand, commandTypeList);
 
           playerCommand = new DiscardCommand(currentPlayer, currentPlayer.hand.tiles[Number(discardTileNumber)]);
           this.executeCommand(playerCommand);

@@ -5,7 +5,7 @@ import { Table } from "./Table";
 import { Validator } from "./Validator";
 import { 牌 } from "./Types";
 import { toTile, sortTiles } from "./Functions";
-import { logger } from "../logging";
+import { logger } from "./logging";
 
 export class CheatTableBuilder {
   private _baseCheatTable: CheatTable;
@@ -69,18 +69,11 @@ export class CheatTableBuilder {
 
   set(dealedTiles: PlayerDealedTiles, playerIndex: 0 | 1 | 2 | 3) {
     // イカサマ配牌をテーブルの山から除く
-    dealedTiles.hand.tiles.forEach((tile) =>
-      this._baseCheatTable.pickTile(toTile(tile))
-    );
+    dealedTiles.hand.tiles.forEach((tile) => this._baseCheatTable.pickTile(toTile(tile)));
 
-    dealedTiles.dealedTiles.forEach((tile) =>
-      this._baseCheatTable.pickTile(toTile(tile))
-    );
+    dealedTiles.dealedTiles.forEach((tile) => this._baseCheatTable.pickTile(toTile(tile)));
 
-    this._dealedTilesList[playerIndex] = this.fillDealedTiles(
-      dealedTiles,
-      playerIndex >= 2
-    );
+    this._dealedTilesList[playerIndex] = this.fillDealedTiles(dealedTiles, playerIndex >= 2);
   }
 
   // PlayerDealedTilesの不十分な牌を補う
@@ -92,11 +85,7 @@ export class CheatTableBuilder {
     const dealedTilesCount = less ? 17 : 18;
     if (tiles.dealedTiles.length != dealedTilesCount) {
       if (tiles.dealedTiles.length < dealedTilesCount) {
-        tiles.dealedTiles = tiles.dealedTiles.concat(
-          this._baseCheatTable.drawTiles(
-            dealedTilesCount - tiles.dealedTiles.length
-          )
-        );
+        tiles.dealedTiles = tiles.dealedTiles.concat(this._baseCheatTable.drawTiles(dealedTilesCount - tiles.dealedTiles.length));
       } else {
         throw new Error("too match dealedTiles");
       }
@@ -118,9 +107,7 @@ export class CheatTableBuilder {
       const group = reversedTiles.GroupBy((tile) => tile);
 
       // 4つより多い牌を先頭から消していく
-      new List(Object.keys(group))
-        .Where((key) => group[key].length !== 4)
-        .ForEach((key) => reversedTiles.Remove(toTile(key)));
+      new List(Object.keys(group)).Where((key) => group[key].length !== 4).ForEach((key) => reversedTiles.Remove(toTile(key)));
 
       if (Validator.isValidAllTiles(reversedTiles.ToArray())) {
         break;

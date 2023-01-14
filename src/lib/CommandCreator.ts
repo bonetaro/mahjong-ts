@@ -8,10 +8,10 @@ export class CommandCreator {
 
     if (commands.includes(PlayerCommandType.Discard)) {
       if (hand.tiles.length === 1) {
-        textList.push(`捨て牌[0]`);
+        textList.push(`捨て牌[1]`);
         // todo 最大14枚でいいのか？
-      } else if (1 < hand.tiles.length && hand.tiles.length <= 14) {
-        textList.push(`捨て牌[0-${hand.tiles.length - 1}]`);
+      } else if (2 <= hand.tiles.length && hand.tiles.length <= 14) {
+        textList.push(`捨て牌[1-${hand.tiles.length}]`);
       } else {
         throw new Error(hand.tiles.length.toString());
       }

@@ -1,6 +1,6 @@
 /* eslint-disable no-constant-condition */
 import { List } from "linqts";
-import { LogEvent, logger } from "../logging";
+import { LogEvent, logger } from "./logging";
 import { WindsLabel } from "./Constants";
 import { toMoji } from "./Functions";
 import { Player } from "./Player";
