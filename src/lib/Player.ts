@@ -1,4 +1,3 @@
-import { List } from "linqts";
 import { WindsLabel } from "./constants";
 import { logger } from "../logging";
 import { Hand } from "./Hand";
@@ -42,11 +41,7 @@ export class Player {
       return "[]";
     }
 
-    return (
-      `[${toEmojiFromArray(this._discardTiles)}]` +
-      " " +
-      `[${toKanjiFromArray(this._discardTiles)}]`
-    );
+    return `[${toEmojiFromArray(this._discardTiles)}]` + " " + `[${toKanjiFromArray(this._discardTiles)}]`;
   }
 
   doDiscard(tile: 牌): void {
@@ -55,19 +50,13 @@ export class Player {
     const index = this._hand.tiles.indexOf(tile);
     this._hand.tiles.splice(index, 1);
 
-    logger.info(
-      `${this.name}が${toMoji(tile)}を捨てました`,
-      this.hand.debugStatus()
-    );
+    logger.info(`${this.name}が${toMoji(tile)}を捨てました`, this.hand.debugStatus());
   }
 
   drawTile(tile: Tile) {
     this._hand.drawingTile = tile;
 
-    logger.info(
-      `${this.name}が${toMoji(tile.tile)}をツモりました`,
-      this.hand.debugStatus()
-    );
+    logger.info(`${this.name}が${toMoji(tile.tile)}をツモりました`, this.hand.debugStatus());
   }
 
   drawTiles(tiles: Array<牌>) {

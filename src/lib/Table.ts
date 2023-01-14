@@ -8,8 +8,8 @@ import { 牌, 色 } from "./Types";
 import { Validator } from "./Validator";
 
 export class Table {
-  private _deadWall: DeadWall;
   private _walls: Array<Wall>; //牌の山
+  private _deadWall: DeadWall; // 王牌
   protected _washedTiles: Array<牌> = [];
 
   constructor(washedTiles?: Array<牌>) {
@@ -31,10 +31,6 @@ export class Table {
 
   get walls(): Wall[] {
     return this._walls;
-  }
-
-  set walls(walls: Wall[]) {
-    this._walls = walls;
   }
 
   get washedTiles(): Array<牌> {
@@ -63,9 +59,7 @@ export class Table {
 
   buildWalls(): void {
     // 山を4つにわける
-    this._walls = Enumerable.Range(0, 4)
-      .Select(() => this.buildWall())
-      .ToArray();
+    this._walls = [...Array(4)].map(() => this.buildWall());
 
     logger.debug("山を積みました");
   }
@@ -82,17 +76,11 @@ export class Table {
   }
 
   drawTiles(num: number): Array<牌> {
-    return Enumerable.Range(0, num)
-      .Select(() => {
-        return this.drawTile();
-      })
-      .ToArray();
+    return [...Array(num)].map(() => this.pickTile());
   }
 
-  drawTile(): 牌 {
-    return new List(this._walls)
-      .First((wall) => wall.tilesCount > 0)
-      .pickTile();
+  pickTile(): 牌 {
+    return new List(this._walls).First((wall) => wall.tilesCount > 0).pickTile();
   }
 
   popTile(): 牌 {

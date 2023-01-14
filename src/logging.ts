@@ -10,10 +10,8 @@ export const logger = createLogger({
     format.metadata(),
     format.timestamp(),
     format.printf(({ timestamp, level, message, metadata }) => {
-      if (Object.keys(metadata).length > 0 || level === "debug") {
-        return `[${timestamp}] ${level}: ${message} ${JSON.stringify(
-          metadata
-        )}`;
+      if (Object.keys(metadata).length > 0 && level === "debug") {
+        return `[${timestamp}] ${level}: ${message} ${JSON.stringify(metadata)}`;
       } else {
         return `[${timestamp}] ${level}: ${message}`;
       }

@@ -1,5 +1,5 @@
 /* eslint-disable no-constant-condition */
-import { logger, LogEvent } from "./logging";
+import { logger } from "./logging";
 import { 牌 } from "./lib/Types";
 import { toTile } from "./lib/Functions";
 import { Player } from "./lib/Player";
@@ -11,15 +11,13 @@ import { Hand } from "./lib/Hand";
 
 export const initGame = (players: Player[]): Game => {
   const game = new Game(players);
-  game.init();
-
   return game;
 };
 
 export const initCheatGame = (players: Player[]): CheatGame => {
+  logger.info("チート半荘開始");
+
   const game = new CheatGame(players);
-  game.init();
-  game.players.map((player) => player.init());
 
   // 東場作成
   game.createGameRound();
@@ -31,15 +29,6 @@ export const initCheatGame = (players: Player[]): CheatGame => {
   const roundHand = new CheatGameRoundHand(game.players);
   roundHand.table = new Table(builder.createCheatTable().washedTiles);
   game.currentRound.hands.push(roundHand);
-
-  game.currentRoundHand.table.buildWalls();
-  game.currentRoundHand.table.makeDeadWall();
-
-  game.dealStartTilesToPlayers(game.players);
-  players.forEach((player) => player.sortHandTiles());
-
-  logger.info("チート半荘開始");
-  LogEvent(game.status());
 
   return game;
 };

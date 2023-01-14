@@ -1,5 +1,5 @@
-import { CommandCreator } from "../src/lib/CommandCreator";
 import { PlayerCommandType } from "../src/lib/Constants";
+import { CommandCreator } from "../src/lib/CommandCreator";
 import { toTile } from "../src/lib/Functions";
 import { Hand } from "../src/lib/Hand";
 

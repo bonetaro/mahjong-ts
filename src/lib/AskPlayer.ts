@@ -97,14 +97,10 @@ export const askPlayer = async (player: Player): Promise<PlayerCommand> => {
   const parsedPlayerCommand = new HandParser(player.hand).parseAsPlayerCommand();
 
   const playerCommandTypeList = Array.from(parsedPlayerCommand.keys());
-  const commandText = new CommandCreator().createPlayerCommandText(playerCommandTypeList, player.hand);
-
+  const commandText = new CommandCreator().createPlayerCommandText(playerCommandTypeList, player.hand, player);
   const isDiscardTileNumber = (input: string) => isRangeNumber(input, player.hand.tiles.length - 1);
 
-  const answer = await readCommand(
-    `${player.name}の手牌：${player.hand.status} 捨牌：${player.discardStatus}\n` + `${commandText} > `,
-    (input) => isDiscardTileNumber(input) || playerCommandTypeList.map((k) => k.slice(0, 1)).includes(input)
-  );
+  const answer = await readCommand(commandText, (input) => isDiscardTileNumber(input) || playerCommandTypeList.map((k) => k.slice(0, 1)).includes(input));
 
   if (isDiscardTileNumber(answer)) {
     return new DiscardCommand(player, player.hand.tiles[Number(answer)]);

@@ -4,22 +4,18 @@ import { Player } from "./lib/Player";
 
 const main = async (players: Player[], option?: GameOption) => {
   const game = option?.cheat ? initCheatGame(players) : initGame(players);
+
   game.start();
 
-  game.startRoundHand();
-
+  let roundHand = game.currentRoundHand;
   // eslint-disable-next-line no-constant-condition
-  while (true) {
-    await game.roundHandLoop(game.currentRoundHand.currentPlayer);
+  do {
+    game.startRoundHand(roundHand);
 
-    game.endRoundHand();
+    await roundHand.mainLoop();
 
-    if (game.isLastRoundHand()) {
-      break;
-    }
-
-    await game.nextRoundHand();
-  }
+    game.endRoundHand(roundHand);
+  } while ((roundHand = await game.nextRoundHand()));
 
   game.end();
 };
