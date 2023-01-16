@@ -3,6 +3,10 @@ export class Dice {
   private emojiList = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 
   get num(): number {
+    if (!this._num) {
+      throw new Error();
+    }
+
     return this._num;
   }
 
@@ -11,6 +15,6 @@ export class Dice {
   }
 
   toEmoji(): string {
-    return `${this.emojiList[this.num - 1]} ${this.num}`;
+    return `${this.emojiList[this.num - 1]} (${this.num})`;
   }
 }

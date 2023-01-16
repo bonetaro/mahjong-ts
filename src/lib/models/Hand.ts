@@ -1,15 +1,28 @@
-import { toEmojiFromArray, toKanjiFromArray, sortTiles } from "../Functions";
-import { Mentsu } from "./Mentsu";
+import { toEmojiFromArray, toKanjiFromArray, sortTiles, splitBy2Chars, toTile } from "../Functions";
+import { IMentsu } from "./Mentsu";
 import { 牌 } from "../Types";
 import { Tile } from "./Tile";
 
 export class Hand {
-  private _tiles: Array<牌>;
-  private _openMentsuList: Mentsu[] = [];
+  private _tiles: 牌[];
+  private _openMentsuList: IMentsu[] = [];
   private _drawingTile: Tile;
 
-  constructor(tiles?: Array<牌>) {
-    if (tiles && tiles.length != 13) {
+  constructor(tile?: string);
+  constructor(tiles?: 牌[]);
+  constructor(tileSomthing?: string | 牌[]) {
+    let tiles: 牌[] = [];
+
+    if (Array.isArray(tileSomthing)) {
+      tiles = tileSomthing as 牌[];
+    }
+
+    if (typeof tileSomthing === "string") {
+      tiles = splitBy2Chars(tileSomthing).map((x) => toTile(x));
+    }
+
+    // todo
+    if (tiles.length > 0 && tiles.length !== 13) {
       throw new Error("hand tiles count must be 13");
     }
 
@@ -33,18 +46,19 @@ export class Hand {
     this.tiles.push(tile.tile);
   }
 
-  get openMentsuList(): Mentsu[] {
+  get openMentsuList(): IMentsu[] {
     return this._openMentsuList;
   }
 
   get status(): string {
-    let text = `[${toEmojiFromArray(this.tiles)}]` + " " + `[${toKanjiFromArray(this.tiles)}]`;
+    const testList: string[] = [];
+    testList.push(`[${toEmojiFromArray(this.tiles)}] (${toKanjiFromArray(this.tiles)})]`);
 
     if (this.openMentsuList.length > 0) {
-      text += " 副露牌" + this._openMentsuList.map((mentsu) => `[${mentsu.status()} ${toKanjiFromArray(mentsu.tiles)}]`).join("|");
+      testList.push(`副露牌 [${this._openMentsuList.map((mentsu) => `${mentsu.status()}`).join(" ")}]`);
     }
 
-    return text;
+    return testList.join(" ");
   }
 
   debugStatus(): any {

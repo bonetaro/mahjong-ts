@@ -1,7 +1,7 @@
 import { List } from "linqts";
 import { 牌 } from "./Types";
 import { logger } from "./logging";
-import { PlayerDealedTiles } from "./CheatTableBuilder";
+import { PlayerDrawTiles } from "./CheatTableBuilder";
 
 export class Validator {
   static isValidAllTiles(tiles: 牌[]): boolean {
@@ -29,13 +29,12 @@ export class Validator {
     return Object.keys(group).every((key) => group[key].length == 4);
   }
 
-  static isValidPlayerDealedTiles(dealedTilesList: PlayerDealedTiles[]): boolean {
-    let tiles: 牌[] = [];
-
-    dealedTilesList.forEach((dealedTiles) => {
-      tiles = tiles.concat(dealedTiles.hand.tiles);
-      tiles = tiles.concat(dealedTiles.dealedTiles);
-    });
+  static isValidPlayerDrawTiles(playerDrawTilesList: PlayerDrawTiles[]): boolean {
+    const tiles = playerDrawTilesList
+      .map((playerDrawTiles) => {
+        return playerDrawTiles.hand.tiles.concat(playerDrawTiles.drawTiles);
+      })
+      .flatMap((x) => x);
 
     const group = new List(tiles).GroupBy((t) => t);
     if (!Object.keys(group).every((key) => group[key].length <= 4)) {

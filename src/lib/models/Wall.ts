@@ -23,7 +23,7 @@ export class Wall {
   }
 
   // 山の中のとあるポジションの牌
-  tile(num: number, isUpper: boolean = true): 牌 {
+  tile(num: number, isUpper = true): 牌 {
     return this._tiles[num];
   }
 

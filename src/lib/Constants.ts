@@ -78,6 +78,8 @@ namespace PlayerCommandType {
         return "ロン";
       case PlayerCommandType.Discard:
         return "牌を捨てる";
+      case PlayerCommandType.Nothing:
+        return "何もしない";
       default:
         throw new Error(type);
     }

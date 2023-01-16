@@ -1,10 +1,6 @@
-import { WindsLabel } from "../constants";
-import { logger } from "../logging";
-import { Hand } from "./Hand";
-import { Tile } from "./Tile";
-import { 牌 } from "../Types";
-import { toEmojiFromArray, toKanjiFromArray, toMoji } from "../Functions";
 import { v4 as uuid } from "uuid";
+import { Hand, Tile } from "./";
+import { WindsLabel, logger, toEmojiFromArray, toKanjiFromArray, toMoji, 牌 } from "../";
 
 export class Player {
   protected _id: string;
@@ -57,7 +53,7 @@ export class Player {
   drawTile(tile: Tile) {
     this.hand.drawingTile = tile;
 
-    logger.info(`${this.name}が${toMoji(tile.tile)}をツモりました`, this.hand.debugStatus());
+    logger.info(`${this.name}が${tile.kingsTile ? "王牌から" : ""}${toMoji(tile.tile)}をツモりました`, this.hand.debugStatus());
   }
 
   drawTiles(tiles: Array<牌>) {

@@ -14,6 +14,6 @@ export class Tile {
   }
 
   get kingsTile(): boolean {
-    return this.kingsTile;
+    return this._kingsTile;
   }
 }

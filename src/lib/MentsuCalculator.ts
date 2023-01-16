@@ -1,8 +1,7 @@
 import { List } from "linqts";
 import { toTile } from "./Functions";
-import { Hand } from "./models/Hand";
 import { 牌 } from "./Types";
-import { MinKouMentsu } from "./models/Mentsu";
+import { Hand, MinKouMentsu } from "./models";
 
 export class MentsuCalculator {
   private _hand: Hand;

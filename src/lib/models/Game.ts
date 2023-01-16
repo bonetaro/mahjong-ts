@@ -1,28 +1,15 @@
 /* eslint-disable no-constant-condition */
 import { List } from "linqts";
-import { LogEvent, logger } from "../logging";
-import { WindsLabel } from "../Constants";
-import { toMoji } from "../Functions";
-import { Player } from "./Player";
-import { GameRound } from "./GameRound";
-import { GameRoundHand } from "../models/GameRoundHand";
-import { anyKeyAsk } from "../AskPlayer";
-import { Dice } from "./Dice";
+import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, Table } from "./";
+import { CheatTableBuilder, LogEvent, FourMembers, WindsLabel, askAnyKey, logger, toMoji } from "..";
 
 export class Game {
   private _dices: [Dice, Dice] = [new Dice(), new Dice()];
-  private _players: Array<Player> = [];
   private _firstDealer: Player;
   private _rounds: GameRound[] = [];
 
-  constructor(players: Player[]) {
+  constructor(public players: FourMembers<Player>, public readonly gameOption?: GameOption) {
     logger.debug(`game create`);
-
-    this.setPlayers(players);
-  }
-
-  get players(): Array<Player> {
-    return this._players;
   }
 
   // 起家
@@ -49,6 +36,8 @@ export class Game {
   startRoundHand = (roundHand: GameRoundHand): void => {
     logger.debug("gameRoundHand start");
 
+    roundHand.players.forEach((player) => player.init());
+
     roundHand.table.buildWalls(); // 牌の山を積む
 
     this.rollDices(); // サイコロを振る
@@ -56,8 +45,8 @@ export class Game {
     // todo サイコロを振っているが王牌と無関係
     roundHand.table.makeDeadWall();
 
-    roundHand.players.forEach((player) => player.init());
     roundHand.dealStartTilesToPlayers(); // 配牌
+
     roundHand.players.forEach((player) => player.sortHandTiles()); // 牌を整列
 
     LogEvent(this.status());
@@ -68,17 +57,16 @@ export class Game {
       return null;
     }
 
-    await anyKeyAsk("次の局に進みます...");
+    await askAnyKey("次の局に進みます...");
 
     this.createGameRoundHand(this.nextRoundHandPlayers());
-    this.startRoundHand(this.currentRoundHand);
 
     return this.currentRoundHand;
   };
 
-  nextRoundHandPlayers(): Player[] {
+  nextRoundHandPlayers(): FourMembers<Player> {
     const num = this.currentRound.hands.length % 4;
-    const players = [...Array(this.players.length)].map((i) => this.players[(num + i) % 4]);
+    const players = [...Array(this.players.length)].map((i) => this.players[(num + i) % 4]) as FourMembers<Player>;
     return players;
   }
 
@@ -95,8 +83,8 @@ export class Game {
   }
 
   validatePlayers(): boolean {
-    if (this._players.length != 4) {
-      logger.error(`players is ${this._players.length} people.`);
+    if (this.players.length != 4) {
+      logger.error(`players is ${this.players.length} people.`);
       return false;
     }
 
@@ -104,7 +92,7 @@ export class Game {
   }
 
   pickUpPlayerAtRandom(): Player {
-    return new List(this._players).OrderBy(() => Math.random()).First();
+    return new List(this.players).OrderBy(() => Math.random()).First();
   }
 
   rollDices(): number {
@@ -120,20 +108,19 @@ export class Game {
     logger.debug("decideFirstDealer");
 
     const randomNumber = (): number => this.rollDices() % this.players.length;
-
-    logger.debug(`仮親：${this.players[randomNumber()]}`);
+    logger.debug(`仮親：${this.players[randomNumber()].name}`);
 
     const firstDealerNumber = randomNumber();
-    logger.debug(`親：${this.players[firstDealerNumber]}`);
+    logger.debug(`起家：${this.players[firstDealerNumber].name}`);
 
-    this._players = this._players.splice(firstDealerNumber).concat(this._players);
+    this.players = this.players.splice(firstDealerNumber, 1).concat(this.players) as FourMembers<Player>;
   }
 
   createGameRound(): void {
     this._rounds.push(new GameRound());
   }
 
-  createGameRoundHand(players: Player[]): void {
+  createGameRoundHand(players: FourMembers<Player>): void {
     this.currentRound.hands.push(new GameRoundHand(players));
   }
 
@@ -147,7 +134,7 @@ export class Game {
     }
 
     if (option.dora) {
-      const doras = this.currentRoundHand.table.deadWall.doras;
+      const doras = this.currentRoundHand.table.kingsWall.doras;
       label.push(`ドラ:${doras.map((dora) => toMoji(dora)).join(" ")}`);
     }
 
@@ -189,30 +176,31 @@ export class Game {
   end(): void {
     logger.info("半荘終了");
   }
-
-  setPlayers(players: Array<Player>): void {
-    if (this._players.length > 4) {
-      throw new Error("プレイヤーは4人");
-    }
-
-    players.forEach((player) => {
-      this._players.push(player);
-
-      logger.debug(`${player.name}が参加しました`);
-    });
-  }
 }
 
 export class CheatGame extends Game {
-  constructor(players: Player[]) {
+  constructor(players: FourMembers<Player>, gameOption: GameOption) {
     logger.debug("cheatGame create");
 
-    super(players);
+    super(players, gameOption);
   }
 
   start(): void {
     logger.debug("cheatGame start");
 
-    // do nothing
+    logger.info("チート半荘開始");
+
+    // 起家決め
+    this.decideFirstDealer();
+
+    // 東場作成
+    this.createGameRound();
+
+    const builder = new CheatTableBuilder();
+    this.gameOption.cheatOption.playerDrawTilesList.forEach((playerDealedTiles, index) => builder.set(playerDealedTiles, index));
+
+    const roundHand = new CheatGameRoundHand(this.players);
+    roundHand.table = new Table(builder.build().washedTiles);
+    this.currentRound.hands.push(roundHand);
   }
 }

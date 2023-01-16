@@ -1,38 +1,33 @@
-import {
-  ManduChar,
-  PinduChar,
-  SouduChar,
-  KazehaiChar,
-  SangenpaiChar,
-  EastWindChar,
-  WestWindChar,
-  NorthWindChar,
-  WhiteDragonChar,
-  GreenDragonChar,
-  RedDragonChar,
-  windSortMap,
-  dragonSortMap,
-} from "./Constants";
-import { 牌, 萬子牌, 筒子牌, 索子牌, 数牌, 東, 南, 西, 北, 風牌, 白, 發, 中, 三元牌, 字牌 } from "./Types";
+import * as Constants from "./Constants";
+import { 牌, 萬子牌, 筒子牌, 索子牌, 数牌, 東, 南, 西, 北, 風牌, 白, 發, 中, 三元牌, 字牌, FourMembers, 槓子 } from "./Types";
 import { WindsSort, DragonsSort, PlayerDirection } from "./Constants";
 import { Player } from "./models/Player";
 import { typeSortMap } from "./Constants";
 import { List } from "linqts";
+import { PlayerCommandType } from ".";
 
 export function toTile(value: unknown): 牌 {
-  if (isSuits(value) || isHonours(value)) return value;
+  if (isTile(value)) return value;
+}
+
+export function isTile(value: unknown): value is 牌 {
+  return isSuits(value) || isHonours(value);
 }
 
 export function isManzu(value: unknown): value is 萬子牌 {
-  return new RegExp(`^[1-9]${ManduChar}$`, "g").test(value.toString());
+  return new RegExp(`^[1-9]${Constants.ManduChar}$`, "g").test(value.toString());
 }
 
 export function isPinzu(value: unknown): value is 筒子牌 {
-  return new RegExp(`^[1-9]${PinduChar}$`, "g").test(value.toString());
+  return new RegExp(`^[1-9]${Constants.PinduChar}$`, "g").test(value.toString());
 }
 
 export function isSouzu(value: unknown): value is 索子牌 {
-  return new RegExp(`^[1-9]${SouduChar}$`, "g").test(value.toString());
+  return new RegExp(`^[1-9]${Constants.SouduChar}$`, "g").test(value.toString());
+}
+
+export function isKanMentsu(values: unknown[]): values is 槓子 {
+  return values.every((v) => isTile(v)) && values.every((v) => v == values[0]);
 }
 
 export function isSuits(value: unknown): value is 数牌 {
@@ -60,19 +55,19 @@ export function toSuits(value: unknown): 数牌 {
 }
 
 export function isEast(value: unknown): value is 東 {
-  return value.toString() === `${EastWindChar}${KazehaiChar}`;
+  return value.toString() === `${Constants.EastWindChar}${Constants.KazehaiChar}`;
 }
 
 export function isSouth(value: unknown): value is 南 {
-  return value.toString() === `${SouduChar}${KazehaiChar}`;
+  return value.toString() === `${Constants.SouduChar}${Constants.KazehaiChar}`;
 }
 
 export function isWest(value: unknown): value is 西 {
-  return value.toString() === `${WestWindChar}${KazehaiChar}`;
+  return value.toString() === `${Constants.WestWindChar}${Constants.KazehaiChar}`;
 }
 
 export function isNorth(value: unknown): value is 北 {
-  return value.toString() === `${NorthWindChar}${KazehaiChar}`;
+  return value.toString() === `${Constants.NorthWindChar}${Constants.KazehaiChar}`;
 }
 
 export function isKazehai(value: unknown): value is 風牌 {
@@ -80,15 +75,15 @@ export function isKazehai(value: unknown): value is 風牌 {
 }
 
 export function isHaku(value: unknown): value is 白 {
-  return value.toString() === `${WhiteDragonChar}${SangenpaiChar}`;
+  return value.toString() === `${Constants.WhiteDragonChar}${Constants.SangenpaiChar}`;
 }
 
 export function isHatsu(value: unknown): value is 發 {
-  return value.toString() === `${GreenDragonChar}${SangenpaiChar}`;
+  return value.toString() === `${Constants.GreenDragonChar}${Constants.SangenpaiChar}`;
 }
 
 export function isChun(value: unknown): value is 中 {
-  return value.toString() === `${RedDragonChar}${SangenpaiChar}`;
+  return value.toString() === `${Constants.RedDragonChar}${Constants.SangenpaiChar}`;
 }
 
 export function isSangenpai(value: unknown): value is 三元牌 {
@@ -181,7 +176,7 @@ export function toEmoji(value: 牌, hide = false): string {
 }
 
 export function toKanjiFromArray(values: Array<牌>): string {
-  return values.map((v) => toKanji(v)).join("");
+  return values.map((v) => toKanji(v)).join(" ");
 }
 
 export function toKanji(value: 牌): string {
@@ -215,9 +210,9 @@ export function nextTile(tile: 牌): 牌 {
     const nextNumber = Number(tile[0]) + 1;
     return toSuits(`${nextNumber == 10 ? 1 : nextNumber}${tile[1]}`);
   } else if (isKazehai(tile)) {
-    return ToKazehai(`${WindsSort[(Number(windSortMap.get(tile[0])) + 1) % 4]}${KazehaiChar}`);
+    return ToKazehai(`${WindsSort[(Number(Constants.windSortMap.get(tile[0])) + 1) % 4]}${Constants.KazehaiChar}`);
   } else if (isSangenpai(tile)) {
-    return ToSangenpai(`${DragonsSort[(Number(dragonSortMap.get(tile[0])) + 1) % 3]}${SangenpaiChar}`);
+    return ToSangenpai(`${DragonsSort[(Number(Constants.dragonSortMap.get(tile[0])) + 1) % 3]}${Constants.SangenpaiChar}`);
   } else {
     throw new Error(tile);
   }
@@ -229,7 +224,7 @@ export const splitBy2Chars = (text: string): string[] => {
   return text.match(/.{2}/g);
 };
 
-export const calucatePlayerDirection = (who: Player, whom: Player, players: Player[]): PlayerDirection => {
+export const calucatePlayerDirection = (who: Player, whom: Player, players: FourMembers<Player>): PlayerDirection => {
   const whoIndex = players.findIndex((player) => player.id == who.id);
   const whomIndex = players.findIndex((player) => player.id == whom.id);
 
@@ -249,9 +244,20 @@ export const sortTiles = (tiles: 牌[]): 牌[] => {
       const key = x[0]; // 1文字目で整列
 
       if (isSuits(x)) return key;
-      if (isKazehai(x)) return windSortMap.get(key);
-      if (isSangenpai(x)) return dragonSortMap.get(key);
+      if (isKazehai(x)) return Constants.windSortMap.get(key);
+      if (isSangenpai(x)) return Constants.dragonSortMap.get(key);
       throw new Error(x);
     })
     .ToArray();
+};
+
+export const isMeldCommandType = (type: PlayerCommandType): boolean => {
+  switch (type) {
+    case PlayerCommandType.Pon:
+    case PlayerCommandType.Chi:
+    case PlayerCommandType.Kan:
+      return true;
+    default:
+      return false;
+  }
 };

@@ -5,7 +5,7 @@ import { RoundHandPlayer } from "./Player";
 import { 牌 } from "../Types";
 import { GameRoundHand } from "./GameRoundHand";
 import { logger } from "../logging";
-import { toEmoji } from "../Functions";
+import { toEmoji, isMeldCommandType } from "../Functions";
 
 export abstract class BaseCommand {
   protected _type: PlayerCommandType;
@@ -24,6 +24,11 @@ export abstract class BaseCommand {
   }
 
   abstract execute(roundHand: GameRoundHand): void;
+
+  // ポン、チー、カン
+  isMeldCommand(): boolean {
+    return isMeldCommandType(this.type);
+  }
 }
 
 export abstract class PlayerCommand extends BaseCommand {}
@@ -141,6 +146,10 @@ export class KaKanCommand extends PlayerCommand {
 
 export class NothingCommand extends OtherPlayersCommand {
   protected _type = PlayerCommandType.Nothing;
+
+  constructor() {
+    super(null, null, null);
+  }
 
   execute(): void {
     // do nothing

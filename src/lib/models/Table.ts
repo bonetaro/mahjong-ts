@@ -1,16 +1,11 @@
-import { logger } from "../logging";
 import { Enumerable, List } from "linqts";
-import { Wall } from "./Wall";
-import { DeadWall } from "./DeadWall";
-import { ManduChar, PinduChar, SouduChar, Winds, Dragons } from "../Constants";
-import { toManzu, toPinzu, toSouzu, ToSangenpai, ToKazehai } from "../Functions";
-import { 牌, 色 } from "../Types";
-import { Validator } from "../Validator";
+import { Dragons, ManduChar, PinduChar, SouduChar, ToKazehai, ToSangenpai, Validator, Winds, logger, toManzu, toPinzu, toSouzu, 牌, 色 } from "../";
+import { KingsWall, Wall } from "./";
 
 export class Table {
-  private _walls: Array<Wall>; //牌の山
-  private _deadWall: DeadWall; // 王牌
-  protected _washedTiles: Array<牌> = [];
+  private _walls: Wall[]; //牌の山
+  private _kingsWall: KingsWall; // 王牌
+  protected _washedTiles: 牌[] = [];
 
   constructor(washedTiles?: Array<牌>) {
     if (washedTiles) {
@@ -41,20 +36,20 @@ export class Table {
     return new List(this._walls).Sum((wall) => wall.tilesCount);
   }
 
-  get deadWall(): DeadWall {
-    return this._deadWall;
+  get kingsWall(): KingsWall {
+    return this._kingsWall;
   }
 
   // eslint-disable-next-line @typescript-eslint/adjacent-overload-signatures
-  set deadWall(deadWall: DeadWall) {
-    this._deadWall = deadWall;
+  set kingsWall(kingsWall: KingsWall) {
+    this._kingsWall = kingsWall;
 
     logger.debug("王牌を作成しました");
   }
 
   makeDeadWall(): void {
     // todo 常に先頭の山から14枚を王牌としている
-    this.deadWall = new DeadWall(new Wall(this._walls[0].pickTiles(14)));
+    this.kingsWall = new KingsWall(new Wall(this._walls[0].pickTiles(14)));
   }
 
   buildWalls(): void {

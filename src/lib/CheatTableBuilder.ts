@@ -1,7 +1,5 @@
 import { List } from "linqts";
-import { CheatTable } from "./models/Table";
-import { Hand } from "./models/Hand";
-import { Table } from "./models/Table";
+import { CheatTable, Hand, Table } from "./models";
 import { Validator } from "./Validator";
 import { 牌 } from "./Types";
 import { toTile, sortTiles } from "./Functions";
@@ -9,54 +7,28 @@ import { logger } from "./logging";
 
 export class CheatTableBuilder {
   private _baseCheatTable: CheatTable;
-  private _dealedTilesList: PlayerDealedTiles[];
+  private _playerDrawTilesList: PlayerDrawTiles[];
 
   constructor() {
     this._baseCheatTable = new CheatTable(new Table().washedTiles);
-    this._dealedTilesList = [...Array(4)].map(() => new PlayerDealedTiles());
+    this._playerDrawTilesList = [...Array(4)].map(() => new PlayerDrawTiles());
   }
 
-  createCheatTable(): CheatTable {
-    const dealedTilesList = new List(this._dealedTilesList)
-      .Select((item: PlayerDealedTiles, index: number) => {
-        return this.fillDealedTiles(item, index > 1);
-      })
-      .ToArray();
+  build(): CheatTable {
+    const playerDrawTilesList = this._playerDrawTilesList.map((item: PlayerDrawTiles, index: number) => this.fillDealedTiles(item, index > 1));
 
-    if (!Validator.isValidPlayerDealedTiles(dealedTilesList)) {
-      logger.error(dealedTilesList);
+    if (!Validator.isValidPlayerDrawTiles(playerDrawTilesList)) {
       throw new Error();
     }
 
-    const tiles: 牌[] = [];
-
-    // 配牌時の4つずつ取ってくるツモ
-    for (let i = 0; i < 3; i++) {
-      for (let index = 0; index < dealedTilesList.length; index++) {
-        for (let j = 0; j < 4; j++) {
-          tiles.push(dealedTilesList[index].hand.tiles[i * 4 + j]);
-        }
-      }
-    }
-
-    // 配牌時の最後のツモ
-    for (let i = 0; i < dealedTilesList.length; i++) {
-      tiles.push(dealedTilesList[i].hand.tiles[12]);
-    }
-
-    // 配牌が終わった後の順番にツモってくる牌
-    for (let i = 0; i < 18; i++) {
-      for (let j = 0; j < dealedTilesList.length; j++) {
-        if (dealedTilesList[j].dealedTiles[i]) {
-          tiles.push(dealedTilesList[j].dealedTiles[i]);
-        }
-      }
-    }
-
     // ここでthis._baseCheatTableが残り14枚（王牌分）になっているはず
-    const kingsTiles = this._baseCheatTable.drawTiles(14); // 王牌
+    if (this._baseCheatTable.washedTiles.length != 14) {
+      throw new Error(this._baseCheatTable.washedTiles.length.toString());
+    }
 
-    const newTiles = kingsTiles.concat(tiles);
+    const kingsTiles = this._baseCheatTable.drawTiles(14); // 王牌
+    const allPlayerDrawTiles = this.buildPlayerDrawTiles(playerDrawTilesList); // プレイヤーがツモる順番に牌を組み立てる
+    const newTiles = kingsTiles.concat(allPlayerDrawTiles);
 
     if (!Validator.isValidAllTiles(newTiles)) {
       logger.error(newTiles.length.toString(), sortTiles(newTiles));
@@ -67,31 +39,70 @@ export class CheatTableBuilder {
     return table;
   }
 
-  set(dealedTiles: PlayerDealedTiles, playerIndex: 0 | 1 | 2 | 3) {
+  private buildPlayerDrawTiles(playerDrawTilesList: PlayerDrawTiles[]) {
+    const tiles: 牌[] = [];
+
+    // 配牌時の4つずつ取ってくるツモ
+    [...Array(3).keys()].forEach((count: number) => {
+      playerDrawTilesList.forEach((playerDrawTiles) => {
+        // 4枚とる処理
+        [...Array(4).keys()].forEach((i: number) => {
+          tiles.push(playerDrawTiles.hand.tiles[i + count * 4]);
+        });
+      });
+    });
+
+    // 配牌時の最後のツモ
+    playerDrawTilesList.forEach((playerDrawTiles) => {
+      tiles.push(playerDrawTiles.hand.tiles[12]);
+    });
+
+    // 配牌が終わった後の順番にツモってくる牌
+    for (let i = 0; i < 18; i++) {
+      playerDrawTilesList.forEach((playerDrawTiles, index) => {
+        // playserDrawTilesList[2] playserDrawTilesList[3]は、drawTilesが17枚なので判定する
+        if (i == 17 && index > 1) {
+          return;
+        }
+
+        tiles.push(playerDrawTiles.drawTiles[i]);
+      });
+    }
+
+    return tiles;
+  }
+
+  set(playerDrawTiles: PlayerDrawTiles, playerIndex: number) {
+    if (playerIndex < 0 || 3 < playerIndex) {
+      throw new Error(playerIndex.toString());
+    }
+
     // イカサマ配牌をテーブルの山から除く
-    dealedTiles.hand.tiles.forEach((tile) => this._baseCheatTable.pickTile(toTile(tile)));
+    playerDrawTiles.hand.tiles.forEach((tile) => this._baseCheatTable.pickTile(toTile(tile)));
 
-    dealedTiles.dealedTiles.forEach((tile) => this._baseCheatTable.pickTile(toTile(tile)));
+    // イカサマツモ牌をテーブルの山から除く
+    playerDrawTiles.drawTiles.forEach((tile) => this._baseCheatTable.pickTile(toTile(tile)));
 
-    this._dealedTilesList[playerIndex] = this.fillDealedTiles(dealedTiles, playerIndex >= 2);
+    this._playerDrawTilesList[playerIndex] = this.fillDealedTiles(playerDrawTiles, playerIndex >= 2);
   }
 
   // PlayerDealedTilesの不十分な牌を補う
-  fillDealedTiles(tiles: PlayerDealedTiles, less: boolean): PlayerDealedTiles {
-    if (tiles.hand.tiles.length == 0) {
-      tiles.hand = new Hand(this._baseCheatTable.drawTiles(13));
+  fillDealedTiles(playerDrawTiles: PlayerDrawTiles, less: boolean): PlayerDrawTiles {
+    if (playerDrawTiles.hand.tiles.length == 0) {
+      playerDrawTiles.hand = new Hand(this._baseCheatTable.drawTiles(13));
     }
 
-    const dealedTilesCount = less ? 17 : 18;
-    if (tiles.dealedTiles.length != dealedTilesCount) {
-      if (tiles.dealedTiles.length < dealedTilesCount) {
-        tiles.dealedTiles = tiles.dealedTiles.concat(this._baseCheatTable.drawTiles(dealedTilesCount - tiles.dealedTiles.length));
+    const drawTilesCount = less ? 17 : 18;
+
+    if (playerDrawTiles.drawTiles.length != drawTilesCount) {
+      if (playerDrawTiles.drawTiles.length < drawTilesCount) {
+        playerDrawTiles.drawTiles = playerDrawTiles.drawTiles.concat(this._baseCheatTable.drawTiles(drawTilesCount - playerDrawTiles.drawTiles.length));
       } else {
         throw new Error("too match dealedTiles");
       }
     }
 
-    return tiles;
+    return playerDrawTiles;
   }
 
   // 引数の牌を加えることで、全ての牌(1種の牌が4枚ずつ136枚)がそろうように残りの牌を生成する
@@ -107,7 +118,9 @@ export class CheatTableBuilder {
       const group = reversedTiles.GroupBy((tile) => tile);
 
       // 4つより多い牌を先頭から消していく
-      new List(Object.keys(group)).Where((key) => group[key].length !== 4).ForEach((key) => reversedTiles.Remove(toTile(key)));
+      Object.keys(group)
+        .filter((key) => group[key].length !== 4)
+        .forEach((key) => reversedTiles.Remove(toTile(key)));
 
       if (Validator.isValidAllTiles(reversedTiles.ToArray())) {
         break;
@@ -120,13 +133,13 @@ export class CheatTableBuilder {
   };
 }
 
-export class PlayerDealedTiles {
-  constructor(public hand?: Hand, public dealedTiles?: 牌[]) {
+export class PlayerDrawTiles {
+  constructor(public hand?: Hand, public drawTiles?: 牌[]) {
     this.hand = hand ? hand : new Hand();
-    this.dealedTiles = typeof dealedTiles != "undefined" ? dealedTiles : [];
+    this.drawTiles = typeof drawTiles != "undefined" ? drawTiles : [];
   }
 
   toTiles(): 牌[] {
-    return this.hand.tiles.concat(this.dealedTiles);
+    return this.hand.tiles.concat(this.drawTiles);
   }
 }

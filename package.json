@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "@types/jest": "^29.2.4",
+    "@types/prompts": "^2.4.2",
     "@types/uuid": "^9.0.0",
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
@@ -20,9 +21,8 @@
     "test-coverage": "jest --collectCoverage"
   },
   "dependencies": {
-    "@types/inquirer": "^9.0.3",
-    "inquirer": "^8.0.0",
     "linqts": "^1.14.4",
+    "prompts": "^2.4.2",
     "uuid": "^9.0.0",
     "winston": "^3.8.2"
   }
