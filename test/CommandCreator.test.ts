@@ -1,7 +1,7 @@
-import { PlayerCommandType } from "../src/lib/Constants";
 import { CommandCreator } from "../src/lib/CommandCreator";
+import { PlayerCommandType } from "../src/lib/Constants";
 import { toTile } from "../src/lib/Functions";
-import { Hand } from "../src/lib/Hand";
+import { Hand } from "../src/lib/models";
 
 const creator = new CommandCreator();
 const commandList: PlayerCommandType[] = [PlayerCommandType.Discard];
@@ -21,12 +21,12 @@ tiles.push("4m"); // 11
 tiles.push("1s"); // 12
 tiles.push("2s"); // 13
 
-test("捨て牌 [0]", () => {
+test("コマンドが1つの時は空文字を返す", () => {
   const hand = new Hand(tiles.map((s) => toTile(s)));
   hand.tiles = hand.tiles.filter((tile, index) => index == 0); // 裸単騎
   const text = creator.createPlayerCommandText(commandList, hand);
 
-  expect(text).toBe("捨て牌[0]");
+  expect(text).toBe("");
 });
 
 // test("捨て牌 [0-1]", () => {

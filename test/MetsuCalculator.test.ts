@@ -1,6 +1,6 @@
+import { MentsuCalculator } from "../src/lib";
 import { toTile } from "../src/lib/Functions";
-import { Hand } from "../src/lib/Hand";
-import { MentsuCalculator } from "../src/lib/MetsuCalculator";
+import { Hand } from "../src/lib/models";
 
 test("canAnkan is 1", () => {
   const tiles: string[] = [];

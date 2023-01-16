@@ -30,11 +30,7 @@ export class Validator {
   }
 
   static isValidPlayerDrawTiles(playerDrawTilesList: PlayerDrawTiles[]): boolean {
-    const tiles = playerDrawTilesList
-      .map((playerDrawTiles) => {
-        return playerDrawTiles.hand.tiles.concat(playerDrawTiles.drawTiles);
-      })
-      .flatMap((x) => x);
+    const tiles = playerDrawTilesList.map((playerDrawTiles) => playerDrawTiles.hand.tiles.concat(playerDrawTiles.drawTiles)).flatMap((x) => x);
 
     const group = new List(tiles).GroupBy((t) => t);
     if (!Object.keys(group).every((key) => group[key].length <= 4)) {

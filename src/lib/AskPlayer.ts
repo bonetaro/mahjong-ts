@@ -69,16 +69,15 @@ export const askPlayerCommand = async (player: RoundHandPlayer): Promise<Command
 
 export const askOtherPlayers = async (players: FourMembers<RoundHandPlayer>, tile: 牌, whom: RoundHandPlayer): Promise<Command.BaseCommand> => {
   const otherPlayers = players.filter((player) => player.id != whom.id);
-
   const possiblePlayerCommandMap = calculatePossiblePlayerCommandMap(otherPlayers);
-  const possibleCommandTypeList = Array.from(possiblePlayerCommandMap.values()).flatMap((value) => Array.from(value.keys()));
 
-  const commandTypeList = new List(possibleCommandTypeList).Distinct().ToArray();
+  const commandTypeList = new List(Array.from(possiblePlayerCommandMap.values()).flatMap((value) => Array.from(value.keys()))).Distinct().ToArray();
   const commandText = new CommandCreator().createOtherPlayersCommandText(commandTypeList, whom.hand);
 
   logger.info(
     "ほかのプレイヤー\n" + otherPlayers.map((player) => `${player.windName}(${player.index}) ${new CommandCreator().createPlayerStatusText(player)}`).join("\n")
   );
+
   // 実行したいコマンドを選ぶ
   const answer = await readChoices(commandText, null, commandTypeList);
 

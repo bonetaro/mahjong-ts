@@ -1,6 +1,6 @@
-import { DeadWall } from "../src/lib/DeadWall";
 import { splitBy2Chars, toTile } from "../src/lib/Functions";
-import { Wall } from "../src/lib/Wall";
+import { Wall } from "../src/lib/models";
+import { KingsWall } from "../src/lib/models/KingsWall";
 
 const tile = "1m2m3m4m";
 const tile2 = "1m2m3m4m5m";
@@ -67,19 +67,19 @@ const deadWallTile = "1m2m3m4m5m6m7m1p2p3p4p5p6p7p";
 
 test(`${deadWallTile} dora is 6m`, () => {
   const tiles = splitBy2Chars(deadWallTile).map((t) => toTile(t));
-  const deadWall = new DeadWall(new Wall(tiles));
+  const deadWall = new KingsWall(new Wall(tiles));
   expect(deadWall.doras[0]).toBe("6m"); // 5mが表示牌
 });
 
 test(`kan tile from ${deadWallTile} deadWall is 1m`, () => {
   const tiles = splitBy2Chars(deadWallTile).map((t) => toTile(t));
-  const deadWall = new DeadWall(new Wall(tiles));
+  const deadWall = new KingsWall(new Wall(tiles));
   expect(deadWall.pickupTileByKan("1s")).toBe("1m");
 });
 
 test(`dora tiles after do kan from ${deadWallTile} deadWall is 6m8m`, () => {
   const tiles = splitBy2Chars(deadWallTile).map((t) => toTile(t));
-  const deadWall = new DeadWall(new Wall(tiles));
+  const deadWall = new KingsWall(new Wall(tiles));
   deadWall.pickupTileByKan("1s");
   expect(deadWall.doras.join("")).toBe("6m8m");
 });
