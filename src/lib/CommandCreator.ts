@@ -1,9 +1,9 @@
-import { PlayerCommandType } from "./Constants";
+import { CommandType } from "./Constants";
 import { Hand } from "./models/Hand";
-import { Player } from "./models/Player";
+import { RoundHandPlayer } from "./models/Player";
 
 export class CommandCreator {
-  createPlayerCommandText(commands: PlayerCommandType[], hand: Hand, player?: Player): string {
+  createPlayerCommandText(commands: CommandType[], player?: RoundHandPlayer): string {
     const textList = this.createCommandTextList(commands);
 
     let commandText = textList.length > 1 ? `${textList.join("|")} > ` : "";
@@ -15,27 +15,27 @@ export class CommandCreator {
     return commandText;
   }
 
-  createPlayerStatusText(player: Player): string {
+  createPlayerStatusText(player: RoundHandPlayer): string {
     return `${player.name}の手牌 ${player.hand.status} 捨牌 ${player.discardStatus}`;
   }
 
-  createCommandTextList(commands: PlayerCommandType[]): string[] {
+  createCommandTextList(commands: CommandType[]): string[] {
     const textList: string[] = [];
 
-    if (commands.includes(PlayerCommandType.Discard)) {
+    if (commands.includes(CommandType.Discard)) {
       textList.push(`捨て牌選択`);
     }
 
-    if (commands.includes(PlayerCommandType.Nothing)) {
+    if (commands.includes(CommandType.Nothing)) {
       textList.push(`何もしない`);
     }
 
-    commands.filter((c) => c != PlayerCommandType.Discard && c != PlayerCommandType.Nothing).forEach((c) => textList.push(PlayerCommandType.name(c)));
+    commands.filter((c) => c != CommandType.Discard && c != CommandType.Nothing).forEach((c) => textList.push(CommandType.name(c)));
 
     return textList;
   }
 
-  createOtherPlayersCommandText(commands: PlayerCommandType[], hand: Hand): string {
+  createOtherPlayersCommandText(commands: CommandType[], hand: Hand): string {
     const textList: string[] = this.createCommandTextList(commands);
     return textList.length > 1 ? `${textList.join("|")} > ` : "";
   }

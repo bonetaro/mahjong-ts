@@ -47,7 +47,7 @@ export class Table {
     logger.debug("王牌を作成しました");
   }
 
-  makeDeadWall(): void {
+  makeKingsWall(): void {
     // todo 常に先頭の山から14枚を王牌としている
     this.kingsWall = new KingsWall(new Wall(this._walls[0].pickTiles(14)));
   }

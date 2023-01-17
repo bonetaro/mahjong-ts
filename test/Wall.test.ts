@@ -74,12 +74,12 @@ test(`${deadWallTile} dora is 6m`, () => {
 test(`kan tile from ${deadWallTile} deadWall is 1m`, () => {
   const tiles = splitBy2Chars(deadWallTile).map((t) => toTile(t));
   const deadWall = new KingsWall(new Wall(tiles));
-  expect(deadWall.pickupTileByKan("1s")).toBe("1m");
+  expect(deadWall.pickTile("1s")).toBe("1m");
 });
 
 test(`dora tiles after do kan from ${deadWallTile} deadWall is 6m8m`, () => {
   const tiles = splitBy2Chars(deadWallTile).map((t) => toTile(t));
   const deadWall = new KingsWall(new Wall(tiles));
-  deadWall.pickupTileByKan("1s");
+  deadWall.pickTile("1s");
   expect(deadWall.doras.join("")).toBe("6m8m");
 });

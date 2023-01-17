@@ -1,9 +1,11 @@
+import { Player } from ".";
 import { PlayerDrawTiles } from "../CheatTableBuilder";
+import { FourMembers } from "../Types";
 
 export class GameOption {
   private _cheat = false;
 
-  constructor(public cheatOption?: CheatOption) {
+  constructor(public players: FourMembers<Player>, public cheatOption?: CheatOption) {
     if (cheatOption) {
       this._cheat = true;
     }

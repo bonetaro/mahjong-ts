@@ -1,10 +1,9 @@
-import * as Constants from "./Constants";
-import { 牌, 萬子牌, 筒子牌, 索子牌, 数牌, 東, 南, 西, 北, 風牌, 白, 發, 中, 三元牌, 字牌, FourMembers, 槓子 } from "./Types";
-import { WindsSort, DragonsSort, PlayerDirection } from "./Constants";
-import { Player } from "./models/Player";
-import { typeSortMap } from "./Constants";
 import { List } from "linqts";
-import { PlayerCommandType } from ".";
+import { CommandType } from ".";
+import * as Constants from "./Constants";
+import { DragonsSort, PlayerDirection, WindsSort, typeSortMap } from "./Constants";
+import { FourMembers, 三元牌, 中, 北, 南, 字牌, 数牌, 東, 槓子, 牌, 發, 白, 筒子牌, 索子牌, 萬子牌, 西, 風牌 } from "./Types";
+import { Player } from "./models/Player";
 
 export function toTile(value: unknown): 牌 {
   if (isTile(value)) return value;
@@ -251,11 +250,11 @@ export const sortTiles = (tiles: 牌[]): 牌[] => {
     .ToArray();
 };
 
-export const isMeldCommandType = (type: PlayerCommandType): boolean => {
+export const isMeldCommandType = (type: CommandType): boolean => {
   switch (type) {
-    case PlayerCommandType.Pon:
-    case PlayerCommandType.Chi:
-    case PlayerCommandType.Kan:
+    case CommandType.Pon:
+    case CommandType.Chi:
+    case CommandType.Kan:
       return true;
     default:
       return false;

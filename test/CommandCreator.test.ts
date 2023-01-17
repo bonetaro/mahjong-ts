@@ -1,10 +1,10 @@
 import { CommandCreator } from "../src/lib/CommandCreator";
-import { PlayerCommandType } from "../src/lib/Constants";
+import { CommandType } from "../src/lib/Constants";
 import { toTile } from "../src/lib/Functions";
 import { Hand } from "../src/lib/models";
 
 const creator = new CommandCreator();
-const commandList: PlayerCommandType[] = [PlayerCommandType.Discard];
+const commandList: CommandType[] = [CommandType.Discard];
 
 const tiles: string[] = [];
 tiles.push("1m"); // 1
@@ -24,7 +24,7 @@ tiles.push("2s"); // 13
 test("コマンドが1つの時は空文字を返す", () => {
   const hand = new Hand(tiles.map((s) => toTile(s)));
   hand.tiles = hand.tiles.filter((tile, index) => index == 0); // 裸単騎
-  const text = creator.createPlayerCommandText(commandList, hand);
+  const text = creator.createPlayerCommandText(commandList);
 
   expect(text).toBe("");
 });

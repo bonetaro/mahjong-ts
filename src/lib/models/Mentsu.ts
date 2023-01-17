@@ -1,6 +1,6 @@
-import { toEmoji, toKanji, isKanMentsu } from "../Functions";
-import { 刻子, 槓子, 牌, 面子 } from "../Types";
 import { PlayerDirection } from "../Constants";
+import { isKanMentsu, toEmoji, toKanji } from "../Functions";
+import { 刻子, 槓子, 牌, 面子 } from "../Types";
 
 export interface IMentsu {
   tiles: 牌[];

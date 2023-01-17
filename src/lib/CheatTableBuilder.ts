@@ -15,7 +15,7 @@ export class CheatTableBuilder {
   }
 
   build(): CheatTable {
-    const playerDrawTilesList = this._playerDrawTilesList.map((item: PlayerDrawTiles, index: number) => this.fillDealedTiles(item, index > 1));
+    const playerDrawTilesList = this._playerDrawTilesList.map((item: PlayerDrawTiles, index: number) => this.fillPlayerDrawTiles(item, index > 1));
 
     if (!Validator.isValidPlayerDrawTiles(playerDrawTilesList)) {
       throw new Error();
@@ -72,7 +72,7 @@ export class CheatTableBuilder {
     return tiles;
   }
 
-  set(playerDrawTiles: PlayerDrawTiles, playerIndex: number) {
+  setPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, playerIndex: number) {
     if (playerIndex < 0 || 3 < playerIndex) {
       throw new Error(playerIndex.toString());
     }
@@ -83,11 +83,11 @@ export class CheatTableBuilder {
     // イカサマツモ牌をテーブルの山から除く
     playerDrawTiles.drawTiles.forEach((tile) => this._baseCheatTable.pickTile(toTile(tile)));
 
-    this._playerDrawTilesList[playerIndex] = this.fillDealedTiles(playerDrawTiles, playerIndex >= 2);
+    this._playerDrawTilesList[playerIndex] = this.fillPlayerDrawTiles(playerDrawTiles, playerIndex >= 2);
   }
 
   // PlayerDealedTilesの不十分な牌を補う
-  fillDealedTiles(playerDrawTiles: PlayerDrawTiles, less: boolean): PlayerDrawTiles {
+  fillPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, less: boolean): PlayerDrawTiles {
     if (playerDrawTiles.hand.tiles.length == 0) {
       playerDrawTiles.hand = new Hand(this._baseCheatTable.drawTiles(13));
     }
@@ -137,6 +137,16 @@ export class PlayerDrawTiles {
   constructor(public hand?: Hand, public drawTiles?: 牌[]) {
     this.hand = hand ? hand : new Hand();
     this.drawTiles = typeof drawTiles != "undefined" ? drawTiles : [];
+
+    const group = new List(this.hand.tiles).GroupBy((t) => t);
+    if (Object.keys(group).filter((key) => group[key].length > 4).length > 0) {
+      logger.error(
+        "over 4 tiles",
+        Object.keys(group).filter((key) => group[key].length > 4)
+      );
+
+      throw new Error();
+    }
   }
 
   toTiles(): 牌[] {

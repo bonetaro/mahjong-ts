@@ -19,8 +19,10 @@ export class KingsWall {
   }
 
   // 引数のtileは王牌に追加する牌
-  pickupTileByKan(tile: 牌): 牌 {
+  pickTile(tile: 牌): 牌 {
+    // todo ドラを増やすタイミング
     this.increaseDora();
+
     this._wall.pushTile(tile);
     return this._wall.pickTile();
   }

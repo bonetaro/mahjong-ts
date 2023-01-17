@@ -1,8 +1,20 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable no-case-declarations */
-import * as Command from "./Command";
+import {
+  CommandCreator,
+  CommandType,
+  FourMembers,
+  LogEvent,
+  WindsLabel,
+  askOtherPlayers as askOtherPlayersWhatCommand,
+  askPlayer as askPlayerWhatCommand,
+  logger,
+  readChoices,
+  toMoji,
+  牌,
+} from "../";
 import { Game, Player, RoundHandPlayer, Table, Tile } from "./";
-import { CommandCreator, LogEvent, FourMembers, PlayerCommandType, WindsLabel, askOtherPlayers, askPlayerCommand, logger, readChoices, toMoji, 牌 } from "../";
+import * as Command from "./Command";
 
 // 局
 export class GameRoundHand {
@@ -27,10 +39,6 @@ export class GameRoundHand {
 
   get players(): FourMembers<RoundHandPlayer> {
     return this._players;
-  }
-
-  get otherPlayers(): FourMembers<RoundHandPlayer> {
-    return this._players.filter((_, index) => index != this._playerIndex) as FourMembers<RoundHandPlayer>;
   }
 
   get currentPlayer(): RoundHandPlayer {
@@ -67,103 +75,103 @@ export class GameRoundHand {
     this.players.forEach((player) => player.drawTiles(this.dealTiles(1)));
   }
 
-  doKanProcess = async (player: RoundHandPlayer, playerCommand: Command.PlayerCommand): Promise<Command.BaseCommand> => {
-    if (playerCommand instanceof Command.KaKanCommand) {
-      // todo 槍槓できる場合
-      throw new Error("not implementation");
-    }
-
-    this.executeCommand(playerCommand);
-
-    return playerCommand;
+  askOtherPlayersChankanIfPossible = (command: Command.PlayerCommand): Command.ChankanRonCommand => {
+    // todo
+    return null;
   };
 
+  // 牌をツモったプレイヤーのターン
   playerTurn = async (currentPlayer: RoundHandPlayer): Promise<TurnResult> => {
-    let playerCommand: Command.PlayerCommand;
-
     while (true) {
-      playerCommand = await askPlayerCommand(currentPlayer);
-
-      switch (playerCommand.type) {
-        case PlayerCommandType.Kan:
-          const otherPlayersCommand = await this.doKanProcess(currentPlayer, playerCommand);
-          if (otherPlayersCommand.type === PlayerCommandType.Ron) {
-            // 槍槓
-            return this.ronEnd(otherPlayersCommand as Command.RonCommand);
+      const command = await askPlayerWhatCommand(currentPlayer);
+      switch (command.type) {
+        case CommandType.Kan:
+          // todo
+          // 槍槓の場合は、カン自体は成立しないらしいので、このタイミングで実行
+          const chankanCommand = this.askOtherPlayersChankanIfPossible(command);
+          if (chankanCommand) {
+            return this.ronEnd(chankanCommand);
           }
+
+          // 暗槓 or 加槓
+          this.executeCommand(command);
 
           // カンした場合は、もう一度捨て牌選択
           continue;
-        case PlayerCommandType.Tsumo:
-          return this.tsumoEnd(playerCommand as Command.TsumoCommand);
+        case CommandType.Tsumo:
+          return this.tsumoEnd(command as Command.TsumoCommand);
+        default:
+          this.executeCommand(command);
+          return new TurnResult(command, false);
       }
-
-      this.executeCommand(playerCommand);
-      break;
     }
-
-    return new TurnResult(playerCommand, false);
   };
 
-  otherPlayersAction = async (playerCommand: Command.PlayerCommand, currentPlayer: RoundHandPlayer): Promise<Command.BaseCommand> => {
-    const otherPlayersCommand = await askOtherPlayers(this.players, (playerCommand as Command.DiscardCommand).tile, currentPlayer);
-    this.executeCommand(otherPlayersCommand);
-
-    return otherPlayersCommand;
-  };
-
-  otherPlayersTurn = async (playerCommand: Command.PlayerCommand, currentPlayer: RoundHandPlayer): Promise<TurnResult> => {
+  // 牌をツモって捨てたプレイヤーの捨てた牌に対するアクション
+  // その牌を鳴いて捨てた牌をさらに鳴くアクションも含まれる
+  otherPlayersTurn = async (discardTile: 牌, currentPlayer: RoundHandPlayer): Promise<TurnResult> => {
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const otherPlayersCommand = await this.otherPlayersAction(playerCommand, currentPlayer);
+      const command = await askOtherPlayersWhatCommand(this.players, discardTile, currentPlayer);
 
       // 鳴きよりもロンが最優先で処理される
-      if (otherPlayersCommand.type === PlayerCommandType.Ron) {
-        return this.ronEnd(otherPlayersCommand as Command.RonCommand);
+      if (command.type === CommandType.Ron) {
+        return this.ronEnd(command as Command.RonCommand);
       }
 
-      // ポン、チー、カン
-      if (otherPlayersCommand.isMeldCommand()) {
+      if (command.isMeldCommand()) {
         // 鳴いた人に手番を変更する
-        currentPlayer = this.setCurrentPlayer(otherPlayersCommand.who);
+        currentPlayer = this.setCurrentPlayer(command.who);
+        // ポン、チー、カンを実行
+        this.executeCommand(command);
 
-        const commandTypeList = [PlayerCommandType.Discard];
-        const commandText = new CommandCreator().createPlayerCommandText(commandTypeList, currentPlayer.hand, currentPlayer);
-        const discardTileNumber = await readChoices(commandText, currentPlayer.hand, commandTypeList);
+        // 鳴いた後に牌を捨てる
+        const commandText = new CommandCreator().createPlayerCommandText([CommandType.Discard], currentPlayer);
+        const discardTileNumber = await readChoices(commandText, currentPlayer.hand, [CommandType.Discard]);
+        const discardCommand = new Command.DiscardCommand(currentPlayer, currentPlayer.hand.tiles[Number(discardTileNumber)]);
+        this.executeCommand(discardCommand);
 
-        playerCommand = new Command.DiscardCommand(currentPlayer, currentPlayer.hand.tiles[Number(discardTileNumber)]);
-        this.executeCommand(playerCommand);
-
-        // 鳴いた場合は、捨てた牌へのほかのプレイヤーのアクションをさせるために、whileループを繰り返す
+        // 捨てた牌に対し、ほかのプレイヤーのアクションをさせるために、whileループを繰り返す
+        discardTile = discardCommand.tile;
         continue;
       }
 
-      break;
+      return new TurnResult(new Command.NothingCommand(), false);
     }
-
-    return new TurnResult(null, false);
   };
 
   turn = async (currentPlayer: RoundHandPlayer): Promise<TurnResult> => {
+    // 牌を山からツモる
+    currentPlayer.drawTile(this.pickTile());
+
     // 牌をツモったプレイヤーのターン
     const turnResult = await this.playerTurn(currentPlayer);
+    if (turnResult.roundHandEnd) {
+      return turnResult;
+    }
 
     // 牌をツモったプレイヤー以外のプレイヤーのターン(プレイヤーが捨てた牌へのアクション)
     // 鳴いた後に捨てた牌をさらに鳴く処理も含まれる
-    return await this.otherPlayersTurn(turnResult.command, currentPlayer);
+    return await this.otherPlayersTurn((turnResult.command as Command.DiscardCommand).tile, currentPlayer);
   };
+
+  pickTile(): Tile {
+    return new Tile(this.table.pickTile());
+  }
+
+  pickKingsTile(): Tile {
+    // 山の最終牌を王牌に足して、嶺上牌をツモる
+    const lastTile = this._table.popTile();
+    const tile = this._table.kingsWall.pickTile(lastTile);
+
+    return new Tile(tile, true);
+  }
 
   mainLoop = async () => {
     let currentPlayer = this.currentPlayer;
 
-    let turnCount = 1;
-
     // 局のループ
     do {
-      currentPlayer.drawTile(new Tile(this.table.pickTile()));
-
-      logger.debug(`${turnCount}回目のツモ`);
-
       const turnResult = await this.turn(currentPlayer);
       if (turnResult.roundHandEnd) {
         return;
@@ -175,8 +183,6 @@ export class GameRoundHand {
       }
 
       currentPlayer = this.nextPlayer;
-
-      turnCount++;
     } while (true);
   };
 
@@ -202,14 +208,11 @@ export class GameRoundHand {
 
   executeCommand(command: Command.BaseCommand): void {
     switch (command.type) {
-      case PlayerCommandType.Kan:
+      case CommandType.Kan:
         if (command instanceof Command.AnKanCommand) {
           (command as Command.AnKanCommand).execute();
-
-          // 王牌に1枚足して、嶺上牌をツモる
-          const lastTile = this._table.popTile();
-          const tile = this._table.kingsWall.pickupTileByKan(lastTile);
-          command.who.drawTile(new Tile(tile, true));
+          command.who.drawTile(this.pickKingsTile());
+          break;
         }
 
         if (command instanceof Command.DaiMinKanCommand) {
@@ -220,11 +223,11 @@ export class GameRoundHand {
           // todo
         }
         break;
-      case PlayerCommandType.Pon:
+      case CommandType.Pon:
         command.execute(this);
 
         break;
-      case PlayerCommandType.Discard:
+      case CommandType.Discard:
         command.execute(this);
         break;
     }
@@ -262,6 +265,7 @@ export class CheatGameRoundHand extends GameRoundHand {
     return this._table;
   }
 
+  // イカサマ牌を設定するためsetterを用意
   set table(table: Table) {
     this._table = table;
   }

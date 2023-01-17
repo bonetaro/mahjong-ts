@@ -1,15 +1,27 @@
 /* eslint-disable no-constant-condition */
 import { List } from "linqts";
 import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, Table } from "./";
-import { CheatTableBuilder, LogEvent, FourMembers, WindsLabel, askAnyKey, logger, toMoji } from "..";
+import { CheatTableBuilder, FourMembers, WindsLabel, askAnyKey, logger, toMoji } from "..";
+import { LogEvent } from "../logging";
 
 export class Game {
   private _dices: [Dice, Dice] = [new Dice(), new Dice()];
   private _firstDealer: Player;
   private _rounds: GameRound[] = [];
+  protected _players: FourMembers<Player>;
 
-  constructor(public players: FourMembers<Player>, public readonly gameOption?: GameOption) {
+  constructor(public readonly gameOption: GameOption) {
     logger.debug(`game create`);
+
+    this._players = gameOption.players;
+  }
+
+  get players(): FourMembers<Player> {
+    return this._players;
+  }
+
+  set players(players: FourMembers<Player>) {
+    this._players = players;
   }
 
   // 起家
@@ -29,39 +41,48 @@ export class Game {
     return this._rounds.length;
   }
 
-  endRoundHand = (roundHand: GameRoundHand): void => {
-    logger.debug("gameRoundHand end");
-  };
-
-  startRoundHand = (roundHand: GameRoundHand): void => {
+  startRoundHand = (): void => {
     logger.debug("gameRoundHand start");
 
-    roundHand.players.forEach((player) => player.init());
+    // 局作成
+    this.currentRound.hands.push(this.createRoundHand(this.players));
 
-    roundHand.table.buildWalls(); // 牌の山を積む
+    // プレイヤーの状態をリセット
+    this.currentRoundHand.players.forEach((player) => player.init());
 
-    this.rollDices(); // サイコロを振る
+    // 牌の山を積む
+    this.currentRoundHand.table.buildWalls();
+
+    // サイコロを振る
+    this.rollDices();
 
     // todo サイコロを振っているが王牌と無関係
-    roundHand.table.makeDeadWall();
+    this.currentRoundHand.table.makeKingsWall();
 
-    roundHand.dealStartTilesToPlayers(); // 配牌
+    // 配牌
+    this.currentRoundHand.dealStartTilesToPlayers();
 
-    roundHand.players.forEach((player) => player.sortHandTiles()); // 牌を整列
-
-    LogEvent(this.status());
+    // 牌を整列
+    this.currentRoundHand.players.forEach((player) => player.sortHandTiles());
   };
 
-  nextRoundHand = async (): Promise<GameRoundHand> => {
+  roundHandLoop = async (): Promise<void> => {
+    LogEvent(this.status());
+
+    await this.currentRoundHand.mainLoop();
+  };
+
+  nextRoundHand = async (): Promise<boolean> => {
     if (this.isLastRoundHand()) {
-      return null;
+      return false;
     }
 
     await askAnyKey("次の局に進みます...");
 
-    this.createGameRoundHand(this.nextRoundHandPlayers());
+    const roundHand = this.createRoundHand(this.nextRoundHandPlayers());
+    this.currentRound.hands.push(roundHand);
 
-    return this.currentRoundHand;
+    return true;
   };
 
   nextRoundHandPlayers(): FourMembers<Player> {
@@ -71,24 +92,8 @@ export class Game {
   }
 
   isLastRoundHand(): boolean {
+    // 南4局で終わり
     return this._rounds.length == 2 && this.currentRound.hands.length == 4;
-  }
-
-  validateForStart(): boolean {
-    if (!this.validatePlayers()) {
-      return false;
-    }
-
-    return true;
-  }
-
-  validatePlayers(): boolean {
-    if (this.players.length != 4) {
-      logger.error(`players is ${this.players.length} people.`);
-      return false;
-    }
-
-    return true;
   }
 
   pickUpPlayerAtRandom(): Player {
@@ -116,12 +121,12 @@ export class Game {
     this.players = this.players.splice(firstDealerNumber, 1).concat(this.players) as FourMembers<Player>;
   }
 
-  createGameRound(): void {
+  createRound(): void {
     this._rounds.push(new GameRound());
   }
 
-  createGameRoundHand(players: FourMembers<Player>): void {
-    this.currentRound.hands.push(new GameRoundHand(players));
+  createRoundHand(players: FourMembers<Player>): GameRoundHand {
+    return new GameRoundHand(players);
   }
 
   status(option: { round: boolean; player: boolean; dora: boolean } | null = null): string {
@@ -144,7 +149,7 @@ export class Game {
 
     if (option.player) {
       const playerLabelList: string[] = [];
-      new List(WindsLabel).Zip(new List(this.players), (wind, player) => {
+      new List(WindsLabel.concat()).Zip(new List(this.players), (wind, player) => {
         playerLabelList.push(`${wind}家: ${player.name}`);
       });
 
@@ -158,18 +163,14 @@ export class Game {
   start(): void {
     logger.info("半荘開始");
 
-    if (!this.validateForStart()) {
-      return;
-    }
-
     // 起家決め
     this.decideFirstDealer();
 
     // 東場生成
-    this.createGameRound();
+    this.createRound();
 
-    // 局生成
-    this.createGameRoundHand(this.players);
+    // 東1局開始
+    this.startRoundHand();
   }
 
   // 半荘終了
@@ -179,28 +180,21 @@ export class Game {
 }
 
 export class CheatGame extends Game {
-  constructor(players: FourMembers<Player>, gameOption: GameOption) {
+  constructor(gameOption: GameOption) {
     logger.debug("cheatGame create");
 
-    super(players, gameOption);
+    super(gameOption);
   }
 
-  start(): void {
-    logger.debug("cheatGame start");
-
-    logger.info("チート半荘開始");
-
-    // 起家決め
-    this.decideFirstDealer();
-
-    // 東場作成
-    this.createGameRound();
-
+  createRoundHand(players: FourMembers<Player>): GameRoundHand {
     const builder = new CheatTableBuilder();
-    this.gameOption.cheatOption.playerDrawTilesList.forEach((playerDealedTiles, index) => builder.set(playerDealedTiles, index));
+    this.gameOption.cheatOption.playerDrawTilesList.forEach((playerDealedTiles, index) => {
+      builder.setPlayerDrawTiles(playerDealedTiles, index);
+    });
 
-    const roundHand = new CheatGameRoundHand(this.players);
+    const roundHand = new CheatGameRoundHand(players);
     roundHand.table = new Table(builder.build().washedTiles);
-    this.currentRound.hands.push(roundHand);
+
+    return roundHand;
   }
 }

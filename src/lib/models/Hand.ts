@@ -50,6 +50,10 @@ export class Hand {
     return this._openMentsuList;
   }
 
+  set openMentsuList(mentsuList: IMentsu[]) {
+    this._openMentsuList = mentsuList;
+  }
+
   get status(): string {
     const testList: string[] = [];
     testList.push(`[${toEmojiFromArray(this.tiles)}] (${toKanjiFromArray(this.tiles)})]`);

@@ -1,18 +1,7 @@
 import { List } from "linqts";
 import * as Command from "./models/Command";
 import { MinKouMentsu, RoundHandPlayer } from "./models";
-import {
-  CommandCreator,
-  FourMembers,
-  PlayerCommandType,
-  calucatePlayerDirection,
-  isRangeNumber,
-  logger,
-  readChoices,
-  readCommand,
-  toEmojiFromArray,
-  牌,
-} from ".";
+import { CommandCreator, FourMembers, CommandType, calucatePlayerDirection, isRangeNumber, logger, readChoices, readCommand, toEmojiFromArray, 牌 } from ".";
 import { HandParser } from "./HandParser";
 import { isMeldCommandType } from "./Functions";
 
@@ -20,7 +9,7 @@ export const askAnyKey = async (msg: string): Promise<string> => {
   return readCommand(`${msg} [press any key]`);
 };
 
-const askAnkanOrKakan = async (kanCandidateTiles: 牌[], player: RoundHandPlayer): Promise<Command.PlayerCommand> => {
+const askPlayerWhatTileOnKanCommand = async (player: RoundHandPlayer, kanCandidateTiles: 牌[]): Promise<Command.PlayerCommand> => {
   let kanTile: 牌;
 
   if (kanCandidateTiles.length === 1) {
@@ -43,11 +32,11 @@ const askAnkanOrKakan = async (kanCandidateTiles: 牌[], player: RoundHandPlayer
   }
 };
 
-export const askPlayerCommand = async (player: RoundHandPlayer): Promise<Command.PlayerCommand> => {
-  const parsedPlayerCommand = new HandParser(player.hand).parseAsPlayerCommand();
+export const askPlayer = async (player: RoundHandPlayer): Promise<Command.PlayerCommand> => {
+  const playerCommandMap = new HandParser(player.hand).parseAsPlayerCommand();
 
-  const playerCommandTypeList = Array.from(parsedPlayerCommand.keys());
-  const commandText = new CommandCreator().createPlayerCommandText(playerCommandTypeList, player.hand, player);
+  const playerCommandTypeList = Array.from(playerCommandMap.keys());
+  const commandText = new CommandCreator().createPlayerCommandText(playerCommandTypeList, player);
 
   const answer = await readChoices(commandText, player.hand, playerCommandTypeList);
 
@@ -57,19 +46,19 @@ export const askPlayerCommand = async (player: RoundHandPlayer): Promise<Command
   }
 
   switch (answer) {
-    case PlayerCommandType.Tsumo:
+    case CommandType.Tsumo:
       return new Command.TsumoCommand(player);
-    case PlayerCommandType.Kan:
+    case CommandType.Kan:
       // 暗カン or 加カン
-      return await askAnkanOrKakan(parsedPlayerCommand.get(PlayerCommandType.Kan), player);
+      return await askPlayerWhatTileOnKanCommand(player, playerCommandMap.get(CommandType.Kan));
   }
 
   throw new Error(answer);
 };
 
-export const askOtherPlayers = async (players: FourMembers<RoundHandPlayer>, tile: 牌, whom: RoundHandPlayer): Promise<Command.BaseCommand> => {
+export const askOtherPlayers = async (players: FourMembers<RoundHandPlayer>, discardTile: 牌, whom: RoundHandPlayer): Promise<Command.BaseCommand> => {
   const otherPlayers = players.filter((player) => player.id != whom.id);
-  const possiblePlayerCommandMap = calculatePossiblePlayerCommandMap(otherPlayers);
+  const possiblePlayerCommandMap = calculatePossiblePlayerCommandMap(otherPlayers, whom);
 
   const commandTypeList = new List(Array.from(possiblePlayerCommandMap.values()).flatMap((value) => Array.from(value.keys()))).Distinct().ToArray();
   const commandText = new CommandCreator().createOtherPlayersCommandText(commandTypeList, whom.hand);
@@ -81,12 +70,12 @@ export const askOtherPlayers = async (players: FourMembers<RoundHandPlayer>, til
   // 実行したいコマンドを選ぶ
   const answer = await readChoices(commandText, null, commandTypeList);
 
-  return generateOtherPlayersCommand(answer, possiblePlayerCommandMap, whom, players, tile);
+  return generateOtherPlayersCommand(answer, possiblePlayerCommandMap, whom, players, discardTile);
 
-  function calculatePossiblePlayerCommandMap(otherPlayers: RoundHandPlayer[]) {
-    const map = new Map<RoundHandPlayer, Map<PlayerCommandType, 牌[]>>();
+  function calculatePossiblePlayerCommandMap(otherPlayers: RoundHandPlayer[], whom: RoundHandPlayer) {
+    const map = new Map<RoundHandPlayer, Map<CommandType, 牌[]>>();
     otherPlayers.forEach((player) => {
-      map.set(player, new HandParser(player.hand).parseAsOtherPlayersCommand(tile));
+      map.set(player, new HandParser(player.hand).parseAsOtherPlayersCommand(discardTile, whom.isLeftPlayer(player)));
     });
 
     return map;
@@ -94,14 +83,14 @@ export const askOtherPlayers = async (players: FourMembers<RoundHandPlayer>, til
 
   function generateOtherPlayersCommand(
     answer: string,
-    possiblePlayerCommandMap: Map<RoundHandPlayer, Map<PlayerCommandType, 牌[]>>,
+    possiblePlayerCommandMap: Map<RoundHandPlayer, Map<CommandType, 牌[]>>,
     whom: RoundHandPlayer,
     players: FourMembers<RoundHandPlayer>,
     tile: 牌
   ) {
     let command: Command.BaseCommand;
 
-    if (isMeldCommandType(answer as PlayerCommandType)) {
+    if (isMeldCommandType(answer as CommandType)) {
       // どのコマンドかで、誰が主体かわかるはず
       const possiblePlayers = Array.from(possiblePlayerCommandMap.keys());
       const who = new List(possiblePlayers).Single((p) => {
@@ -111,19 +100,19 @@ export const askOtherPlayers = async (players: FourMembers<RoundHandPlayer>, til
 
       const playerDirection = calucatePlayerDirection(who, whom, players);
       switch (answer) {
-        case PlayerCommandType.Pon:
+        case CommandType.Pon:
           command = new Command.PonCommand(who, playerDirection, tile);
           break;
-        case PlayerCommandType.Kan:
+        case CommandType.Kan:
           command = new Command.DaiMinKanCommand(who, playerDirection, tile);
           break;
-        case PlayerCommandType.Chi:
+        case CommandType.Chi:
           command = new Command.ChiCommand(who, playerDirection, tile);
           break;
         default:
           throw new Error(answer);
       }
-    } else if ((answer as PlayerCommandType) == PlayerCommandType.Ron) {
+    } else if ((answer as CommandType) == CommandType.Ron) {
       // todo ダブロンの可能性があるので、誰がロンするかは自動判定できない場合がある
       // command = new Command.RonCommand(who, playerDirection, tile);
     } else {

@@ -4,21 +4,32 @@ import { WindsLabel, logger, toEmojiFromArray, toKanjiFromArray, toMoji, 牌 } f
 
 export class Player {
   protected _id: string;
-  protected _name: string;
 
-  constructor(name: string, public hand = new Hand(), public discardTiles: 牌[] = []) {
-    this._id = uuid();
-    this._name = name;
+  constructor(public readonly name: string, id?: string) {
+    this._id = id ?? uuid();
   }
 
   get id(): string {
     return this._id;
   }
+}
 
-  get name(): string {
-    return this._name;
+export class RoundHandPlayer extends Player {
+  constructor(player: Player, public index: number, public hand = new Hand(), public discardTiles: 牌[] = []) {
+    super(player.name, player.id);
   }
 
+  get windName(): string {
+    return `${WindsLabel[this.index]}家`;
+  }
+
+  get fullName(): string {
+    return `${this.windName} ${this.name}`;
+  }
+
+  isLeftPlayer(player: RoundHandPlayer): boolean {
+    return (this.index + 1) % 4 == player.index;
+  }
   init(): void {
     logger.debug("player init");
 
@@ -26,7 +37,7 @@ export class Player {
     this.discardTiles = [];
   }
 
-  show(): void {
+  status(): void {
     logger.info(`${this.name}`, {
       hand: toEmojiFromArray(this.hand.tiles),
       discard: toEmojiFromArray(this.discardTiles),
@@ -74,23 +85,5 @@ export class Player {
       emoji: toEmojiFromArray(this.hand.tiles),
       kanji: toKanjiFromArray(this.hand.tiles),
     });
-  }
-}
-
-export class RoundHandPlayer extends Player {
-  constructor(player: Player, public index: number) {
-    super(player.name);
-
-    this._id = player.id;
-    this.hand = player.hand;
-    this.discardTiles = player.discardTiles;
-  }
-
-  get windName(): string {
-    return `${WindsLabel[this.index]}家`;
-  }
-
-  get fullName(): string {
-    return `${this.windName} ${this.name}`;
   }
 }
