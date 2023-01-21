@@ -1,5 +1,5 @@
 import { Player } from ".";
-import { PlayerDrawTiles } from "../CheatTableBuilder";
+import { PlayerDrawTiles } from "./PlayerDrawTiles";
 import { FourMembers } from "../Types";
 
 export class GameOption {
@@ -17,9 +17,5 @@ export class GameOption {
 }
 
 export class CheatOption {
-  constructor(public playerDrawTilesList: PlayerDrawTiles[]) {
-    if (playerDrawTilesList.length > 4) {
-      throw new Error(`${playerDrawTilesList.length}`);
-    }
-  }
+  constructor(public playerDrawTilesList: FourMembers<PlayerDrawTiles>) {}
 }

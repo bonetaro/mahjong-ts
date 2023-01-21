@@ -1,6 +1,6 @@
-import { MentsuCalculator } from "../src/lib";
 import { toTile } from "../src/lib/Functions";
 import { Hand } from "../src/lib/models";
+import { KanCalculator } from "../src/lib/MentsuCalculator";
 
 test("canAnkan is 1", () => {
   const tiles: string[] = [];
@@ -19,7 +19,7 @@ test("canAnkan is 1", () => {
   tiles.push("2s"); // 13
 
   const hand = new Hand(tiles.map((t) => toTile(t)));
-  const calc = new MentsuCalculator(hand);
+  const calc = new KanCalculator(hand);
   const result = calc.ankanCandidate();
   expect(result.length).toBe(1);
 });
@@ -41,7 +41,7 @@ test("canAnkan is 2", () => {
   tiles.push("2s"); // 13
 
   const hand = new Hand(tiles.map((t) => toTile(t)));
-  const calc = new MentsuCalculator(hand);
+  const calc = new KanCalculator(hand);
   const result = calc.ankanCandidate();
   expect(result.length).toBe(2);
 });
@@ -63,7 +63,7 @@ test("canAnkan is 3", () => {
   tiles.push("rd"); // 13
 
   const hand = new Hand(tiles.map((t) => toTile(t)));
-  const calc = new MentsuCalculator(hand);
+  const calc = new KanCalculator(hand);
   const result = calc.ankanCandidate();
   expect(result.length).toBe(3);
 });

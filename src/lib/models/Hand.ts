@@ -1,12 +1,13 @@
-import { toEmojiFromArray, toKanjiFromArray, sortTiles, splitBy2Chars, toTile } from "../Functions";
+import { toEmojiFromArray, toMojiFromArray, sortTiles, splitBy2Chars, toTile } from "../Functions";
 import { IMentsu } from "./Mentsu";
 import { 牌 } from "../Types";
-import { Tile } from "./Tile";
+import { DrawTile } from "./Tile";
+import { throwErrorAndLogging } from "../error";
 
 export class Hand {
   private _tiles: 牌[];
   private _openMentsuList: IMentsu[] = [];
-  private _drawingTile: Tile;
+  private _drawingTile: DrawTile;
 
   constructor(tile?: string);
   constructor(tiles?: 牌[]);
@@ -23,7 +24,7 @@ export class Hand {
 
     // todo
     if (tiles.length > 0 && tiles.length !== 13) {
-      throw new Error("hand tiles count must be 13");
+      throwErrorAndLogging("hand tiles count must be 13");
     }
 
     this._tiles = tiles ?? [];
@@ -37,11 +38,11 @@ export class Hand {
     this._tiles = tiles;
   }
 
-  get drawingTile(): Tile {
+  get drawingTile(): DrawTile {
     return this._drawingTile;
   }
 
-  set drawingTile(tile: Tile) {
+  set drawingTile(tile: DrawTile) {
     this._drawingTile = tile;
     this.tiles.push(tile.tile);
   }
@@ -56,7 +57,7 @@ export class Hand {
 
   get status(): string {
     const testList: string[] = [];
-    testList.push(`[${toEmojiFromArray(this.tiles)}] (${toKanjiFromArray(this.tiles)})]`);
+    testList.push(`${toEmojiFromArray(this.tiles)}] (${toMojiFromArray(this.tiles)})`);
 
     if (this.openMentsuList.length > 0) {
       testList.push(`副露牌 [${this._openMentsuList.map((mentsu) => `${mentsu.status()}`).join(" ")}]`);
@@ -70,7 +71,7 @@ export class Hand {
       tiles: this.tiles.join(""),
       length: this.tiles.length,
       emoji: toEmojiFromArray(this.tiles),
-      kanji: toKanjiFromArray(this.tiles),
+      moji2: toMojiFromArray(this.tiles),
       furo: this._openMentsuList.map((m) => m.status()).join("|"),
     };
   }

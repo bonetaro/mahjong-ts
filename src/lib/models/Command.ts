@@ -1,11 +1,9 @@
 import { List } from "linqts";
-import { CommandType, PlayerDirection } from "../Constants";
-import { AnKanMentsu, MinKanMentsu, MinKouMentsu } from "./Mentsu";
-import { RoundHandPlayer } from "./Player";
-import { 牌 } from "../Types";
-import { GameRoundHand } from "./GameRoundHand";
+import { AnKanMentsu, GameRoundHand, MinKanMentsu, MinKouMentsu, RoundHandPlayer } from ".";
+import { isMeldCommandType, toEmoji, toEmojiMoji } from "../Functions";
+import { CommandType, PlayerDirection, 塔子like, 数牌, 牌 } from "../Types";
 import { logger } from "../logging";
-import { toEmoji, isMeldCommandType } from "../Functions";
+import { ChiMentsu } from "./Mentsu";
 
 export abstract class BaseCommand {
   protected _type: CommandType;
@@ -36,7 +34,8 @@ export abstract class OtherPlayersCommand extends BaseCommand {
   }
 
   whomPlayer(roundHand: GameRoundHand): RoundHandPlayer {
-    return roundHand.players[this.direction as number];
+    const index = this.who.index + (this.direction as number);
+    return roundHand.players[index % 4];
   }
 }
 
@@ -47,7 +46,7 @@ export class DiscardCommand extends PlayerCommand {
     super(who);
   }
 
-  execute(): void {
+  execute(roundHand: GameRoundHand): void {
     this.who.doDiscard(this.tile);
     this.who.sortHandTiles();
   }
@@ -60,7 +59,7 @@ export class TsumoCommand extends PlayerCommand {
     super(who);
   }
 
-  execute(): void {}
+  execute(roundHand: GameRoundHand): void {}
 }
 
 export class AnKanCommand extends PlayerCommand {
@@ -70,12 +69,13 @@ export class AnKanCommand extends PlayerCommand {
     super(who);
   }
 
-  execute(): void {
-    logger.info(`${this.who.name}が${toEmoji(this.tile)} を暗槓しました`);
-
+  execute(roundHand: GameRoundHand): void {
     this.who.hand.tiles = this.who.hand.tiles.filter((tile) => this.tile != tile);
     this.who.hand.openMentsuList.push(new AnKanMentsu(this.tile));
     this.who.hand.sortTiles();
+    this.who.drawTile(roundHand.pickKingsTile());
+
+    logger.info(`${this.who.name}が${toEmoji(this.tile)} を暗槓しました`);
   }
 }
 
@@ -86,9 +86,7 @@ export class KaKanCommand extends PlayerCommand {
     super(who);
   }
 
-  execute(): void {
-    logger.info(`${this.who.name}が${toEmoji(this.tile)} を加槓しました`);
-
+  execute(roundHand: GameRoundHand): void {
     const furoMentsuList = new List(this.who.hand.openMentsuList);
 
     // 加槓する牌を手牌から除く
@@ -100,6 +98,8 @@ export class KaKanCommand extends PlayerCommand {
     // 作成した明槓子をさらす
     furoMentsuList.Where((mentsu) => !(mentsu instanceof MinKouMentsu && mentsu.tiles.includes(this.tile))).Add(minkanMentsu);
     this.who.hand.openMentsuList = furoMentsuList.ToArray();
+
+    logger.info(`${this.who.name}が${toEmoji(this.tile)} を加槓しました`);
   }
 }
 
@@ -122,7 +122,7 @@ export class RonCommand extends OtherPlayersCommand {
     super(who, direction, tile);
   }
 
-  execute(): void {}
+  execute(roundHand: GameRoundHand): void {}
 }
 
 export class ChankanRonCommand extends RonCommand {
@@ -130,7 +130,7 @@ export class ChankanRonCommand extends RonCommand {
     super(who, direction, tile);
   }
 
-  execute(): void {}
+  execute(roundHand: GameRoundHand): void {}
 }
 
 export class PonCommand extends OtherPlayersCommand {
@@ -141,15 +141,18 @@ export class PonCommand extends OtherPlayersCommand {
   }
 
   execute(roundHand: GameRoundHand): void {
-    let tiles = [this.tile];
-
     [...Array(2)].map(() => {
       const index = this.who.hand.tiles.indexOf(this.tile);
-      tiles = tiles.concat(this.who.hand.tiles.splice(index, 1));
+      this.who.hand.tiles.splice(index, 1);
     });
 
     const mentsu = new MinKouMentsu(this.tile, this.direction);
     this.who.hand.openMentsuList.push(mentsu);
+
+    // 牌を捨てた人の捨て牌から取り除く（実際はflagをたてるだけ）
+    this.whomPlayer(roundHand).discardTiles.slice(-1)[0].meld = true;
+
+    logger.info(`${this.who.name}が${toEmoji(this.tile)} をポンしました`);
   }
 }
 
@@ -160,15 +163,30 @@ export class DaiMinKanCommand extends OtherPlayersCommand {
     super(who, direction, tile);
   }
 
-  execute(): void {}
+  execute(roundHand: GameRoundHand): void {}
 }
 
 export class ChiCommand extends OtherPlayersCommand {
   protected _type = CommandType.Chi;
+  protected _tiles: 塔子like; // 順子のもとになったターツ
 
-  constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
+  constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌, tiles: 塔子like) {
     super(who, direction, tile);
+    this._tiles = tiles;
   }
 
-  execute(): void {}
+  execute(roundHand: GameRoundHand): void {
+    this._tiles.map((tile) => {
+      const index = this.who.hand.tiles.indexOf(tile);
+      this.who.hand.tiles.splice(index, 1);
+    });
+
+    const chiMentsu = new ChiMentsu(this.tile as 数牌, this._tiles as 塔子like);
+    this.who.hand.openMentsuList.push(chiMentsu);
+
+    // 牌を捨てた人の捨て牌から取り除く（実際はflagをたてるだけ）
+    this.whomPlayer(roundHand).discardTiles.slice(-1)[0].meld = true;
+
+    logger.info(`${this.who.name}が${toEmojiMoji(this.tile)}をチーしました`);
+  }
 }

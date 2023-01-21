@@ -1,9 +1,9 @@
-import { CommandCreator } from "../src/lib/CommandCreator";
-import { CommandType } from "../src/lib/Constants";
+import { CommandType } from "../src/lib";
+import { CommandTextCreator } from "../src/lib/CommandTextCreator";
 import { toTile } from "../src/lib/Functions";
 import { Hand } from "../src/lib/models";
 
-const creator = new CommandCreator();
+const creator = new CommandTextCreator();
 const commandList: CommandType[] = [CommandType.Discard];
 
 const tiles: string[] = [];

@@ -1,6 +1,7 @@
 import { 牌 } from "../Types";
 import { Wall } from "./Wall";
 import { nextTile } from "../Functions";
+import { throwErrorAndLogging } from "../error";
 
 export class KingsWall {
   private _wall: Wall;
@@ -8,7 +9,7 @@ export class KingsWall {
 
   constructor(wall: Wall) {
     if (wall.tilesCount != 14) {
-      throw new Error(`Tiles count is ${wall.tilesCount}. 王牌 is 14 tiles.`);
+      throwErrorAndLogging(`Tiles count is ${wall.tilesCount}. 王牌 is 14 tiles.`);
     }
 
     this._wall = wall;

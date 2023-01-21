@@ -1,5 +1,6 @@
 import { List } from "linqts";
-import { Table } from "../src/lib/Table";
+import { Table } from "../src/lib/models";
+import { 牌 } from "../src/lib";
 
 test("table initialize tiles is 136", () => {
   expect(Table.initializeTiles().length).toBe(136);
@@ -7,7 +8,7 @@ test("table initialize tiles is 136", () => {
 
 test("table initialize tiles is 34 types ", () => {
   const tiles = Table.initializeTiles();
-  const group = new List(tiles).GroupBy((t) => t);
+  const group = new List(tiles).GroupBy((t) => t as 牌);
 
   expect(Object.keys(group).length).toBe(34);
 });

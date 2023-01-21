@@ -2,8 +2,8 @@ import * as readline from "readline";
 import prompts from "prompts";
 import { logger } from "./logging";
 import { Hand } from "./models/Hand";
-import { toEmoji, toKanji } from "./Functions";
-import { CommandType } from "./Constants";
+import { toEmoji, toEmojiMoji } from "./Functions";
+import { CommandType } from "./Types";
 
 const readInput = async (message: string): Promise<string> => {
   const rl = readline.createInterface({
@@ -32,11 +32,12 @@ export const readCommand = async (message: string, condition?: (input: string) =
   }
 };
 
-export const readChoices = async (message: string, hand: Hand, commandTypeList: CommandType[]): Promise<string> => {
+export const selectCommand = async (message: string, hand: Hand, commandTypeList: CommandType[]): Promise<string> => {
+  // todo 食い替えを禁止する対応
   const tileChoices = commandTypeList.includes(CommandType.Discard)
     ? hand.tiles.map((tile, index) => {
         return {
-          title: `${toEmoji(tile)} (${toKanji(tile)})`,
+          title: toEmojiMoji(tile),
           value: index.toString(),
         };
       })
@@ -51,11 +52,15 @@ export const readChoices = async (message: string, hand: Hand, commandTypeList: 
       };
     });
 
+  return await selectChoices(message, commandChoices.concat(tileChoices));
+};
+
+export const selectChoices = async (message: string, choices: Array<{ title: string; value: string }>) => {
   const response = await prompts({
     type: "select",
     name: "choice",
     message,
-    choices: commandChoices.concat(tileChoices),
+    choices,
   });
 
   return response.choice;

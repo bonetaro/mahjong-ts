@@ -1,37 +1,37 @@
 import { Hand } from "./models";
-import { MentsuCalculator, CommandType, PlayerCommandType, 牌 } from ".";
+import { KanCalculator, CommandType, PlayerCommandType, 牌 } from ".";
+import { PonCalculator, ChiCalculator } from "./MentsuCalculator";
 
 export class HandParser {
-  private _calculator: MentsuCalculator;
-
-  constructor(private readonly hand: Hand) {
-    this._calculator = new MentsuCalculator(hand);
-  }
+  constructor(private readonly hand: Hand) {}
 
   parseAsPlayerCommand = (): Map<PlayerCommandType, 牌[]> => {
-    const commandList: PlayerCommandType[] = [];
-    const map = new Map<PlayerCommandType, 牌[]>();
+    const playerCommandMap = new Map<PlayerCommandType, 牌[]>();
 
     // 牌を捨てる
-    commandList.push(CommandType.Discard);
-    map.set(CommandType.Discard, this.hand.tiles);
+    playerCommandMap.set(CommandType.Discard, this.hand.tiles);
+
+    const kanCalculator = new KanCalculator(this.hand);
 
     // 暗槓
-    const ankanCandidateTiles = this._calculator.ankanCandidate();
+    const ankanCandidateTiles = kanCalculator.ankanCandidate();
     if (ankanCandidateTiles.length > 0) {
-      commandList.push(CommandType.Kan);
-      map.set(CommandType.Kan, ankanCandidateTiles);
+      playerCommandMap.set(CommandType.Kan, ankanCandidateTiles);
     }
 
     // 加槓
-    if (this._calculator.canKakan(this.hand.drawingTile.tile)) {
-      commandList.push(CommandType.Kan);
-      map.set(CommandType.Kan, [this.hand.drawingTile.tile]);
+    if (kanCalculator.canKakan(this.hand.drawingTile.tile)) {
+      let tiles: 牌[] = [];
+      if (playerCommandMap.has(CommandType.Kan)) {
+        tiles = playerCommandMap.get(CommandType.Kan);
+      }
+      tiles.push(this.hand.drawingTile.tile);
+      playerCommandMap.set(CommandType.Kan, tiles);
     }
 
     // todo ツモ
 
-    return map;
+    return playerCommandMap;
   };
 
   /**
@@ -40,26 +40,28 @@ export class HandParser {
    * @param fromLeftPlayer tileが上家が捨てた牌として処理するか
    * @returns
    */
-  parseAsOtherPlayersCommand = (tile: 牌, fromLeftPlayer: boolean): Map<CommandType, 牌[]> => {
-    const commandList: CommandType[] = [];
-    const map = new Map<CommandType, 牌[]>();
+  parseAsOtherPlayersCommand = (tile: 牌, fromLeftPlayer: boolean): Map<CommandType, 牌[][]> => {
+    const map = new Map<CommandType, 牌[][]>();
 
-    if (this._calculator.canPon(tile)) {
-      commandList.push(CommandType.Pon);
-      map.set(CommandType.Pon, [tile]);
+    // ポン
+    if (new PonCalculator(this.hand).canPon(tile)) {
+      map.set(CommandType.Pon, [[tile]]);
     }
 
-    if (fromLeftPlayer && this._calculator.canChi(tile)) {
-      commandList.push(CommandType.Chi);
-      map.set(CommandType.Chi, [tile]);
+    // チー
+    if (fromLeftPlayer) {
+      const candidates = new ChiCalculator(this.hand).chiCandidates(tile);
+      if (candidates.length > 0) {
+        map.set(CommandType.Chi, candidates);
+      }
     }
 
-    if (this._calculator.canKakan(tile)) {
-      commandList.push(CommandType.Kan);
-      map.set(CommandType.Kan, [tile]);
+    // カン（大明槓）
+    if (new KanCalculator(this.hand).canKakan(tile)) {
+      map.set(CommandType.Kan, [[tile]]);
     }
 
-    commandList.push(CommandType.Nothing);
+    // 何もしない
     map.set(CommandType.Nothing, []);
 
     return map;

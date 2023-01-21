@@ -1,9 +1,26 @@
 import { Enumerable, List } from "linqts";
-import { Dragons, ManduChar, PinduChar, SouduChar, ToKazehai, ToSangenpai, Validator, Winds, logger, toManzu, toPinzu, toSouzu, 牌, 色 } from "../";
+import {
+  Dragons,
+  ManduChar,
+  PinduChar,
+  SouduChar,
+  toKazehai,
+  toSangenpai,
+  Validator,
+  Winds,
+  logger,
+  toManzu,
+  toPinzu,
+  toSouzu,
+  牌,
+  数牌の色,
+  sortTiles,
+} from "../";
 import { KingsWall, Wall } from "./";
+import { throwErrorAndLogging } from "../error";
 
 export class Table {
-  private _walls: Wall[]; //牌の山
+  private _walls: Wall[] = []; //牌の山
   private _kingsWall: KingsWall; // 王牌
   protected _washedTiles: 牌[] = [];
 
@@ -15,7 +32,7 @@ export class Table {
     }
 
     if (!Validator.isValidAllTiles(this._washedTiles)) {
-      throw new Error(
+      throwErrorAndLogging(
         JSON.stringify({
           tiles: this._washedTiles,
           length: this.washedTiles?.length,
@@ -33,14 +50,13 @@ export class Table {
   }
 
   get restTilesCount(): number {
-    return new List(this._walls).Sum((wall) => wall.tilesCount);
+    return new List(this._walls).Sum((wall) => (wall ? wall?.tilesCount : 0));
   }
 
   get kingsWall(): KingsWall {
     return this._kingsWall;
   }
 
-  // eslint-disable-next-line @typescript-eslint/adjacent-overload-signatures
   set kingsWall(kingsWall: KingsWall) {
     this._kingsWall = kingsWall;
 
@@ -64,7 +80,12 @@ export class Table {
     return new Wall(
       Enumerable.Range(0, 17 * 2)
         .Select(() => {
-          return this._washedTiles.shift();
+          const tile = this._washedTiles.shift();
+          if (!tile) {
+            throw new Error();
+          }
+
+          return tile;
         })
         .ToArray()
     );
@@ -106,7 +127,7 @@ export class Table {
   }
 
   // 数牌を初期化
-  static initializeSuits(color: 色): Array<牌> {
+  static initializeSuits(color: 数牌の色): Array<牌> {
     return Enumerable.Range(1, 9)
       .Select((n) => {
         switch (color) {
@@ -133,7 +154,7 @@ export class Table {
   static initializeKazehai(): Array<牌> {
     return new List(Winds)
       .Select((n) => {
-        return ToKazehai(n);
+        return toKazehai(n);
       })
       .ToArray();
   }
@@ -141,7 +162,7 @@ export class Table {
   static initializeSangenpai(): Array<牌> {
     return new List(Dragons)
       .Select((n) => {
-        return ToSangenpai(n);
+        return toSangenpai(n);
       })
       .ToArray();
   }
@@ -151,19 +172,19 @@ export class CheatTable {
   constructor(public washedTiles: 牌[]) {}
 
   drawTiles(num: number): Array<牌> {
-    return Enumerable.Range(0, num)
-      .Select(() => {
-        return this.drawTile();
-      })
-      .ToArray();
+    return [...Array(num)].map(() => this.drawTile());
   }
 
   drawTile(): 牌 {
     return this.washedTiles.shift();
   }
 
-  pickTile(tile: 牌) {
+  removeTile(tile: 牌): void {
     const index = this.washedTiles.indexOf(tile);
-    return this.washedTiles.splice(index, 1);
+    if (index < 0) {
+      throwErrorAndLogging({ tile, washedTiles: sortTiles(this.washedTiles) });
+    }
+
+    this.washedTiles.splice(index, 1)[0];
   }
 }

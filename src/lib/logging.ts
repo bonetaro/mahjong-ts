@@ -1,26 +1,40 @@
+import moment from "moment";
 import { createLogger, transports, format } from "winston";
 
 export const logger = createLogger({
-  level: "info",
-  // level: "debug",
   transports: [
     new transports.Console(),
-    // - Write all logs with importance level of `error` or less to `error.log`
-    // - Write all logs with importance level of `info` or less to `combined.log`
     new transports.File({ filename: "logs/error.log", level: "error" }),
     new transports.File({ filename: "logs/combined.log" }),
   ],
   format: format.combine(
-    format.colorize(),
-    format.splat(),
-    format.metadata(),
-    format.timestamp(),
-    format.printf(({ timestamp, level, message, metadata }) => {
-      if (Object.keys(metadata).length > 0) {
-        return `[${timestamp}] ${level}: ${message} ${JSON.stringify(metadata)}`;
-      } else {
-        return `[${timestamp}] ${level}: ${message}`;
-      }
+    format.errors({ stack: true }),
+    // format.colorize(),
+    // format.splat(),
+    // format.metadata(),
+    // format.timestamp(),
+    // format.prettyPrint(),
+    // format.printf(({ timestamp, level, message, metadata }) => {
+    //   if (metadata && Object.keys(metadata).length > 0) {
+    //     return `[${timestamp}]${level}:${message} ${JSON.stringify(metadata)}`;
+    //   } else {
+    //     return `[${timestamp}]${level}:${message}`;
+    //   }
+    // })
+    format.printf((info: any): string => {
+      // 引数を展開する
+      const {
+        level, // デフォルトで level と message が渡る
+        message,
+        timestamp, // format.combine() で format.timestamp() 指定されている
+        ...etc // その他の内容は JSON で表示する
+      } = info;
+
+      // フォーマットした文字列を返す
+      return (
+        `${moment(timestamp).format("YYYY-MM-DD HH:mm:SS")} [${level}] ${message}` +
+        `${etc && Object.keys(etc).length ? "\n" + JSON.stringify(etc, null, 2) : ""}`
+      );
     })
   ),
 });

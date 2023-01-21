@@ -11,3 +11,4 @@ export * from "./Player";
 export * from "./Table";
 export * from "./Tile";
 export * from "./Wall";
+export * from "./PlayerDrawTiles";

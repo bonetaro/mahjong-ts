@@ -1,6 +1,6 @@
 export * from "./AskPlayer";
 export * from "./CheatTableBuilder";
-export * from "./CommandCreator";
+export * from "./CommandTextCreator";
 export * from "./Constants";
 export * from "./Functions";
 export * from "./logging";
@@ -9,3 +9,4 @@ export * from "./readline";
 export * from "./ReadyCalculator";
 export * from "./Types";
 export * from "./Validator";
+export * from "./error";

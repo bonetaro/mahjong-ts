@@ -1,45 +1,47 @@
 import { List } from "linqts";
-import { CheatTable, Hand, Table } from "./models";
-import { Validator } from "./Validator";
-import { 牌 } from "./Types";
-import { toTile, sortTiles } from "./Functions";
-import { logger } from "./logging";
+import { Validator, sortTiles, throwErrorAndLogging, toTile, 牌 } from ".";
+import { CheatTable, Hand, PlayerDrawTiles, Table } from "./models";
+import { FourMembers, PlayerIndex } from "./Types";
 
 export class CheatTableBuilder {
-  private _baseCheatTable: CheatTable;
-  private _playerDrawTilesList: PlayerDrawTiles[];
+  public _baseCheatTable: CheatTable;
+  public _playerDrawTilesList: FourMembers<PlayerDrawTiles>;
 
   constructor() {
     this._baseCheatTable = new CheatTable(new Table().washedTiles);
-    this._playerDrawTilesList = [...Array(4)].map(() => new PlayerDrawTiles());
+
+    if (!Validator.isValidAllTiles(this._baseCheatTable.washedTiles)) {
+      throwErrorAndLogging(this._baseCheatTable);
+    }
+
+    this._playerDrawTilesList = [new PlayerDrawTiles(), new PlayerDrawTiles(), new PlayerDrawTiles(), new PlayerDrawTiles()];
   }
 
   build(): CheatTable {
     const playerDrawTilesList = this._playerDrawTilesList.map((item: PlayerDrawTiles, index: number) => this.fillPlayerDrawTiles(item, index > 1));
 
-    if (!Validator.isValidPlayerDrawTiles(playerDrawTilesList)) {
-      throw new Error();
+    if (!Validator.isValidPlayerDrawTilesList(playerDrawTilesList, this._baseCheatTable.washedTiles)) {
+      throwErrorAndLogging(playerDrawTilesList);
     }
 
     // ここでthis._baseCheatTableが残り14枚（王牌分）になっているはず
     if (this._baseCheatTable.washedTiles.length != 14) {
-      throw new Error(this._baseCheatTable.washedTiles.length.toString());
+      throwErrorAndLogging(this._baseCheatTable.washedTiles);
     }
 
     const kingsTiles = this._baseCheatTable.drawTiles(14); // 王牌
-    const allPlayerDrawTiles = this.buildPlayerDrawTiles(playerDrawTilesList); // プレイヤーがツモる順番に牌を組み立てる
-    const newTiles = kingsTiles.concat(allPlayerDrawTiles);
+    const allPlayerDrawTiles = this.aggretatePlayerDrawTiles(playerDrawTilesList); // プレイヤーがツモる順番に牌を
+    const allTiles = kingsTiles.concat(allPlayerDrawTiles);
 
-    if (!Validator.isValidAllTiles(newTiles)) {
-      logger.error(newTiles.length.toString(), sortTiles(newTiles));
-      throw new Error();
+    if (!Validator.isValidAllTiles(allTiles)) {
+      throwErrorAndLogging({ length: allTiles.length.toString(), sortTiles: sortTiles(allTiles) });
     }
 
-    const table = new CheatTable(newTiles);
+    const table = new CheatTable(allTiles);
     return table;
   }
 
-  private buildPlayerDrawTiles(playerDrawTilesList: PlayerDrawTiles[]) {
+  private aggretatePlayerDrawTiles(playerDrawTilesList: PlayerDrawTiles[]) {
     const tiles: 牌[] = [];
 
     // 配牌時の4つずつ取ってくるツモ
@@ -72,38 +74,33 @@ export class CheatTableBuilder {
     return tiles;
   }
 
-  setPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, playerIndex: number) {
-    if (playerIndex < 0 || 3 < playerIndex) {
-      throw new Error(playerIndex.toString());
-    }
+  setPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, playerIndex: PlayerIndex) {
+    this._playerDrawTilesList[playerIndex] = playerDrawTiles;
 
-    // イカサマ配牌をテーブルの山から除く
-    playerDrawTiles.hand.tiles.forEach((tile) => this._baseCheatTable.pickTile(toTile(tile)));
-
-    // イカサマツモ牌をテーブルの山から除く
-    playerDrawTiles.drawTiles.forEach((tile) => this._baseCheatTable.pickTile(toTile(tile)));
-
-    this._playerDrawTilesList[playerIndex] = this.fillPlayerDrawTiles(playerDrawTiles, playerIndex >= 2);
+    // イカサマ配牌とツモ牌をテーブルの山から除く
+    playerDrawTiles.hand.tiles.forEach((tile) => this._baseCheatTable.removeTile(tile));
+    playerDrawTiles.drawTiles.forEach((tile) => this._baseCheatTable.removeTile(tile));
   }
 
   // PlayerDealedTilesの不十分な牌を補う
   fillPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, less: boolean): PlayerDrawTiles {
-    if (playerDrawTiles.hand.tiles.length == 0) {
-      playerDrawTiles.hand = new Hand(this._baseCheatTable.drawTiles(13));
-    }
+    this.fillPlayerDrawTilesHand(playerDrawTiles);
+    this.fillPlayerDrawTilesDrawTiles(playerDrawTiles, less);
 
-    const drawTilesCount = less ? 17 : 18;
-
-    if (playerDrawTiles.drawTiles.length != drawTilesCount) {
-      if (playerDrawTiles.drawTiles.length < drawTilesCount) {
-        playerDrawTiles.drawTiles = playerDrawTiles.drawTiles.concat(this._baseCheatTable.drawTiles(drawTilesCount - playerDrawTiles.drawTiles.length));
-      } else {
-        throw new Error("too match dealedTiles");
-      }
+    if (!Validator.isValidPlayerDrawTiles(playerDrawTiles, less)) {
+      throwErrorAndLogging(playerDrawTiles);
     }
 
     return playerDrawTiles;
   }
+
+  fillPlayerDrawTilesHand = (playerDrawTiles: PlayerDrawTiles) => {
+    if (playerDrawTiles.hand.tiles.length == 0) {
+      playerDrawTiles.hand = new Hand(this._baseCheatTable.drawTiles(13));
+    } else if (playerDrawTiles.hand.tiles.length != 13) {
+      throwErrorAndLogging(playerDrawTiles);
+    }
+  };
 
   // 引数の牌を加えることで、全ての牌(1種の牌が4枚ずつ136枚)がそろうように残りの牌を生成する
   createRestTiles = (handTiles: 牌[]): 牌[] => {
@@ -131,25 +128,16 @@ export class CheatTableBuilder {
     const restTiles = reversedTiles.Reverse().Skip(handTiles.length).ToArray();
     return restTiles;
   };
-}
 
-export class PlayerDrawTiles {
-  constructor(public hand?: Hand, public drawTiles?: 牌[]) {
-    this.hand = hand ? hand : new Hand();
-    this.drawTiles = typeof drawTiles != "undefined" ? drawTiles : [];
+  private fillPlayerDrawTilesDrawTiles(playerDrawTiles: PlayerDrawTiles, less: boolean) {
+    const drawTilesCount = less ? 17 : 18;
 
-    const group = new List(this.hand.tiles).GroupBy((t) => t);
-    if (Object.keys(group).filter((key) => group[key].length > 4).length > 0) {
-      logger.error(
-        "over 4 tiles",
-        Object.keys(group).filter((key) => group[key].length > 4)
-      );
-
-      throw new Error();
+    if (playerDrawTiles.drawTiles.length != drawTilesCount) {
+      if (playerDrawTiles.drawTiles.length > drawTilesCount) {
+        throwErrorAndLogging("too match dealedTiles");
+      } else {
+        playerDrawTiles.drawTiles = playerDrawTiles.drawTiles.concat(this._baseCheatTable.drawTiles(drawTilesCount - playerDrawTiles.drawTiles.length));
+      }
     }
-  }
-
-  toTiles(): 牌[] {
-    return this.hand.tiles.concat(this.drawTiles);
   }
 }

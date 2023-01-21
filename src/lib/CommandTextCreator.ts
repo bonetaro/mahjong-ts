@@ -1,22 +1,17 @@
-import { CommandType } from "./Constants";
-import { Hand } from "./models/Hand";
-import { RoundHandPlayer } from "./models/Player";
+import { CommandType } from "./Types";
+import { Hand, RoundHandPlayer } from "./models";
 
-export class CommandCreator {
+export class CommandTextCreator {
   createPlayerCommandText(commands: CommandType[], player?: RoundHandPlayer): string {
     const textList = this.createCommandTextList(commands);
 
     let commandText = textList.length > 1 ? `${textList.join("|")} > ` : "";
 
     if (player) {
-      commandText = `${this.createPlayerStatusText(player)}\n${commandText}`;
+      commandText = `${player.status}\n${commandText}`;
     }
 
     return commandText;
-  }
-
-  createPlayerStatusText(player: RoundHandPlayer): string {
-    return `${player.name}の手牌 ${player.hand.status} 捨牌 ${player.discardStatus}`;
   }
 
   createCommandTextList(commands: CommandType[]): string[] {

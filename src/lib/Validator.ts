@@ -1,7 +1,8 @@
 import { List } from "linqts";
 import { 牌 } from "./Types";
 import { logger } from "./logging";
-import { PlayerDrawTiles } from "./CheatTableBuilder";
+import { PlayerDrawTiles } from "./models/PlayerDrawTiles";
+import { throwErrorAndLogging } from "./error";
 
 export class Validator {
   static isValidAllTiles(tiles: 牌[]): boolean {
@@ -29,14 +30,32 @@ export class Validator {
     return Object.keys(group).every((key) => group[key].length == 4);
   }
 
-  static isValidPlayerDrawTiles(playerDrawTilesList: PlayerDrawTiles[]): boolean {
-    const tiles = playerDrawTilesList.map((playerDrawTiles) => playerDrawTiles.hand.tiles.concat(playerDrawTiles.drawTiles)).flatMap((x) => x);
+  static isValidPlayerDrawTilesList(playerDrawTilesList: PlayerDrawTiles[], kingsTiles: 牌[]): boolean {
+    const tiles = playerDrawTilesList
+      .map((playerDrawTiles) => playerDrawTiles.hand.tiles.concat(playerDrawTiles.drawTiles))
+      .flatMap((x) => x)
+      .concat(kingsTiles);
 
     const group = new List(tiles).GroupBy((t) => t);
-    if (!Object.keys(group).every((key) => group[key].length <= 4)) {
-      const wrong = Object.keys(group).filter((key) => group[key].length <= 4);
-      logger.error(wrong.length.toString(), wrong);
-      throw new Error();
+    const wrong = Object.keys(group).filter((key) => group[key].length != 4);
+    if (wrong.length > 0) {
+      throwErrorAndLogging({
+        wrong: wrong.sort(),
+        group: group,
+      });
+    }
+
+    return true;
+  }
+
+  static isValidPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, less: boolean): boolean {
+    if (playerDrawTiles.hand.tiles.length != 13) {
+      throwErrorAndLogging(playerDrawTiles.hand);
+    }
+
+    const drawTilesCount = less ? 17 : 18;
+    if (playerDrawTiles.drawTiles.length != drawTilesCount) {
+      throwErrorAndLogging(playerDrawTiles.drawTiles);
     }
 
     return true;
