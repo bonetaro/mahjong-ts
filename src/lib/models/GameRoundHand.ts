@@ -12,7 +12,7 @@ import {
   toEmojiMoji,
   牌,
 } from "../";
-import { Game, Player, RoundHandPlayer, Table, DrawTile } from "./";
+import { Game, RoundHandPlayer, Table, DrawTile } from "./";
 import * as Commands from "./Command";
 import { throwErrorAndLogging } from "../error";
 
@@ -23,10 +23,10 @@ export class GameRoundHand {
   private _playerIndex = 0;
   private _isDraw = false; // 流局
 
-  constructor(players: FourMembers<Player>) {
+  constructor(players: FourMembers<RoundHandPlayer>) {
     logger.debug("gameRoundHand create");
 
-    this._players = players.map((player, index) => new RoundHandPlayer(player, index)) as FourMembers<RoundHandPlayer>;
+    this._players = players;
   }
 
   get isDraw(): boolean {

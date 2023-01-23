@@ -2,6 +2,7 @@
 import { List } from "linqts";
 import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, Table } from "./";
 import { CheatTableBuilder, FourMembers, PlayerIndex, WindNames, askAnyKey, logger, toEmojiMoji } from "..";
+import { RoundHandPlayer } from "./Player";
 
 export class Game {
   private _dices = [new Dice(), new Dice()];
@@ -12,7 +13,7 @@ export class Game {
   constructor(public readonly gameOption: GameOption) {
     logger.debug(`game create`);
 
-    this._players = gameOption.players;
+    this.players = gameOption.players;
   }
 
   get players(): FourMembers<Player> {
@@ -77,17 +78,15 @@ export class Game {
       this.createRound();
     }
 
-    this.createRoundHand(this.nextRoundHandPlayers());
+    this.createRoundHand(
+      this.currentRoundHand.players.map((player) => {
+        player.index = (player.index + 1) % 4;
+        return player;
+      }) as FourMembers<RoundHandPlayer>
+    );
 
     return true;
   };
-
-  nextRoundHandPlayers(): FourMembers<Player> {
-    const num = this.currentRound.hands.length % 4;
-    const players = [...Array(this.players.length).keys()].map((i) => this.players[(i + num) % 4]) as FourMembers<Player>;
-
-    return players;
-  }
 
   isLastRoundHand(): boolean {
     // 南4局で終わり
@@ -119,7 +118,7 @@ export class Game {
     this._rounds.push(new GameRound());
   }
 
-  createRoundHand(players: FourMembers<Player>): void {
+  createRoundHand(players: FourMembers<RoundHandPlayer>): void {
     this.currentRound.hands.push(new GameRoundHand(players));
   }
 
@@ -164,7 +163,8 @@ export class Game {
     this.createRound();
 
     // 東1局作成
-    this.createRoundHand(this.players);
+    const players = this.players.map((player, index) => new RoundHandPlayer(index, player)) as FourMembers<RoundHandPlayer>;
+    this.createRoundHand(players);
   }
 
   // 半荘終了
@@ -186,7 +186,7 @@ export class CheatGame extends Game {
       builder.setPlayerDrawTiles(playerDealedTiles, index as PlayerIndex);
     });
 
-    const roundHand = new CheatGameRoundHand(players);
+    const roundHand = new CheatGameRoundHand(players.map((player, index) => new RoundHandPlayer(index, player)) as FourMembers<RoundHandPlayer>);
     roundHand.table = new Table(builder.build().washedTiles);
 
     this.currentRound.hands.push(roundHand);

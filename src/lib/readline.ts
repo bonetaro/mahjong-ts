@@ -34,6 +34,7 @@ export const readCommand = async (message: string, condition?: (input: string) =
 
 export const selectCommand = async (message: string, hand: Hand, commandTypeList: CommandType[]): Promise<string> => {
   // todo 食い替えを禁止する対応
+
   const tileChoices = commandTypeList.includes(CommandType.Discard)
     ? hand.tiles.map((tile, index) => {
         return {

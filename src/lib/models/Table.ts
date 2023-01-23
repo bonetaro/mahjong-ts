@@ -4,20 +4,20 @@ import {
   ManduChar,
   PinduChar,
   SouduChar,
-  toKazehai,
-  toSangenpai,
   Validator,
   Winds,
   logger,
+  sortTiles,
+  toKazehai,
   toManzu,
   toPinzu,
+  toSangenpai,
   toSouzu,
-  牌,
   数牌の色,
-  sortTiles,
+  牌,
 } from "../";
-import { KingsWall, Wall } from "./";
 import { throwErrorAndLogging } from "../error";
+import { KingsWall, Wall } from "./";
 
 export class Table {
   private _walls: Wall[] = []; //牌の山
@@ -76,18 +76,16 @@ export class Table {
   }
 
   buildWall(): Wall {
-    // 17 x 2 ずつ山(wall)を分けていく
+    // 17 x 2の山(wall)をつくる
     return new Wall(
-      Enumerable.Range(0, 17 * 2)
-        .Select(() => {
-          const tile = this._washedTiles.shift();
-          if (!tile) {
-            throw new Error();
-          }
+      [...Array(17 * 2)].map(() => {
+        const tile = this._washedTiles.shift();
+        if (!tile) {
+          throw new Error();
+        }
 
-          return tile;
-        })
-        .ToArray()
+        return tile;
+      })
     );
   }
 
@@ -99,6 +97,7 @@ export class Table {
     return new List(this._walls).First((wall) => wall.tilesCount > 0).pickTile();
   }
 
+  // 山の最後の牌を取り出す。カンのときに利用する
   popTile(): 牌 {
     return new List(this._walls).Last((wall) => wall.tilesCount > 0).popTile();
   }
@@ -123,6 +122,7 @@ export class Table {
     tiles.AddRange(this.initializeHonors());
 
     tiles = tiles.Concat(tiles).Concat(tiles).Concat(tiles);
+
     return tiles.ToArray();
   }
 
@@ -152,19 +152,11 @@ export class Table {
   }
 
   static initializeKazehai(): Array<牌> {
-    return new List(Winds)
-      .Select((n) => {
-        return toKazehai(n);
-      })
-      .ToArray();
+    return Winds.map((n) => toKazehai(n));
   }
 
   static initializeSangenpai(): Array<牌> {
-    return new List(Dragons)
-      .Select((n) => {
-        return toSangenpai(n);
-      })
-      .ToArray();
+    return Dragons.map((n) => toSangenpai(n));
   }
 }
 
@@ -176,7 +168,12 @@ export class CheatTable {
   }
 
   drawTile(): 牌 {
-    return this.washedTiles.shift();
+    const tile = this.washedTiles.shift();
+    if (!tile) {
+      throwErrorAndLogging({ washedTiles: this.washedTiles });
+    }
+
+    return tile;
   }
 
   removeTile(tile: 牌): void {
@@ -185,6 +182,6 @@ export class CheatTable {
       throwErrorAndLogging({ tile, washedTiles: sortTiles(this.washedTiles) });
     }
 
-    this.washedTiles.splice(index, 1)[0];
+    this.washedTiles.splice(index, 1);
   }
 }

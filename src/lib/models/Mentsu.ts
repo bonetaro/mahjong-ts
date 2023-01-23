@@ -1,39 +1,50 @@
-import { isKanMentsu, toEmoji, sortTiles, toMoji } from "../Functions";
+import { isKanMentsu, toEmoji, toMoji, isKoutsuMentsu } from "../Functions";
 import { PlayerDirection, 数牌, 刻子like, 塔子like, 槓子like, 牌, 面子like, 順子like } from "../Types";
 import { throwErrorAndLogging } from "../error";
 
 export interface IMentsu {
-  tiles: 牌[];
+  get tiles(): 牌[];
+
   status(): string;
   emojiStatus(): string;
   mojiStatus(): string;
 }
 
 export abstract class Mentsu<T extends 面子like> implements IMentsu {
+  protected _tiles: 牌[];
+
   constructor(public mentsu: T) {
-    this.tiles = mentsu;
+    this._tiles = mentsu;
   }
 
-  tiles: 牌[];
-  abstract status(): string;
+  get tiles(): 牌[] {
+    return this._tiles;
+  }
+
+  status(): string {
+    return `${this.emojiStatus()} (${this.mojiStatus()})`;
+  }
   abstract emojiStatus(): string;
   abstract mojiStatus(): string;
 }
 
 export interface OpenMentsu {
-  calledTile: 牌;
-  fromPlayerDirection: PlayerDirection;
+  get calledTile(): 牌;
+  get fromPlayerDirection(): PlayerDirection;
 }
 
-export abstract class KanMentsu extends Mentsu<槓子like> {
-  constructor(public tile: 牌, public tiles: 槓子like) {
-    if (!isKanMentsu(tiles)) {
+class KanMentsu extends Mentsu<槓子like> {
+  constructor(tile: 牌) {
+    const tiles = [tile, tile, tile, tile];
+
+    if (isKanMentsu(tiles)) {
+      super(tiles);
+    } else {
       throwErrorAndLogging(tiles);
     }
-
-    super(tiles);
   }
-  status(): string {
+
+  emojiStatus(): string {
     throw new Error("Method not implemented.");
   }
   mojiStatus(): string {
@@ -41,16 +52,29 @@ export abstract class KanMentsu extends Mentsu<槓子like> {
   }
 }
 
+abstract class KoutsuMentsu extends Mentsu<刻子like> {
+  constructor(tile: 牌) {
+    const tiles = [tile, tile, tile];
+
+    if (isKoutsuMentsu(tiles)) {
+      super(tiles);
+    } else {
+      throwErrorAndLogging(tiles);
+    }
+  }
+
+  abstract emojiStatus(): string;
+  abstract mojiStatus(): string;
+}
+
 // 暗槓
 export class AnKanMentsu extends KanMentsu {
   constructor(tile: 牌) {
-    super(tile, [tile, tile, tile, tile]);
+    super(tile);
   }
-  status(): string {
-    return `${this.emojiStatus()} (${this.mojiStatus()})`;
-  }
+
   emojiStatus(): string {
-    return `${toEmoji(this.tiles[0], true)} ${toEmoji(this.tiles[1])} ${toEmoji(this.tiles[2])} ${toEmoji(this.tiles[3], true)}`;
+    return this.tiles.map((tile, index) => toEmoji(tile, index == 0 || index == 3)).join(" ");
   }
   mojiStatus(): string {
     return toMoji(this.tiles[0]);
@@ -58,21 +82,14 @@ export class AnKanMentsu extends KanMentsu {
 }
 
 // 暗刻
-export class AnKouMentsu extends Mentsu<刻子like> {
+export class AnKouMentsu extends KoutsuMentsu {
   constructor(tile: 牌) {
-    super([tile, tile, tile]);
-  }
-
-  tiles: 刻子like;
-
-  status(): string {
-    return `${this.emojiStatus()} (${this.mojiStatus()})`;
+    super(tile);
   }
 
   emojiStatus(): string {
-    return `${toEmoji(this.tiles[0])} ${toEmoji(this.tiles[1])} ${toEmoji(this.tiles[2])}`;
+    return this.tiles.map((tile) => toEmoji(tile)).join(" ");
   }
-
   mojiStatus(): string {
     return toMoji(this.tiles[0]);
   }
@@ -80,13 +97,10 @@ export class AnKouMentsu extends Mentsu<刻子like> {
 
 // 鳴き順子（チー面子）。上家からしか鳴けないので、fromDirectionは上家固定
 export class ChiMentsu extends Mentsu<順子like> implements OpenMentsu {
-  constructor(public readonly calledTile: 数牌, tartsTiles: 塔子like, public fromPlayerDirection = PlayerDirection.ToTheLeft) {
+  constructor(public readonly calledTile: 数牌, tartsTiles: 塔子like, public readonly fromPlayerDirection = PlayerDirection.ToTheLeft) {
     super([calledTile].concat(tartsTiles) as 順子like);
   }
 
-  status(): string {
-    return `${this.emojiStatus()} (${this.mojiStatus()})`;
-  }
   emojiStatus(): string {
     return this.tiles
       .map((tile) => {
@@ -101,53 +115,72 @@ export class ChiMentsu extends Mentsu<順子like> implements OpenMentsu {
 }
 
 // 明刻
-export class MinKouMentsu extends Mentsu<刻子like> implements OpenMentsu {
-  constructor(public tile: 牌, public fromPlayerDirection: PlayerDirection) {
-    super([tile, tile, tile]);
+export class MinKouMentsu extends KoutsuMentsu implements OpenMentsu {
+  private _calledTile: 牌;
+  private _fromPlayerDirection: PlayerDirection;
 
-    this.calledTile = tile;
+  constructor(calledTile: 牌, fromPlayerDirection: PlayerDirection) {
+    super(calledTile);
+
+    this._calledTile = calledTile;
+    this._fromPlayerDirection = fromPlayerDirection;
   }
-  calledTile: 牌;
-  tiles: 刻子like;
-  status(): string {
-    return `${this.emojiStatus()} (${this.mojiStatus()})`;
+
+  get calledTile(): 牌 {
+    return this._calledTile;
+  }
+
+  get fromPlayerDirection(): PlayerDirection {
+    return this._fromPlayerDirection;
   }
 
   emojiStatus(): string {
     return [...Array(3)]
       .map((_, index) => {
-        const text = index == (this.fromPlayerDirection as number) ? `(${toEmoji(this.tile)} )` : toEmoji(this.tile);
+        const text = index + Number(this.fromPlayerDirection) == 3 ? `(${toEmoji(this.calledTile)} )` : toEmoji(this.calledTile);
         return text;
       })
       .join(" ");
   }
 
   mojiStatus(): string {
-    return toMoji(this.tile);
+    return toMoji(this.calledTile);
   }
 }
 
 // 明槓
 export class MinKanMentsu extends KanMentsu implements OpenMentsu {
-  constructor(public tile: 牌, public fromPlayerDirection: PlayerDirection) {
-    super(tile, [tile, tile, tile, tile]);
+  private _calledTile: 牌;
+  private _fromPlayerDirection: PlayerDirection;
 
-    this.calledTile = tile;
+  constructor(calledTile: 牌, fromPlayerDirection: PlayerDirection) {
+    super(calledTile);
+
+    this._calledTile = calledTile;
+    this._fromPlayerDirection = fromPlayerDirection;
   }
-  calledTile: 牌;
-  status(): string {
-    return `${this.emojiStatus()} (${this.mojiStatus()})`;
+
+  get calledTile(): 牌 {
+    return this._calledTile;
   }
+
+  get fromPlayerDirection(): PlayerDirection {
+    return this._fromPlayerDirection;
+  }
+
   emojiStatus(): string {
-    // todo fromPlayerDirectionの牌
+    // todo 対面から明槓のときの横向きにする牌の位置を確認
     return this.tiles
       .map((tile, index) => {
         return (index == 0 && this.fromPlayerDirection == PlayerDirection.ToTheLeft) ||
           (index == 1 && this.fromPlayerDirection == PlayerDirection.Opposite) ||
           (index == 3 && this.fromPlayerDirection == PlayerDirection.ToTheRight)
-          ? `(${toEmoji(tile)})`
+          ? `(${toEmoji(tile)} )` // 絵文字が重なってしまうため、半角空白をいれる
           : toEmoji(tile);
       })
       .join(" ");
+  }
+  mojiStatus(): string {
+    return toMoji(this.tiles[0]);
   }
 }

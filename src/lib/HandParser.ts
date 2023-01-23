@@ -57,7 +57,7 @@ export class HandParser {
     }
 
     // カン（大明槓）
-    if (new KanCalculator(this.hand).canKakan(tile)) {
+    if (new KanCalculator(this.hand).canDaiminkan(tile)) {
       map.set(CommandType.Kan, [[tile]]);
     }
 

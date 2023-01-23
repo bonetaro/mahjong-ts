@@ -27,12 +27,14 @@ export type 南 = `s${風}`; // SouthWind
 export type 西 = `w${風}`; // WestWind
 export type 北 = `n${風}`; // NorthWind
 
+export type 四風牌 = 東 | 南 | 西 | 北; // Winds
+
 export type 白 = `w${元}`; // WhiteDragon
 export type 發 = `g${元}`; // GreenDragon
 export type 中 = `r${元}`; // RedDragon
 
-export type 四風牌 = 東 | 南 | 西 | 北; // Winds
 export type 三元牌 = 白 | 發 | 中; // Dragons
+
 export type 字牌 = 四風牌 | 三元牌; // Honours
 
 export type 么九牌 = 老頭牌 | 字牌;
@@ -115,6 +117,7 @@ export { CommandType, PlayerCommandType, OtherPlayersCommandType };
  * 自分からみたindexに対応
  */
 export enum PlayerDirection {
+  Self = 0, // 自分
   ToTheRight = 1, // 下家
   Opposite = 2, // 対面
   ToTheLeft = 3, // 上家

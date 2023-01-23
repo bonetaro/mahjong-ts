@@ -2,7 +2,7 @@
 import { List } from "linqts";
 import { CommandType, 数牌の色, 順子like } from ".";
 import * as Constants from "./Constants";
-import { 三元牌, 中, 北, 南, 四風牌, 字牌, 数牌, 東, 槓子like, 牌, 發, 白, 筒子牌, 索子牌, 萬子牌, 西, 順子 } from "./Types";
+import { 三元牌, 中, 刻子like, 北, 南, 四風牌, 字牌, 数牌, 東, 槓子like, 牌, 發, 白, 筒子牌, 索子牌, 萬子牌, 西, 順子 } from "./Types";
 
 export function toTile(value: unknown): 牌 {
   if (isTile(value)) return value;
@@ -32,7 +32,11 @@ export function isSouzu(value: unknown): value is 索子牌 {
 }
 
 export function isKanMentsu(values: unknown[]): values is 槓子like {
-  return values.every((v) => isTile(v)) && values.every((v) => v == values[0]);
+  return values.length === 4 && values.every((v) => isTile(v)) && values.every((v) => v == values[0]);
+}
+
+export function isKoutsuMentsu(values: unknown[]): values is 刻子like {
+  return values.length === 3 && values.every((v) => isTile(v)) && values.every((v) => v == values[0]);
 }
 
 export function isSuits(value: unknown): value is 数牌 {
@@ -272,6 +276,7 @@ export const isMeldCommandType = (type: CommandType): boolean => {
   }
 };
 
+// 順列
 export const permutation = (arr: number[], k: number): number[][] => {
   const ans: number[][] = [];
 
@@ -298,6 +303,7 @@ export const permutation = (arr: number[], k: number): number[][] => {
   return ans;
 };
 
+// 組み合わせ
 export const combination = (arr: number[], k: number): number[][] => {
   arr = new List(arr).Distinct().ToArray();
 
@@ -324,7 +330,6 @@ export const combination = (arr: number[], k: number): number[][] => {
   return ans;
 };
 
-/** typeUtils.ts */
 // conditional typeを利用して、指定した型の追跡が可能になります。
 type S<T, K> = T extends K ? T : K;
 

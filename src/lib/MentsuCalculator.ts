@@ -25,6 +25,10 @@ export class KanCalculator extends MentsuCalculator {
   canKakan(tile: 牌): boolean {
     return new List(this.hand.openMentsuList).Any((mentsu) => mentsu instanceof MinKouMentsu && mentsu.tiles.includes(tile));
   }
+
+  canDaiminkan(tile: 牌): boolean {
+    return this.hand.tiles.map((t) => t == tile).length == 3;
+  }
 }
 
 export class PonCalculator extends MentsuCalculator {

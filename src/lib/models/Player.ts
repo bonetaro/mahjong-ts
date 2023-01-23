@@ -1,30 +1,34 @@
 import { v4 as uuid } from "uuid";
-import { Hand, DrawTile } from "./";
-import { WindNames, logger, toEmojiFromArray, toMojiFromArray, toEmojiMoji, 牌 } from "../";
-import { PlayerDirection } from "../Types";
-import { DiscardTile } from "./Tile";
+import { Hand, DrawTile, DiscardTile } from "./";
+import { WindNames, logger, toEmojiFromArray, toMojiFromArray, toEmojiMoji, 牌, PlayerDirection, throwErrorAndLogging } from "../";
 
 export class Player {
-  protected _id: string;
-
-  constructor(public readonly name: string, id?: string) {
-    this._id = id ?? uuid();
-  }
-
-  get id(): string {
-    return this._id;
+  constructor(public readonly name: string, public readonly id?: string) {
+    this.id = uuid();
   }
 }
 
 export class RoundHandPlayer extends Player {
   private _discardTiles: DiscardTile[];
 
-  constructor(player: Player, public index: number, public hand = new Hand()) {
-    super(player.name, player.id);
+  constructor(public index: number, player: Player, public hand = new Hand()) {
+    super(player.name);
+  }
+
+  get status(): string {
+    return `${this.name}の手牌 [${this.hand.status}] 捨牌 [${this.discardStatus}]`;
   }
 
   get discardTiles(): DiscardTile[] {
     return this._discardTiles;
+  }
+
+  get discardStatus(): string {
+    if (this.discardTiles.length == 0) {
+      return "";
+    }
+
+    return `${toEmojiFromArray(this.discardTiles.map((t) => t.tile))} (${toMojiFromArray(this.discardTiles.map((t) => t.tile))})`;
   }
 
   get windName(): string {
@@ -45,13 +49,20 @@ export class RoundHandPlayer extends Player {
     return (this.index - 1) % 4 == player.index;
   }
 
+  // 対面
+  isOppositePlayer(player: RoundHandPlayer): boolean {
+    return (this.index + 2) % 4 == player.index;
+  }
+
   getPlayerDirectionOf(player: RoundHandPlayer): PlayerDirection {
     if (this.isLeftPlayer(player)) {
       return PlayerDirection.ToTheLeft;
     } else if (this.isRightPlayer(player)) {
       return PlayerDirection.ToTheRight;
-    } else {
+    } else if (this.isOppositePlayer(player)) {
       return PlayerDirection.Opposite;
+    } else {
+      throwErrorAndLogging(player);
     }
   }
 
@@ -62,21 +73,20 @@ export class RoundHandPlayer extends Player {
     this._discardTiles = [];
   }
 
-  get discardStatus(): string {
-    if (this.discardTiles.length == 0) {
-      return "";
-    }
-
-    return `${toEmojiFromArray(this.discardTiles.map((t) => t.tile))} (${toMojiFromArray(this.discardTiles.map((t) => t.tile))})`;
+  debugDiscardStatus(): any {
+    return {
+      discards: this.discardStatus,
+      length: this._discardTiles.length,
+    };
   }
 
   doDiscard(tile: 牌): void {
-    this._discardTiles.push(new DiscardTile(tile));
-
     const index = this.hand.tiles.indexOf(tile);
     this.hand.tiles.splice(index, 1);
 
-    logger.info(`${this.name}が${toEmojiMoji(tile)}を捨てました`, this.hand.debugStatus());
+    this._discardTiles.push(new DiscardTile(tile));
+
+    logger.info(`${this.name}が${toEmojiMoji(tile)}を捨てました`, { hand: this.hand.debugStatus(), discards: this.debugDiscardStatus() });
   }
 
   drawTile(tile: DrawTile) {
@@ -103,9 +113,5 @@ export class RoundHandPlayer extends Player {
       emoji: toEmojiFromArray(this.hand.tiles),
       moji2: toMojiFromArray(this.hand.tiles),
     });
-  }
-
-  get status(): string {
-    return `${this.name}の手牌 [${this.hand.status}] 捨牌 [${this.discardStatus}]`;
   }
 }

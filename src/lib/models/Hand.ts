@@ -66,6 +66,19 @@ export class Hand {
     return testList.join(" ");
   }
 
+  removeTiles(tiles: 牌[]): void {
+    tiles.forEach((tile) => this.removeTile(tile));
+  }
+
+  removeTile(tile: 牌): void {
+    const index = this.tiles.indexOf(tile);
+    if (index < 0) {
+      throwErrorAndLogging(tile);
+    }
+
+    this.tiles.splice(index, 1);
+  }
+
   debugStatus(): any {
     return {
       tiles: this.tiles.join(""),

@@ -31,7 +31,7 @@ export class KingsWall {
   increaseDora(): void {
     this._doraTileIndexList.push(this._doraTileIndexList[this._doraTileIndexList.length - 1] + 2);
 
-    // 王牌から1枚とるので、indexも一つ後ろにずらす
+    // 王牌から1枚とるので、ドラのindexも一つ前ににずらす
     this._doraTileIndexList = this._doraTileIndexList.map((doraIndex) => doraIndex - 1);
   }
 }

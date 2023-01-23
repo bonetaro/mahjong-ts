@@ -30,7 +30,7 @@ export class CheatTableBuilder {
     }
 
     const kingsTiles = this._baseCheatTable.drawTiles(14); // 王牌
-    const allPlayerDrawTiles = this.aggretatePlayerDrawTiles(playerDrawTilesList); // プレイヤーがツモる順番に牌を
+    const allPlayerDrawTiles = this.aggretateAllPlayerDrawTiles(playerDrawTilesList); // プレイヤーがツモる順番に牌を
     const allTiles = kingsTiles.concat(allPlayerDrawTiles);
 
     if (!Validator.isValidAllTiles(allTiles)) {
@@ -41,7 +41,7 @@ export class CheatTableBuilder {
     return table;
   }
 
-  private aggretatePlayerDrawTiles(playerDrawTilesList: PlayerDrawTiles[]) {
+  private aggretateAllPlayerDrawTiles(playerDrawTilesList: PlayerDrawTiles[]) {
     const tiles: 牌[] = [];
 
     // 配牌時の4つずつ取ってくるツモ
@@ -84,8 +84,8 @@ export class CheatTableBuilder {
 
   // PlayerDealedTilesの不十分な牌を補う
   fillPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, less: boolean): PlayerDrawTiles {
-    this.fillPlayerDrawTilesHand(playerDrawTiles);
-    this.fillPlayerDrawTilesDrawTiles(playerDrawTiles, less);
+    this.fillHandOfPlayerDrawTiles(playerDrawTiles);
+    this.fillDrawTilesOfPlayerDrawTiles(playerDrawTiles, less);
 
     if (!Validator.isValidPlayerDrawTiles(playerDrawTiles, less)) {
       throwErrorAndLogging(playerDrawTiles);
@@ -94,7 +94,7 @@ export class CheatTableBuilder {
     return playerDrawTiles;
   }
 
-  fillPlayerDrawTilesHand = (playerDrawTiles: PlayerDrawTiles) => {
+  fillHandOfPlayerDrawTiles = (playerDrawTiles: PlayerDrawTiles) => {
     if (playerDrawTiles.hand.tiles.length == 0) {
       playerDrawTiles.hand = new Hand(this._baseCheatTable.drawTiles(13));
     } else if (playerDrawTiles.hand.tiles.length != 13) {
@@ -129,7 +129,7 @@ export class CheatTableBuilder {
     return restTiles;
   };
 
-  private fillPlayerDrawTilesDrawTiles(playerDrawTiles: PlayerDrawTiles, less: boolean) {
+  private fillDrawTilesOfPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, less: boolean) {
     const drawTilesCount = less ? 17 : 18;
 
     if (playerDrawTiles.drawTiles.length != drawTilesCount) {

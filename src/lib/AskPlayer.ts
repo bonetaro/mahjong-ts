@@ -31,17 +31,17 @@ const askPlayerWhatTileOnKanCommand = async (player: RoundHandPlayer, kanCandida
     kanTile = kanCandidateTiles[0];
   } else {
     const answer = await readCommand(
-      `${toEmojiFromArray(kanCandidateTiles)} どの牌を槓しますか？ [0-${kanCandidateTiles.length - 1}] >\n`,
+      `${toEmojiFromArray(kanCandidateTiles)} どの牌をカンしますか？ [0-${kanCandidateTiles.length - 1}] >\n`,
       (input) => input && 0 <= Number(input) && Number(input) < kanCandidateTiles.length
     );
 
     kanTile = kanCandidateTiles[Number(answer)];
   }
 
-  if (player.hand.tiles.includes(kanTile)) {
-    return new Command.AnKanCommand(player, kanTile);
-  } else if (player.hand.openMentsuList.filter((mentsu) => mentsu instanceof MinKouMentsu).some((mentsu) => mentsu.tiles.includes(kanTile))) {
+  if (player.hand.openMentsuList.filter((mentsu) => mentsu instanceof MinKouMentsu).some((mentsu) => mentsu.tiles.includes(kanTile))) {
     return new Command.KaKanCommand(player, kanTile);
+  } else if (player.hand.tiles.includes(kanTile)) {
+    return new Command.AnKanCommand(player, kanTile);
   } else {
     throwErrorAndLogging(kanTile);
   }
