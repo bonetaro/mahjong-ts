@@ -16,7 +16,7 @@ export class RoundHandPlayer extends Player {
   }
 
   get status(): string {
-    return `${this.name}の手牌 [${this.hand.status}] 捨牌 [${this.discardStatus}]`;
+    return `${this.name}の手牌 ${this.hand.status} 捨牌 ${this.discardStatus}`;
   }
 
   get discardTiles(): DiscardTile[] {
@@ -24,11 +24,13 @@ export class RoundHandPlayer extends Player {
   }
 
   get discardStatus(): string {
-    if (this.discardTiles.length == 0) {
-      return "";
+    let status = "";
+
+    if (this.discardTiles.length > 0) {
+      status = `${toEmojiFromArray(this.discardTiles.map((t) => t.tile))} (${toMojiFromArray(this.discardTiles.map((t) => t.tile))})`;
     }
 
-    return `${toEmojiFromArray(this.discardTiles.map((t) => t.tile))} (${toMojiFromArray(this.discardTiles.map((t) => t.tile))})`;
+    return `[${status}]`;
   }
 
   get windName(): string {

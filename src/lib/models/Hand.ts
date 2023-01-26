@@ -57,7 +57,7 @@ export class Hand {
 
   get status(): string {
     const testList: string[] = [];
-    testList.push(`${toEmojiFromArray(this.tiles)}] (${toMojiFromArray(this.tiles)})`);
+    testList.push(`[${toEmojiFromArray(this.tiles)} (${toMojiFromArray(this.tiles)})]`);
 
     if (this.openMentsuList.length > 0) {
       testList.push(`副露牌 [${this._openMentsuList.map((mentsu) => `${mentsu.status()}`).join(" ")}]`);

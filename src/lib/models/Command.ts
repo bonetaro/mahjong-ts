@@ -151,7 +151,7 @@ export class PonCommand extends OtherPlayersCommand {
     // 牌を捨てた人の捨て牌から取り除く（実際はflagをたてるだけ）
     this.whomPlayer(roundHand).discardTiles.slice(-1)[0].meld = true;
 
-    logger.info(`「${this.who.name}」が${toEmoji(this.tile)} をポンしました`);
+    logger.info(`「${this.who.name}」が${toEmoji(this.tile)} をポンしました`, { hand: this.who.hand.debugStatus(), discards: this.who.debugDiscardStatus() });
   }
 }
 
@@ -195,6 +195,9 @@ export class ChiCommand extends OtherPlayersCommand {
     // 牌を捨てた人の捨て牌から取り除く（実際はflagをたてるだけ）
     this.whomPlayer(roundHand).discardTiles.slice(-1)[0].meld = true;
 
-    logger.info(`「${this.who.name}」が${toEmojiMoji(this.tile)}をチーしました`);
+    logger.info(`「${this.who.name}」が${toEmojiMoji(this.tile)}をチーしました`, {
+      hand: this.who.hand.debugStatus(),
+      discards: this.who.debugDiscardStatus(),
+    });
   }
 }
