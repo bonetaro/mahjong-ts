@@ -1,6 +1,6 @@
 import { Hand } from "./models";
 import { KanCalculator, CommandType, PlayerCommandType, 牌 } from ".";
-import { PonCalculator, ChiCalculator } from "./MentsuCalculator";
+import { PonCalculator, ChiCalculator } from "./calculator/MentsuCalculator";
 
 export class HandParser {
   constructor(private readonly hand: Hand) {}

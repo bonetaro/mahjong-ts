@@ -2,7 +2,7 @@ import { List } from "linqts";
 import { 牌 } from "./Types";
 import { logger } from "./logging";
 import { PlayerDrawTiles } from "./models/PlayerDrawTiles";
-import { throwErrorAndLogging } from "./error";
+import { CustomError } from "./CustomError";
 
 export class Validator {
   static isValidAllTiles(tiles: 牌[]): boolean {
@@ -39,7 +39,7 @@ export class Validator {
     const group = new List(tiles).GroupBy((t) => t);
     const wrong = Object.keys(group).filter((key) => group[key].length != 4);
     if (wrong.length > 0) {
-      throwErrorAndLogging({
+      throw new CustomError({
         wrong: wrong.sort(),
         group: group,
       });
@@ -50,12 +50,12 @@ export class Validator {
 
   static isValidPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, less: boolean): boolean {
     if (playerDrawTiles.hand.tiles.length != 13) {
-      throwErrorAndLogging(playerDrawTiles.hand);
+      throw new CustomError(playerDrawTiles.hand);
     }
 
     const drawTilesCount = less ? 17 : 18;
     if (playerDrawTiles.drawTiles.length != drawTilesCount) {
-      throwErrorAndLogging(playerDrawTiles.drawTiles);
+      throw new CustomError(playerDrawTiles.drawTiles);
     }
 
     return true;

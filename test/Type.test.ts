@@ -1,83 +1,83 @@
 import { 刻子like, 対子like, 槓子like, 牌 } from "../src/lib";
-import { Winds, Dragons } from "../src/lib/Constants";
-import { isSuits, isManzu, isPinzu, isSouzu, isKazehai, isSangenpai, nextTile } from "../src/lib/Functions";
+import * as Constants from "../src/lib/Constants";
+import { Tile } from "../src/lib/models";
 
 test("1m is Suits", () => {
-  expect(isSuits("1m")).toBe(true);
+  expect(Tile.isSuits("1m")).toBe(true);
 });
 
 test("1p is Suits", () => {
-  expect(isSuits("1p")).toBe(true);
+  expect(Tile.isSuits("1p")).toBe(true);
 });
 
 test("1s is Suits", () => {
-  expect(isSuits("1s")).toBe(true);
+  expect(Tile.isSuits("1s")).toBe(true);
 });
 
 test("1n is NOT Suits", () => {
-  expect(isSuits("1n")).toBe(false);
+  expect(Tile.isSuits("1n")).toBe(false);
 });
 
 test("0m is NOT Suits", () => {
-  expect(isSuits("0m")).toBe(false);
+  expect(Tile.isSuits("0m")).toBe(false);
 });
 
 test("s is NOT Suits", () => {
-  expect(isSuits("s")).toBe(false);
+  expect(Tile.isSuits("s")).toBe(false);
 });
 
 test("3m is Manzu", () => {
-  expect(isManzu("3m")).toBe(true);
+  expect(Tile.isManzu("3m")).toBe(true);
 });
 
 test("5p is Pinzu", () => {
-  expect(isPinzu("5p")).toBe(true);
+  expect(Tile.isPinzu("5p")).toBe(true);
 });
 
 test("9s is Souzu", () => {
-  expect(isSouzu("9s")).toBe(true);
+  expect(Tile.isSouzu("9s")).toBe(true);
 });
 
-test(`${Winds.join(" ")} is 東南西北`, () => {
-  const result = Winds.every((tile) => isKazehai(tile));
+test(`${Constants.WindChars.join(" ")} is 東南西北`, () => {
+  const result = Constants.WindChars.every((c) => Tile.isKazehai(`${c}${Constants.KazehaiChar}`));
   expect(result).toBe(true);
 });
 
-test(`${Dragons.join(" ")} is 白發中`, () => {
-  const result = Dragons.every((tile) => isSangenpai(tile));
+test(`${Constants.DragonChars.join(" ")} is 白發中`, () => {
+  const result = Constants.DragonChars.every((c) => Tile.isSangenpai(`${c}${Constants.SangenpaiChar}`));
   expect(result).toBe(true);
 });
 
 test("The next of 1p is 2p.", () => {
-  expect(nextTile("1p")).toBe("2p");
+  expect(Tile.nextTile("1p")).toBe("2p");
 });
 
 test("The next of 7s is 8s.", () => {
-  expect(nextTile("7s")).toBe("8s");
+  expect(Tile.nextTile("7s")).toBe("8s");
 });
 
 test("The next of 9m is 1m.", () => {
-  expect(nextTile("9m")).toBe("1m");
+  expect(Tile.nextTile("9m")).toBe("1m");
 });
 
 test("The next of 9s is 1s.", () => {
-  expect(nextTile("9s")).toBe("1s");
+  expect(Tile.nextTile("9s")).toBe("1s");
 });
 
 test("The next of ew is sw.", () => {
-  expect(nextTile("ew")).toBe("sw");
+  expect(Tile.nextTile("ew")).toBe("sw");
 });
 
 test("The next of nw is ew.", () => {
-  expect(nextTile("nw")).toBe("ew");
+  expect(Tile.nextTile("nw")).toBe("ew");
 });
 
 test("The next of gd is rd.", () => {
-  expect(nextTile("gd")).toBe("rd");
+  expect(Tile.nextTile("gd")).toBe("rd");
 });
 
 test("The next of rd is wd.", () => {
-  expect(nextTile("rd")).toBe("wd");
+  expect(Tile.nextTile("rd")).toBe("wd");
 });
 
 // ここから実験コード
@@ -118,7 +118,7 @@ type funcReturnBoolean = is対子Func<["2m", "2m"]>;
 type funcReturnFalse = is対子Func<["2m", "1m"]>;
 
 // const isToitsu: is対子Func<["2m", "2m"]> = (tiles: ["2m", "2m"]): boolean => isToitsuTiles<["2m", "2m"]>(tiles);
-const isToitsuTiles = <T extends 牌[]>(tiles: string[]): tiles is 対子like => isSuits(tiles[0]) && tiles[0] == tiles[1];
+const isToitsuTiles = <T extends 牌[]>(tiles: string[]): tiles is 対子like => Tile.isSuits(tiles[0]) && tiles[0] == tiles[1];
 
 test("is対子", () => {
   const twoStrings = ["3m", "sz"];
@@ -128,12 +128,6 @@ test("is対子", () => {
     twoTiles = twoStrings;
   }
 });
-
-// const arr = ["chair", "table", "lamp"];
-// const tuple = <T extends string[]>(...args: T) => args;
-// const furniture = tuple("chair", "table", "lamp");
-// // const furniture = tuple(...arr);
-// type Furniture = (typeof furniture)[number];
 
 const furnitureObj = { chair: 1, table: 1, lamp: 1 };
 type Furniture = keyof typeof furnitureObj;

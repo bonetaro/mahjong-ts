@@ -1,9 +1,9 @@
+import inquirer from "inquirer";
 import * as readline from "readline";
-import prompts from "prompts";
+import { CommandType } from "./Constants";
+import { toEmojiMoji } from "./functions";
 import { logger } from "./logging";
 import { Hand } from "./models/Hand";
-import { toEmoji, toEmojiMoji } from "./Functions";
-import { CommandType } from "./Types";
 
 const readInput = async (message: string): Promise<string> => {
   const rl = readline.createInterface({
@@ -38,7 +38,7 @@ export const selectCommand = async (message: string, hand: Hand, commandTypeList
   const tileChoices = commandTypeList.includes(CommandType.Discard)
     ? hand.tiles.map((tile, index) => {
         return {
-          title: toEmojiMoji(tile),
+          name: toEmojiMoji(tile),
           value: index.toString(),
         };
       })
@@ -48,7 +48,7 @@ export const selectCommand = async (message: string, hand: Hand, commandTypeList
     .filter((type) => type != CommandType.Discard) // 捨てるコマンドは、牌の選択肢を表示するので不要
     .map((type) => {
       return {
-        title: CommandType.name(type),
+        name: CommandType.name(type),
         value: type.toString(),
       };
     });
@@ -56,13 +56,16 @@ export const selectCommand = async (message: string, hand: Hand, commandTypeList
   return await selectChoices(message, commandChoices.concat(tileChoices));
 };
 
-export const selectChoices = async (message: string, choices: Array<{ title: string; value: string }>) => {
-  const response = await prompts({
-    type: "select",
+const selectChoices = async (message: string, choices: Array<{ name: string; value: string }>) => {
+  const response = await inquirer.prompt({
+    type: "list",
     name: "choice",
     message,
     choices,
+    pageSize: choices.length,
   });
 
   return response.choice;
 };
+
+export default selectChoices;

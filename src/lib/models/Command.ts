@@ -1,9 +1,11 @@
 import { List } from "linqts";
-import { AnKanMentsu, GameRoundHand, MinKanMentsu, MinKouMentsu, RoundHandPlayer } from ".";
-import { isMeldCommandType, toEmoji, toEmojiMoji } from "../Functions";
-import { CommandType, PlayerDirection, 塔子like, 数牌, 牌 } from "../Types";
+import { AnKanMentsu, GameRoundHand, MinKanMentsu, MinKouMentsu } from ".";
+import { CommandType } from "../Constants";
+import { PlayerDirection, 塔子like, 数牌, 牌 } from "../Types";
+import { isMeldCommandType, toEmoji, toEmojiMoji } from "../functions";
 import { logger } from "../logging";
 import { ChiMentsu } from "./Mentsu";
+import { RoundHandPlayer } from "./RoundHandPlayer";
 
 export abstract class BaseCommand {
   protected _type: CommandType;
@@ -22,23 +24,16 @@ export abstract class BaseCommand {
   }
 }
 
+//-----------------------------
+
+// ツモ番のプレイヤーのコマンド
 export abstract class PlayerCommand extends BaseCommand {
   constructor(who: RoundHandPlayer) {
     super(who);
   }
 }
 
-export abstract class OtherPlayersCommand extends BaseCommand {
-  constructor(who: RoundHandPlayer, public readonly direction: PlayerDirection, public readonly tile: 牌) {
-    super(who);
-  }
-
-  whomPlayer(roundHand: GameRoundHand): RoundHandPlayer {
-    const index = this.who.index + (this.direction as number);
-    return roundHand.players[index % 4];
-  }
-}
-
+// 牌を捨てる
 export class DiscardCommand extends PlayerCommand {
   protected _type = CommandType.Discard;
 
@@ -52,6 +47,7 @@ export class DiscardCommand extends PlayerCommand {
   }
 }
 
+// ツモ
 export class TsumoCommand extends PlayerCommand {
   protected _type = CommandType.Tsumo;
 
@@ -62,23 +58,25 @@ export class TsumoCommand extends PlayerCommand {
   execute(roundHand: GameRoundHand): void {}
 }
 
+// 暗槓
 export class AnKanCommand extends PlayerCommand {
-  _type = CommandType.Kan;
+  protected _type = CommandType.Kan;
 
   constructor(who: RoundHandPlayer, public readonly tile: 牌) {
     super(who);
   }
 
   execute(roundHand: GameRoundHand): void {
+    logger.info(`「${this.who.name}」が${toEmoji(this.tile)} を暗槓しました`);
+
     this.who.hand.removeTiles([this.tile, this.tile, this.tile, this.tile]);
     this.who.hand.openMentsuList.push(new AnKanMentsu(this.tile));
     this.who.hand.sortTiles();
     this.who.drawTile(roundHand.pickKingsTile());
-
-    logger.info(`「${this.who.name}」が${toEmoji(this.tile)} を暗槓しました`);
   }
 }
 
+// 加槓
 export class KaKanCommand extends PlayerCommand {
   protected _type = CommandType.Kan;
 
@@ -106,6 +104,20 @@ export class KaKanCommand extends PlayerCommand {
   }
 }
 
+// ---------------------------------------
+
+// ツモ番以外のプレイヤーのコマンド
+export abstract class OtherPlayersCommand extends BaseCommand {
+  constructor(who: RoundHandPlayer, public readonly direction: PlayerDirection, public readonly tile: 牌) {
+    super(who);
+  }
+
+  whomPlayer(roundHand: GameRoundHand): RoundHandPlayer {
+    return roundHand.menbers.getPlayerOf(this.who, this.direction);
+  }
+}
+
+// 何もしない
 export class NothingCommand extends OtherPlayersCommand {
   protected _type = CommandType.Nothing;
 
@@ -118,6 +130,7 @@ export class NothingCommand extends OtherPlayersCommand {
   }
 }
 
+// ロン
 export class RonCommand extends OtherPlayersCommand {
   protected _type = CommandType.Ron;
 
@@ -128,6 +141,7 @@ export class RonCommand extends OtherPlayersCommand {
   execute(roundHand: GameRoundHand): void {}
 }
 
+// 槍槓
 export class ChankanRonCommand extends RonCommand {
   constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who, direction, tile);
@@ -155,6 +169,7 @@ export class PonCommand extends OtherPlayersCommand {
   }
 }
 
+// 大明槓
 export class DaiMinKanCommand extends OtherPlayersCommand {
   protected _type = CommandType.Kan;
 
@@ -174,6 +189,7 @@ export class DaiMinKanCommand extends OtherPlayersCommand {
   }
 }
 
+// チー
 export class ChiCommand extends OtherPlayersCommand {
   protected _type = CommandType.Chi;
   protected _tiles: 塔子like; // 順子のもとになったターツ

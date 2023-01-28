@@ -1,8 +1,8 @@
-import { toEmojiFromArray, toMojiFromArray, sortTiles, splitBy2Chars, toTile } from "../Functions";
+import { toEmojiArray, toMojiArray, sortTiles } from "../functions";
 import { IMentsu } from "./Mentsu";
 import { 牌 } from "../Types";
-import { DrawTile } from "./Tile";
-import { throwErrorAndLogging } from "../error";
+import { DrawTile, Tile } from "./Tile";
+import { CustomError } from "../CustomError";
 
 export class Hand {
   private _tiles: 牌[];
@@ -15,16 +15,13 @@ export class Hand {
     let tiles: 牌[] = [];
 
     if (Array.isArray(tileSomthing)) {
-      tiles = tileSomthing as 牌[];
-    }
+      tiles = tileSomthing;
 
-    if (typeof tileSomthing === "string") {
-      tiles = splitBy2Chars(tileSomthing).map((x) => toTile(x));
-    }
-
-    // todo
-    if (tiles.length > 0 && tiles.length !== 13) {
-      throwErrorAndLogging("hand tiles count must be 13");
+      if (tiles.length > 0 && tiles.length !== 13) {
+        throw new CustomError("hand tiles count must be 13", tiles);
+      }
+    } else if (typeof tileSomthing === "string") {
+      tiles = Hand.parse(tileSomthing);
     }
 
     this._tiles = tiles ?? [];
@@ -57,13 +54,27 @@ export class Hand {
 
   get status(): string {
     const testList: string[] = [];
-    testList.push(`[${toEmojiFromArray(this.tiles)} (${toMojiFromArray(this.tiles)})]`);
+    testList.push(`[${toEmojiArray(this.tiles)} (${toMojiArray(this.tiles)})]`);
 
     if (this.openMentsuList.length > 0) {
       testList.push(`副露牌 [${this._openMentsuList.map((mentsu) => `${mentsu.status()}`).join(" ")}]`);
     }
 
     return testList.join(" ");
+  }
+
+  static parse(tilesString: string): 牌[] {
+    const strArray = tilesString.match(/.{2}/g);
+
+    if (!strArray.every((x) => Tile.isTile(x))) {
+      throw new CustomError({ tilesString, strArray });
+    }
+
+    if (strArray.length > 0 && strArray.length !== 13) {
+      throw new CustomError("hand tiles count must be 13", strArray);
+    }
+
+    return strArray.map((x) => Tile.toTile(x));
   }
 
   removeTiles(tiles: 牌[]): void {
@@ -73,7 +84,7 @@ export class Hand {
   removeTile(tile: 牌): void {
     const index = this.tiles.indexOf(tile);
     if (index < 0) {
-      throwErrorAndLogging(tile);
+      throw new CustomError(tile);
     }
 
     this.tiles.splice(index, 1);
@@ -83,8 +94,8 @@ export class Hand {
     return {
       tiles: this.tiles.join(""),
       length: this.tiles.length,
-      emoji: toEmojiFromArray(this.tiles),
-      moji2: toMojiFromArray(this.tiles),
+      emoji: toEmojiArray(this.tiles),
+      moji2: toMojiArray(this.tiles),
       furo: this._openMentsuList.map((m) => m.status()).join("|"),
     };
   }

@@ -1,7 +1,7 @@
 import { 牌 } from "../Types";
 import { Wall } from "./Wall";
-import { nextTile } from "../Functions";
-import { throwErrorAndLogging } from "../error";
+import { CustomError } from "../CustomError";
+import { Tile } from "./Tile";
 
 export class KingsWall {
   private _wall: Wall;
@@ -9,14 +9,14 @@ export class KingsWall {
 
   constructor(wall: Wall) {
     if (wall.tilesCount != 14) {
-      throwErrorAndLogging(`Tiles count is ${wall.tilesCount}. 王牌 is 14 tiles.`);
+      throw new CustomError(`Tiles count is ${wall.tilesCount}. 王牌 is 14 tiles.`);
     }
 
     this._wall = wall;
   }
 
   get doras(): 牌[] {
-    return this._doraTileIndexList.map((doraIndex) => nextTile(this._wall.tile(doraIndex)));
+    return this._doraTileIndexList.map((doraIndex) => Tile.nextTile(this._wall.tile(doraIndex)));
   }
 
   // 引数のtileは王牌に追加する牌

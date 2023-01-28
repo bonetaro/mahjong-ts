@@ -1,6 +1,6 @@
 import { List } from "linqts";
-import { Validator, sortTiles, throwErrorAndLogging, toTile, 牌 } from ".";
-import { CheatTable, Hand, PlayerDrawTiles, Table } from "./models";
+import { Validator, sortTiles, CustomError, 牌 } from ".";
+import { CheatTable, Hand, PlayerDrawTiles, Table, Tile } from "./models";
 import { FourMembers, PlayerIndex } from "./Types";
 
 export class CheatTableBuilder {
@@ -11,7 +11,7 @@ export class CheatTableBuilder {
     this._baseCheatTable = new CheatTable(new Table().washedTiles);
 
     if (!Validator.isValidAllTiles(this._baseCheatTable.washedTiles)) {
-      throwErrorAndLogging(this._baseCheatTable);
+      throw new CustomError(this._baseCheatTable);
     }
 
     this._playerDrawTilesList = [new PlayerDrawTiles(), new PlayerDrawTiles(), new PlayerDrawTiles(), new PlayerDrawTiles()];
@@ -21,12 +21,12 @@ export class CheatTableBuilder {
     const playerDrawTilesList = this._playerDrawTilesList.map((item: PlayerDrawTiles, index: number) => this.fillPlayerDrawTiles(item, index > 1));
 
     if (!Validator.isValidPlayerDrawTilesList(playerDrawTilesList, this._baseCheatTable.washedTiles)) {
-      throwErrorAndLogging(playerDrawTilesList);
+      throw new CustomError(playerDrawTilesList);
     }
 
     // ここでthis._baseCheatTableが残り14枚（王牌分）になっているはず
     if (this._baseCheatTable.washedTiles.length != 14) {
-      throwErrorAndLogging(this._baseCheatTable.washedTiles);
+      throw new CustomError(this._baseCheatTable.washedTiles);
     }
 
     const kingsTiles = this._baseCheatTable.drawTiles(14); // 王牌
@@ -34,7 +34,7 @@ export class CheatTableBuilder {
     const allTiles = kingsTiles.concat(allPlayerDrawTiles);
 
     if (!Validator.isValidAllTiles(allTiles)) {
-      throwErrorAndLogging({ length: allTiles.length.toString(), sortTiles: sortTiles(allTiles) });
+      throw new CustomError({ length: allTiles.length.toString(), sortTiles: sortTiles(allTiles) });
     }
 
     const table = new CheatTable(allTiles);
@@ -88,7 +88,7 @@ export class CheatTableBuilder {
     this.fillDrawTilesOfPlayerDrawTiles(playerDrawTiles, less);
 
     if (!Validator.isValidPlayerDrawTiles(playerDrawTiles, less)) {
-      throwErrorAndLogging(playerDrawTiles);
+      throw new CustomError(playerDrawTiles);
     }
 
     return playerDrawTiles;
@@ -98,7 +98,7 @@ export class CheatTableBuilder {
     if (playerDrawTiles.hand.tiles.length == 0) {
       playerDrawTiles.hand = new Hand(this._baseCheatTable.drawTiles(13));
     } else if (playerDrawTiles.hand.tiles.length != 13) {
-      throwErrorAndLogging(playerDrawTiles);
+      throw new CustomError(playerDrawTiles);
     }
   };
 
@@ -117,7 +117,7 @@ export class CheatTableBuilder {
       // 4つより多い牌を先頭から消していく
       Object.keys(group)
         .filter((key) => group[key].length !== 4)
-        .forEach((key) => reversedTiles.Remove(toTile(key)));
+        .forEach((key) => reversedTiles.Remove(Tile.toTile(key)));
 
       if (Validator.isValidAllTiles(reversedTiles.ToArray())) {
         break;
@@ -134,7 +134,7 @@ export class CheatTableBuilder {
 
     if (playerDrawTiles.drawTiles.length != drawTilesCount) {
       if (playerDrawTiles.drawTiles.length > drawTilesCount) {
-        throwErrorAndLogging("too match dealedTiles");
+        throw new CustomError("too match dealedTiles");
       } else {
         playerDrawTiles.drawTiles = playerDrawTiles.drawTiles.concat(this._baseCheatTable.drawTiles(drawTilesCount - playerDrawTiles.drawTiles.length));
       }

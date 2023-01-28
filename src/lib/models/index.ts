@@ -10,5 +10,7 @@ export * from "./Mentsu";
 export * from "./Player";
 export * from "./Table";
 export * from "./Tile";
+export * from "./Turn";
+export * from "./TurnResult";
 export * from "./Wall";
 export * from "./PlayerDrawTiles";

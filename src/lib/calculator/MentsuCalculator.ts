@@ -1,7 +1,7 @@
 import { List } from "linqts";
-import { Hand, MinKouMentsu } from "./models";
-import { toTile, 塔子like, 数牌の色, 牌, 面子like, 順子like } from ".";
-import { isSuits, isRunMentsu, combination } from "./Functions";
+import { Hand, Mentsu, MinKouMentsu, Tile } from "../models";
+import { 塔子like, 牌, 面子like, 順子like } from "..";
+import { helper } from "../helper";
 
 abstract class MentsuCalculator {
   constructor(protected readonly hand: Hand) {}
@@ -15,7 +15,7 @@ export class KanCalculator extends MentsuCalculator {
     const tiles: 牌[] = [];
     for (const key in group) {
       if (group[key].length === 4) {
-        tiles.push(toTile(key));
+        tiles.push(Tile.toTile(key));
       }
     }
 
@@ -38,21 +38,21 @@ export class PonCalculator extends MentsuCalculator {
 }
 
 export class ChiCalculator extends MentsuCalculator {
-  chiCandidates(tile: 牌): 塔子like[] {
-    if (!isSuits(tile)) {
+  chiCandidates(pai: 牌): 塔子like[] {
+    if (!Tile.isSuits(pai)) {
       return [];
     }
 
-    const color = tile[1] as 数牌の色;
+    const tile = new Tile(pai).toSuitsTile();
 
-    const sameColorSuitTiles = this.hand.tiles.filter((t) => isSuits(t) && t[1] == color);
+    const sameColorSuitTiles = this.hand.tiles.filter((t) => Tile.isSuits(t) && t[1] == tile.color);
     if (sameColorSuitTiles.length < 2) {
       return [];
     }
 
     // 同じ色の数牌２つの組み合わせを取得
-    const combinationArray = combination(
-      sameColorSuitTiles.map((t) => Number(t[0])),
+    const combinationArray = helper.combination(
+      sameColorSuitTiles.map((t) => new Tile(t).toSuitsTile().value),
       2
     );
 
@@ -60,12 +60,12 @@ export class ChiCalculator extends MentsuCalculator {
       .map((tartsNums) => {
         const nums = [...tartsNums];
         // ターツに鳴く牌を追加して面子にする
-        nums.push(Number(tile[0]));
-        return { tartsNums, mentsu: nums.map((num) => `${num}${color}`) as 面子like };
+        nums.push(tile.value);
+        return { tartsNums, mentsu: nums.map((num) => `${num}${tile.color}`) as 面子like };
       })
-      .filter((obj) => isRunMentsu(obj.mentsu as 順子like))
+      .filter((obj) => Mentsu.isRunMentsu(obj.mentsu as 順子like))
       .map((obj) => obj.tartsNums);
 
-    return matchTartsNumList.map((tartsNums) => tartsNums.map((num) => `${num}${color}`) as 塔子like);
+    return matchTartsNumList.map((tartsNums) => tartsNums.map((num) => `${num}${tile.color}`) as 塔子like);
   }
 }

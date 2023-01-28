@@ -1,6 +1,7 @@
-import { isKanMentsu, toEmoji, toMoji, isKoutsuMentsu } from "../Functions";
-import { PlayerDirection, 数牌, 刻子like, 塔子like, 槓子like, 牌, 面子like, 順子like } from "../Types";
-import { throwErrorAndLogging } from "../error";
+import { toEmoji, toMoji, sortTiles } from "../functions";
+import { 数牌, 刻子like, 塔子like, 槓子like, 牌, 面子like, 順子like, 数牌の色, 順子, PlayerDirection } from "../Types";
+import { CustomError } from "../CustomError";
+import { Tile } from "./Tile";
 
 export interface IMentsu {
   get tiles(): 牌[];
@@ -26,6 +27,30 @@ export abstract class Mentsu<T extends 面子like> implements IMentsu {
   }
   abstract emojiStatus(): string;
   abstract mojiStatus(): string;
+
+  static isKanMentsu(values: unknown[]): values is 槓子like {
+    return values.length === 4 && values.every((v) => Tile.isTile(v)) && values.every((v) => v == values[0]);
+  }
+
+  static isKoutsuMentsu(values: unknown[]): values is 刻子like {
+    return values.length === 3 && values.every((v) => Tile.isTile(v)) && values.every((v) => v == values[0]);
+  }
+
+  // export function isShuntsuMentsu<C extends 数牌の色>(values: unknown[]): values is 順子<C> {
+  //   return values.every((x) => isSuits(x)
+  // }
+
+  // 順子のメンツか。順子は英語でRun
+  static isRunMentsu<T extends 数牌の色>(tiles: 順子like): tiles is 順子<T> {
+    if (!tiles.every((tile) => Tile.isSameColor(tiles[0], tile))) {
+      return false;
+    }
+
+    const sortedTiles = sortTiles(tiles);
+    const firstTileNum = Number(sortedTiles[0][0]);
+
+    return Number(sortedTiles[1][0]) == firstTileNum + 1 && Number(sortedTiles[2][0]) == firstTileNum + 2;
+  }
 }
 
 export interface OpenMentsu {
@@ -37,10 +62,10 @@ class KanMentsu extends Mentsu<槓子like> {
   constructor(tile: 牌) {
     const tiles = [tile, tile, tile, tile];
 
-    if (isKanMentsu(tiles)) {
+    if (Mentsu.isKanMentsu(tiles)) {
       super(tiles);
     } else {
-      throwErrorAndLogging(tiles);
+      throw new CustomError(tiles);
     }
   }
 
@@ -56,10 +81,10 @@ abstract class KoutsuMentsu extends Mentsu<刻子like> {
   constructor(tile: 牌) {
     const tiles = [tile, tile, tile];
 
-    if (isKoutsuMentsu(tiles)) {
+    if (Mentsu.isKoutsuMentsu(tiles)) {
       super(tiles);
     } else {
-      throwErrorAndLogging(tiles);
+      throw new CustomError(tiles);
     }
   }
 
@@ -97,7 +122,7 @@ export class AnKouMentsu extends KoutsuMentsu {
 
 // 鳴き順子（チー面子）。上家からしか鳴けないので、fromDirectionは上家固定
 export class ChiMentsu extends Mentsu<順子like> implements OpenMentsu {
-  constructor(public readonly calledTile: 数牌, tartsTiles: 塔子like, public readonly fromPlayerDirection = PlayerDirection.ToTheLeft) {
+  constructor(public readonly calledTile: 数牌, tartsTiles: 塔子like, public fromPlayerDirection: PlayerDirection = "toTheLeft") {
     super([calledTile].concat(tartsTiles) as 順子like);
   }
 
@@ -172,9 +197,9 @@ export class MinKanMentsu extends KanMentsu implements OpenMentsu {
     // todo 対面から明槓のときの横向きにする牌の位置を確認
     return this.tiles
       .map((tile, index) => {
-        return (index == 0 && this.fromPlayerDirection == PlayerDirection.ToTheLeft) ||
-          (index == 1 && this.fromPlayerDirection == PlayerDirection.Opposite) ||
-          (index == 3 && this.fromPlayerDirection == PlayerDirection.ToTheRight)
+        return (index == 0 && this.fromPlayerDirection == "toTheLeft") ||
+          (index == 1 && this.fromPlayerDirection == "opposite") ||
+          (index == 3 && this.fromPlayerDirection == "toTheRight")
           ? `(${toEmoji(tile)} )` // 絵文字が重なってしまうため、半角空白をいれる
           : toEmoji(tile);
       })

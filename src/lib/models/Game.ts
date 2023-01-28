@@ -2,7 +2,7 @@
 import { List } from "linqts";
 import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, Table } from "./";
 import { CheatTableBuilder, FourMembers, PlayerIndex, WindNames, askAnyKey, logger, toEmojiMoji } from "..";
-import { RoundHandPlayer } from "./Player";
+import { RoundHandPlayer } from "./RoundHandPlayer";
 
 export class Game {
   private _dices = [new Dice(), new Dice()];

@@ -29,9 +29,7 @@ export class Wall {
 
   pickTiles(num: number): Array<牌> {
     return Enumerable.Range(0, num)
-      .Select((n) => {
-        return this.pickTile();
-      })
+      .Select(() => this.pickTile())
       .ToArray();
   }
 
