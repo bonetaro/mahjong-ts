@@ -1,8 +1,8 @@
-import { CommandType } from "../src/lib";
 import { CommandTextCreator } from "../src/lib/CommandTextCreator";
-import { Hand, Tile } from "../src/lib/models";
+import { Hand, Tile } from "../src/models";
+import { CommandType } from "../src/types/MahjongTypes";
 
-const commandList: CommandType[] = [CommandType.Discard];
+const commandList: CommandType[] = ["discard"];
 
 const tiles: string[] = [];
 tiles.push("1m"); // 1

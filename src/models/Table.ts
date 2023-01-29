@@ -1,8 +1,7 @@
 import { Enumerable, List } from "linqts";
-import { ManduChar, PinduChar, SouduChar, Validator, logger, sortTiles, 数牌の色, 牌 } from "../";
-import { CustomError } from "../CustomError";
-import { KingsWall, Tile, Wall } from "./";
-import { KazehaiChar, WindChars, DragonChars, SangenpaiChar } from "../Constants";
+import { CustomError, DragonChars, KazehaiChar, ManduChar, PinduChar, SangenpaiChar, SouduChar, Validator, WindChars, logger } from "../lib";
+import { KingsWall, Tile, Wall } from ".";
+import { 牌, 数牌の色 } from "../types";
 
 export class Table {
   private _walls: Wall[] = []; //牌の山
@@ -164,7 +163,7 @@ export class CheatTable {
   removeTile(tile: 牌): void {
     const index = this.washedTiles.indexOf(tile);
     if (index < 0) {
-      throw new CustomError({ tile, washedTiles: sortTiles(this.washedTiles) });
+      throw new CustomError({ tile, washedTiles: Tile.sortTiles(this.washedTiles) });
     }
 
     this.washedTiles.splice(index, 1);

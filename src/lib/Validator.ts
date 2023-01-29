@@ -1,7 +1,7 @@
 import { List } from "linqts";
-import { 牌 } from "./Types";
-import { logger } from "./logging";
-import { PlayerDrawTiles } from "./models/PlayerDrawTiles";
+import { PlayerDrawTiles } from "../models/";
+import { 牌 } from "../types";
+import { logger } from "./";
 import { CustomError } from "./CustomError";
 
 export class Validator {

@@ -1,9 +1,8 @@
 import inquirer from "inquirer";
 import * as readline from "readline";
-import { CommandType } from "./Constants";
-import { toEmojiMoji } from "./functions";
-import { logger } from "./logging";
-import { Hand } from "./models/Hand";
+import { logger, toEmojiMoji } from ".";
+import { Hand } from "../models";
+import { CommandType, CommandTypeNames, HandTilesIndex, isCommandType, isHandTilesIndex } from "../types";
 
 const readInput = async (message: string): Promise<string> => {
   const rl = readline.createInterface({
@@ -32,10 +31,11 @@ export const readCommand = async (message: string, condition?: (input: string) =
   }
 };
 
-export const selectCommand = async (message: string, hand: Hand, commandTypeList: CommandType[]): Promise<string> => {
+// todo コマンドによって戻り値の型を変える
+export const selectCommand = async (message: string, hand: Hand, commandTypeList: CommandType[]): Promise<CommandType | HandTilesIndex> => {
   // todo 食い替えを禁止する対応
 
-  const tileChoices = commandTypeList.includes(CommandType.Discard)
+  const tileChoices = commandTypeList.includes("discard")
     ? hand.tiles.map((tile, index) => {
         return {
           name: toEmojiMoji(tile),
@@ -45,15 +45,19 @@ export const selectCommand = async (message: string, hand: Hand, commandTypeList
     : [];
 
   const commandChoices = commandTypeList
-    .filter((type) => type != CommandType.Discard) // 捨てるコマンドは、牌の選択肢を表示するので不要
+    .filter((type) => type != "discard") // 捨てるコマンドは、牌の選択肢を表示するので不要
     .map((type) => {
       return {
-        name: CommandType.name(type),
+        name: CommandTypeNames[type],
         value: type.toString(),
       };
     });
 
-  return await selectChoices(message, commandChoices.concat(tileChoices));
+  const choice = await selectChoices(message, commandChoices.concat(tileChoices));
+
+  if (isCommandType(choice) || isHandTilesIndex(choice)) {
+    return choice;
+  }
 };
 
 const selectChoices = async (message: string, choices: Array<{ name: string; value: string }>) => {

@@ -1,6 +1,5 @@
-import { Game, Player } from "../src/lib/models";
-import { GameOption } from "../src/lib/models/GameOption";
-import { FourMembers } from "../src/lib/Types";
+import { Player, GameOption, Game } from "../src/models";
+import { FourMembers } from "../src/types/MahjongTypes";
 
 const players = [new Player("player1"), new Player("player2"), new Player("player3"), new Player("player4")];
 const option = new GameOption(players as FourMembers<Player>);

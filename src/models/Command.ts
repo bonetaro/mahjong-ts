@@ -1,11 +1,7 @@
 import { List } from "linqts";
-import { AnKanMentsu, GameRoundHand, MinKanMentsu, MinKouMentsu } from ".";
-import { CommandType } from "../Constants";
-import { PlayerDirection, 塔子like, 数牌, 牌 } from "../Types";
-import { isMeldCommandType, toEmoji, toEmojiMoji } from "../functions";
-import { logger } from "../logging";
-import { ChiMentsu } from "./Mentsu";
-import { RoundHandPlayer } from "./RoundHandPlayer";
+import { AnKanMentsu, ChiMentsu, GameRoundHand, MinKanMentsu, MinKouMentsu, RoundHandPlayer } from ".";
+import { logger, toEmoji, toEmojiMoji } from "../lib";
+import { CommandType, PlayerDirection, isMeldCommandType, 塔子like, 数牌, 牌 } from "../types";
 
 export abstract class BaseCommand {
   protected _type: CommandType;
@@ -35,10 +31,9 @@ export abstract class PlayerCommand extends BaseCommand {
 
 // 牌を捨てる
 export class DiscardCommand extends PlayerCommand {
-  protected _type = CommandType.Discard;
-
   constructor(who: RoundHandPlayer, public readonly tile: 牌) {
     super(who);
+    this._type = "discard";
   }
 
   execute(roundHand: GameRoundHand): void {
@@ -49,10 +44,9 @@ export class DiscardCommand extends PlayerCommand {
 
 // ツモ
 export class TsumoCommand extends PlayerCommand {
-  protected _type = CommandType.Tsumo;
-
   constructor(who: RoundHandPlayer) {
     super(who);
+    this._type = "tsumo";
   }
 
   execute(roundHand: GameRoundHand): void {}
@@ -60,10 +54,9 @@ export class TsumoCommand extends PlayerCommand {
 
 // 暗槓
 export class AnKanCommand extends PlayerCommand {
-  protected _type = CommandType.Kan;
-
   constructor(who: RoundHandPlayer, public readonly tile: 牌) {
     super(who);
+    this._type = "kan";
   }
 
   execute(roundHand: GameRoundHand): void {
@@ -78,10 +71,9 @@ export class AnKanCommand extends PlayerCommand {
 
 // 加槓
 export class KaKanCommand extends PlayerCommand {
-  protected _type = CommandType.Kan;
-
   constructor(who: RoundHandPlayer, public readonly tile: 牌) {
     super(who);
+    this._type = "kan";
   }
 
   execute(roundHand: GameRoundHand): void {
@@ -119,10 +111,9 @@ export abstract class OtherPlayersCommand extends BaseCommand {
 
 // 何もしない
 export class NothingCommand extends OtherPlayersCommand {
-  protected _type = CommandType.Nothing;
-
   constructor() {
     super(null, null, null);
+    this._type = "nothing";
   }
 
   execute(): void {
@@ -132,10 +123,9 @@ export class NothingCommand extends OtherPlayersCommand {
 
 // ロン
 export class RonCommand extends OtherPlayersCommand {
-  protected _type = CommandType.Ron;
-
   constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who, direction, tile);
+    this._type = "ron";
   }
 
   execute(roundHand: GameRoundHand): void {}
@@ -151,10 +141,9 @@ export class ChankanRonCommand extends RonCommand {
 }
 
 export class PonCommand extends OtherPlayersCommand {
-  protected _type = CommandType.Pon;
-
   constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who, direction, tile);
+    this._type = "pon";
   }
 
   execute(roundHand: GameRoundHand): void {
@@ -171,10 +160,9 @@ export class PonCommand extends OtherPlayersCommand {
 
 // 大明槓
 export class DaiMinKanCommand extends OtherPlayersCommand {
-  protected _type = CommandType.Kan;
-
   constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌) {
     super(who, direction, tile);
+    this._type = "kan";
   }
 
   execute(roundHand: GameRoundHand): void {
@@ -191,12 +179,12 @@ export class DaiMinKanCommand extends OtherPlayersCommand {
 
 // チー
 export class ChiCommand extends OtherPlayersCommand {
-  protected _type = CommandType.Chi;
-  protected _tiles: 塔子like; // 順子のもとになったターツ
+  private _tiles: 塔子like; // 順子のもとになったターツ
 
   constructor(who: RoundHandPlayer, direction: PlayerDirection, tile: 牌, tiles: 塔子like) {
     super(who, direction, tile);
     this._tiles = tiles;
+    this._type = "chi";
   }
 
   execute(roundHand: GameRoundHand): void {

@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { List } from "linqts";
-import { CommandType } from ".";
-import * as Constants from "./Constants";
-import { 牌 } from "./Types";
-import { Tile } from "./models";
+import { 牌 } from "../types";
+import { Tile } from "../models";
+import { WindChars, KazehaiChar, DragonChars, SangenpaiChar } from "../constants";
 
 export function toEmojiArray(values: Array<牌>): string {
   return values.map((v) => toEmoji(v)).join(" ");
@@ -41,54 +39,23 @@ export function toMojiArray(values: Array<牌>): string {
 }
 
 export function toMoji(value: 牌): string {
-  // const manzuList = ["一萬", "二萬", "三萬", "四萬", "五萬", "六萬", "七萬", "八萬", "九萬"];
-  // const manzuList = ["一", "二", "三", "四", "五", "六", "七", "八", "九"];
-  const manzuList = [...Array(9).keys()].map((i) => i + 1).map((i) => `${i}m`);
-  // const pinzuList = ["1", "二筒", "三筒", "四筒", "五筒", "六筒", "七筒", "八筒", "九筒"];
-  // const pinzuList = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-  const pinzuList = [...Array(9).keys()].map((i) => i + 1).map((i) => `${i}p`);
-  // const souzuList = ["一索", "二索", "三索", "四索", "五索", "六索", "七索", "八索", "九索"];
-  // const souzuList = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
-  const souzuList = [...Array(9).keys()].map((i) => i + 1).map((i) => `${i}s`);
-  const kazehaiList: any = { e: "東", s: "南", w: "西", n: "北" };
-  const sangenpaiList: any = { w: "白", g: "發", r: "中" };
-
-  if (Tile.isManzu(value)) {
-    return manzuList[Number(value[0]) - 1];
-  } else if (Tile.isPinzu(value)) {
-    return pinzuList[Number(value[0]) - 1];
-  } else if (Tile.isSouzu(value)) {
-    return souzuList[Number(value[0]) - 1];
+  const tile = new Tile(value);
+  if (Tile.isSuits(value)) {
+    return value;
   } else if (Tile.isKazehai(value)) {
-    return kazehaiList[value[0]];
+    const index = WindChars.indexOf(tile.toWindTile().value);
+    return `${WindChars[index]}${KazehaiChar}`;
   } else if (Tile.isSangenpai(value)) {
-    return sangenpaiList[value[0]];
+    const index = DragonChars.indexOf(tile.toDragonTile().value);
+    return `${DragonChars[index]}${SangenpaiChar}`;
   } else {
     return "?";
   }
 }
 
-export function toEmojiMoji(value: 牌): string {
-  return `${toEmoji(value)} (${toMoji(value)})`;
+export function toEmojiMoji(tile: 牌): string {
+  return `${toEmoji(tile)} (${toMoji(tile)})`;
 }
-
-export const sortTiles = (tiles: 牌[]): 牌[] => {
-  return new List(tiles)
-    .OrderBy((x) => Constants.TileTypeSort.indexOf(new Tile(x).type)) // 2文字目で整列
-    .ThenBy((x) => {
-      const tile = new Tile(x);
-
-      if (Tile.isSuits(x)) return tile.toSuitsTile().value;
-      if (Tile.isKazehai(x)) return Constants.WindChars.indexOf(tile.toWindTile().value);
-      if (Tile.isSangenpai(x)) return Constants.DragonChars.indexOf(tile.toDragonTile().value);
-      throw new Error(x);
-    })
-    .ToArray();
-};
-
-export const isMeldCommandType = (type: CommandType): boolean => {
-  return [CommandType.Pon, CommandType.Chi, CommandType.Kan].includes(type);
-};
 
 // conditional typeを利用して、指定した型の追跡が可能になります。
 type S<T, K> = T extends K ? T : K;

@@ -1,6 +1,6 @@
-import { RoundHandIndexList, RoundIndexList } from "./Constants";
+import { FixedLengthArray } from "./";
 import {
-  digits,
+  Digits,
   EastWindChar,
   ManduChar,
   PinduChar,
@@ -14,8 +14,15 @@ import {
   GreenDragonChar,
   RedDragonChar,
   PlayerIndexList,
-  PlayerDirections,
-} from "./Constants";
+  PlayerDirectionList,
+  CommandTypeList,
+  HandTilesDigits,
+  MeldCommandTypeList,
+  RoundHandIndexList,
+  RoundIndexList,
+  SimpleDigits,
+  TerminalDigits,
+} from "../constants";
 
 export type 萬子 = `${typeof ManduChar}`; // 英語はCharacters
 export type 筒子 = `${typeof PinduChar}`; // 英語はWheels,dots
@@ -25,15 +32,15 @@ export type 元 = `${typeof SangenpaiChar}`; // Dragon
 
 export type 牌種 = 萬子 | 筒子 | 索子 | 風 | 元;
 
-export type 数牌の数 = (typeof digits)[number];
+export type 数牌の数 = (typeof Digits)[number];
 export type 数牌の色 = 萬子 | 筒子 | 索子;
 
 export type 萬子牌 = `${数牌の数}${萬子}`;
 export type 筒子牌 = `${数牌の数}${筒子}`;
 export type 索子牌 = `${数牌の数}${索子}`;
 
-type 老頭牌の数 = keyof typeof digits & (1 | 9); // 包含関係だが、交差型を使ってみたかった
-type 中張牌の数 = keyof typeof digits & (2 | 3 | 4 | 5 | 6 | 7 | 8); // 包含関係だが、交差型を使ってみたかった
+type 老頭牌の数 = (typeof TerminalDigits)[number];
+type 中張牌の数 = (typeof SimpleDigits)[number];
 
 export type 中張牌 = `${中張牌の数}${数牌の色}`;
 export type 老頭牌 = `${老頭牌の数}${数牌の色}`;
@@ -87,12 +94,35 @@ export type アガリ牌姿 = {
 };
 export type アガリ手牌 = アガリ牌姿 | 七対子like | 国士無双;
 
+export type CommandType = (typeof CommandTypeList)[number];
+
+// 牌をツモった人ができるコマンド
+export type PlayerCommandType = CommandType & ("discard" | "kan" | "tsumo");
+
+// 捨てられた牌に対してできるコマンド
+export type OtherPlayersCommandType = CommandType & ("pon" | "kan" | "chi" | "ron" | "nothing");
+
+export const CommandTypeNames: Record<CommandType, string> = {
+  pon: "ポン",
+  kan: "カン",
+  chi: "チー",
+  tsumo: "ツモ",
+  ron: "ロン",
+  discard: "牌を捨てる",
+  nothing: "何もしない",
+};
+
+// 鳴きのコマンド
+export type MeldCommandType = (typeof MeldCommandTypeList)[number];
+
+export type HandTilesIndex = (typeof HandTilesDigits)[number];
+
 export type RoundIndex = (typeof RoundIndexList)[number];
 
 export type RoundHandIndex = (typeof RoundHandIndexList)[number];
 
-export type FourMembers<T> = [T, T, T, T];
+export type FourMembers<T> = FixedLengthArray<T, 4>;
 
 export type PlayerIndex = (typeof PlayerIndexList)[number];
 
-export type PlayerDirection = (typeof PlayerDirections)[number];
+export type PlayerDirection = (typeof PlayerDirectionList)[number];

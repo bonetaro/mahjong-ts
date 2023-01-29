@@ -1,6 +1,6 @@
-import { 刻子like, 対子like, 槓子like, 牌 } from "../src/lib";
-import * as Constants from "../src/lib/Constants";
-import { Tile } from "../src/lib/models";
+import * as Constants from "../src/constants";
+import { Tile } from "../src/models";
+import { 対子like, 牌, 刻子like, 槓子like } from "../src/types/MahjongTypes";
 
 test("1m is Suits", () => {
   expect(Tile.isSuits("1m")).toBe(true);

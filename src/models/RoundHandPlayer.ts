@@ -1,7 +1,13 @@
-import { Hand, DrawTile, DiscardTile } from "./";
-import { WindNames, logger, toEmojiArray, toMojiArray, toEmojiMoji, 牌, CustomError, toEmoji, toMoji } from "../";
-import { PlayerDirection } from "../Types";
-import { Player } from "./Player";
+import { v4 as uuid } from "uuid";
+import { DiscardTile, DrawTile, Hand } from ".";
+import { CustomError, WindNameList, logger, toEmoji, toEmojiArray, toEmojiMoji, toMoji, toMojiArray } from "../lib";
+import { PlayerDirection, 牌 } from "../types";
+
+export class Player {
+  constructor(public readonly name: string, public readonly id?: string) {
+    this.id = uuid();
+  }
+}
 
 export class RoundHandPlayer extends Player {
   private _discardTiles: DiscardTile[];
@@ -30,7 +36,7 @@ export class RoundHandPlayer extends Player {
   }
 
   get windName(): string {
-    return `${WindNames[this.index]}家`;
+    return `${WindNameList[this.index]}家`;
   }
 
   get fullName(): string {

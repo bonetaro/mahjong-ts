@@ -1,8 +1,8 @@
 /* eslint-disable no-constant-condition */
 import { List } from "linqts";
-import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, Table } from "./";
-import { CheatTableBuilder, FourMembers, PlayerIndex, WindNames, askAnyKey, logger, toEmojiMoji } from "..";
-import { RoundHandPlayer } from "./RoundHandPlayer";
+import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, RoundHandPlayer, Table } from ".";
+import { CheatTableBuilder, WindNameList, askAnyKey, logger, toEmojiMoji } from "../lib";
+import { FourMembers } from "../types";
 
 export class Game {
   private _dices = [new Dice(), new Dice()];
@@ -44,6 +44,8 @@ export class Game {
   startRoundHand = (): void => {
     logger.debug("gameRoundHand start");
 
+    logger.info(`${WindNameList[this._rounds.length - 1]}${this.currentRound.hands.length}局`);
+
     // プレイヤーの状態をリセット
     this.currentRoundHand.players.forEach((player) => player.init());
 
@@ -78,12 +80,12 @@ export class Game {
       this.createRound();
     }
 
-    this.createRoundHand(
-      this.currentRoundHand.players.map((player) => {
-        player.index = (player.index + 1) % 4;
-        return player;
-      }) as FourMembers<RoundHandPlayer>
-    );
+    const players = Object.assign({}, this.currentRoundHand.players);
+    players.forEach((player) => {
+      player.index = (player.index + 1) % this.currentRoundHand.players.length;
+    });
+
+    this.createRoundHand(players);
 
     return true;
   };
@@ -111,7 +113,10 @@ export class Game {
     const firstDealerNumber = randomNumber();
     logger.debug(`起家：${this.players[firstDealerNumber].name}`);
 
-    this.players = this.players.splice(firstDealerNumber, 1).concat(this.players) as FourMembers<Player>;
+    let players = [...this.players];
+    players = players.splice(firstDealerNumber, 1).concat(players);
+
+    this.players.forEach((_, index) => (this.players[index] = players[index]));
   }
 
   createRound(): void {
@@ -122,7 +127,7 @@ export class Game {
     this.currentRound.hands.push(new GameRoundHand(players));
   }
 
-  status(option: { round: boolean; player: boolean; dora: boolean } | null = null): string {
+  status(option: { round: boolean; player: boolean; dora: boolean }): string {
     const label: string[] = [];
 
     option ??= { round: true, player: true, dora: true };
@@ -142,7 +147,7 @@ export class Game {
 
     if (option.player) {
       const playerLabelList: string[] = [];
-      new List(WindNames.concat()).Zip(new List(this.players), (wind, player) => {
+      new List(WindNameList.concat()).Zip(new List(this.players), (wind, player) => {
         playerLabelList.push(`${wind}家: ${player.name}`);
       });
 
@@ -183,7 +188,7 @@ export class CheatGame extends Game {
   createRoundHand(players: FourMembers<Player>): void {
     const builder = new CheatTableBuilder();
     this.gameOption.cheatOption?.playerDrawTilesList.forEach((playerDealedTiles, index) => {
-      builder.setPlayerDrawTiles(playerDealedTiles, index as PlayerIndex);
+      builder.setPlayerDrawTiles(playerDealedTiles, index);
     });
 
     const roundHand = new CheatGameRoundHand(players.map((player, index) => new RoundHandPlayer(index, player)) as FourMembers<RoundHandPlayer>);

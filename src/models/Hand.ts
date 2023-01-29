@@ -1,8 +1,6 @@
-import { toEmojiArray, toMojiArray, sortTiles } from "../functions";
-import { IMentsu } from "./Mentsu";
-import { 牌 } from "../Types";
-import { DrawTile, Tile } from "./Tile";
-import { CustomError } from "../CustomError";
+import { DrawTile, IMentsu, Tile } from ".";
+import { CustomError, toEmojiArray, toMojiArray } from "../lib";
+import { 牌 } from "../types";
 
 export class Hand {
   private _tiles: 牌[];
@@ -101,7 +99,7 @@ export class Hand {
   }
 
   sortTiles(): Array<牌> {
-    return sortTiles(this.tiles);
+    return Tile.sortTiles(this.tiles);
   }
 
   //シャンテン数（向聴数）を計算する

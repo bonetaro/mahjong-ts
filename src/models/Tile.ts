@@ -1,6 +1,7 @@
-import { 三元牌, 中, 北, 南, 四風牌, 字牌, 数牌, 数牌の数, 東, 牌, 牌種, 發, 白, 筒子牌, 索子牌, 萬子牌, 西 } from "../Types";
-import * as Constants from "../Constants";
-import { CustomError, 数牌の色 } from "..";
+import { List } from "linqts";
+import * as Constants from "../constants";
+import { 牌種, 牌, 四風牌, 白, 發, 中, 三元牌, 字牌, 数牌の数, 東, 南, 西, 北, 萬子牌, 筒子牌, 索子牌, 数牌, 数牌の色 } from "../types";
+import { CustomError } from "../lib/";
 
 export class Tile {
   type: 牌種;
@@ -194,6 +195,20 @@ export class Tile {
       throw new Error(pai);
     }
   }
+
+  static sortTiles = (tiles: 牌[]): 牌[] => {
+    return new List(tiles)
+      .OrderBy((x) => Constants.TileTypeSort.indexOf(new Tile(x).type)) // 2文字目で整列
+      .ThenBy((x) => {
+        const tile = new Tile(x);
+
+        if (Tile.isSuits(x)) return tile.toSuitsTile().value;
+        if (Tile.isKazehai(x)) return Constants.WindChars.indexOf(tile.toWindTile().value);
+        if (Tile.isSangenpai(x)) return Constants.DragonChars.indexOf(tile.toDragonTile().value);
+        throw new Error(x);
+      })
+      .ToArray();
+  };
 }
 
 export class SuitsTile extends Tile {

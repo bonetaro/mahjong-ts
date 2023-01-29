@@ -1,5 +1,5 @@
-import { FourMembers } from "./lib";
-import { CheatOption, GameOption, Hand, Player, PlayerDrawTiles } from "./lib/models";
+import { CheatOption, GameOption, Hand, Player, PlayerDrawTiles } from "./models";
+import { FourMembers } from "./types";
 
 const players: FourMembers<Player> = [new Player("Aさん"), new Player("Bさん"), new Player("Cさん"), new Player("Dさん")];
 

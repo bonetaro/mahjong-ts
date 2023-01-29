@@ -1,5 +1,5 @@
-import { Hand, Tile } from "../src/lib/models";
 import { KanCalculator } from "../src/lib/calculator/MentsuCalculator";
+import { Hand, Tile } from "../src/models";
 
 test("canAnkan is 1", () => {
   const tiles: string[] = [];

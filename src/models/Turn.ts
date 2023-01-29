@@ -1,12 +1,9 @@
 /* eslint-disable no-case-declarations */
 /* eslint-disable no-constant-condition */
-import { askOtherPlayersWhatCommand, askOtherPlayersWhetherDoChankanIfPossible, askPlayerWhatCommand } from "../AskPlayer";
-import { CommandType } from "../Constants";
-import { CustomError } from "../CustomError";
-import { 牌 } from "../Types";
+import { CustomError, askOtherPlayersWhatCommand, askOtherPlayersWhetherDoChankanIfPossible, askPlayerWhatCommand } from "../lib";
+import { GameRoundHand, OtherPlayersTurnResult, PlayerTurnResult, TurnResult } from ".";
 import * as Commands from "./Command";
-import { GameRoundHand } from "./GameRoundHand";
-import { OtherPlayersTurnResult, PlayerTurnResult, TurnResult } from "./TurnResult";
+import { 牌 } from "../types";
 
 /**
  * プレイヤーが牌を積もって、捨てる => ほかのプレイヤーがアクションするまでの一連の流れ
@@ -27,7 +24,7 @@ export class Turn {
 
     if (turnResult.command instanceof Commands.DiscardCommand) {
       // 牌をツモったプレイヤー以外のプレイヤーのターン(プレイヤーが捨てた牌へのアクション。鳴いた後に捨てた牌をさらに鳴く処理も含まれる)
-      return await this.otherPlayersTurn((turnResult.command as Commands.DiscardCommand).tile);
+      return await this.otherPlayersTurn(turnResult.command.tile);
     }
 
     throw new CustomError(turnResult);
@@ -38,16 +35,11 @@ export class Turn {
     while (true) {
       const command = await askPlayerWhatCommand(this.roundHand.currentPlayer);
 
-      switch (command.type) {
-        case CommandType.Tsumo:
-          this.roundHand.executeCommand(command);
-          return new PlayerTurnResult(command as Commands.TsumoCommand);
-
-        case CommandType.Discard:
-          this.roundHand.executeCommand(command);
-          return new PlayerTurnResult(command as Commands.DiscardCommand);
-
-        case CommandType.Kan:
+      if (command instanceof Commands.TsumoCommand || command instanceof Commands.DiscardCommand) {
+        this.roundHand.executeCommand(command);
+        return new PlayerTurnResult(command);
+      } else {
+        if (command.type == "kan") {
           // todo 槍槓の場合は、カン自体は成立しないらしいので、このタイミングで実行
           const chankanCommand = askOtherPlayersWhetherDoChankanIfPossible(command);
           if (chankanCommand) {
@@ -58,10 +50,10 @@ export class Turn {
           this.roundHand.executeCommand(command);
           // カンした場合は、もう一度捨て牌選択
           continue;
-
-        default:
-          throw new CustomError(command.type);
+        }
       }
+
+      throw new CustomError(command);
     }
   };
 
@@ -74,13 +66,9 @@ export class Turn {
       const command = await askOtherPlayersWhatCommand(this.roundHand.players, discardTile, currentPlayer);
 
       // 誰も反応しなかったら、次のプレイヤーのツモ番（ターンが終わる）
-      if (command instanceof Commands.NothingCommand) {
-        return new OtherPlayersTurnResult(command as Commands.NothingCommand);
-      }
-
       // 鳴きよりもロンが最優先で処理される
-      if (command instanceof Commands.RonCommand) {
-        return new OtherPlayersTurnResult(command as Commands.RonCommand);
+      if (command instanceof Commands.NothingCommand || command instanceof Commands.RonCommand) {
+        return new OtherPlayersTurnResult(command);
       }
 
       // ここに来るときは、鳴いた場合（ポン、チー、カン（大明槓））

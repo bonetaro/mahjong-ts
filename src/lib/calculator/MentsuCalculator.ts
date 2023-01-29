@@ -1,7 +1,7 @@
 import { List } from "linqts";
-import { Hand, Mentsu, MinKouMentsu, Tile } from "../models";
-import { 塔子like, 牌, 面子like, 順子like } from "..";
+import { Hand, Mentsu, MinKouMentsu, Tile } from "../../models";
 import { helper } from "../helper";
+import { 牌, 塔子like, 面子like, 順子like } from "../../types";
 
 abstract class MentsuCalculator {
   constructor(protected readonly hand: Hand) {}
@@ -10,9 +10,10 @@ abstract class MentsuCalculator {
 export class KanCalculator extends MentsuCalculator {
   ankanCandidate(): 牌[] {
     // todo リーチ時には、面子が変わるようなカンはできない
-    const group = new List(this.hand.tiles).GroupBy((t) => t);
 
     const tiles: 牌[] = [];
+
+    const group = new List(this.hand.tiles).GroupBy((t) => t);
     for (const key in group) {
       if (group[key].length === 4) {
         tiles.push(Tile.toTile(key));

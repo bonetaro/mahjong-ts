@@ -1,5 +1,4 @@
-import { KingsWall } from "../src/lib/models/KingsWall";
-import { Tile, Wall } from "../src/lib/models";
+import { Wall, Tile, KingsWall } from "../src/models";
 
 const tile = "1m2m3m4m";
 const tile2 = "1m2m3m4m5m";

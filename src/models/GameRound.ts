@@ -1,6 +1,6 @@
 import { List } from "linqts";
-import { logger } from "../logging";
-import { GameRoundHand } from "./GameRoundHand";
+import { logger } from "../lib/";
+import { GameRoundHand } from "./";
 
 // 場（東場、南場）
 export class GameRound {

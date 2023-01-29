@@ -1,5 +1,5 @@
-import { CommandType } from "./Constants";
-import { RoundHandPlayer } from "./models/RoundHandPlayer";
+import { CommandType, CommandTypeNames } from "../types";
+import { RoundHandPlayer } from "../models";
 
 export class CommandTextCreator {
   constructor(private commands: CommandType[]) {}
@@ -17,19 +17,7 @@ export class CommandTextCreator {
   }
 
   createCommandTextList(): string[] {
-    const textList: string[] = [];
-
-    if (this.commands.includes(CommandType.Discard)) {
-      textList.push(`捨て牌選択`);
-    }
-
-    if (this.commands.includes(CommandType.Nothing)) {
-      textList.push(`何もしない`);
-    }
-
-    this.commands.filter((c) => c != CommandType.Discard && c != CommandType.Nothing).forEach((c) => textList.push(CommandType.name(c)));
-
-    return textList;
+    return this.commands.map((c) => CommandTypeNames[c]);
   }
 
   createOtherPlayersCommandText(): string {

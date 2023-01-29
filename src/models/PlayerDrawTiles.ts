@@ -1,7 +1,7 @@
 import { List } from "linqts";
-import { 牌 } from "../Types";
-import { CustomError } from "../CustomError";
-import { Hand } from "./Hand";
+import { Hand } from "./";
+import { CustomError } from "../lib";
+import { 牌 } from "../types";
 
 export class PlayerDrawTiles {
   constructor(public hand = new Hand(), public drawTiles: 牌[] = []) {

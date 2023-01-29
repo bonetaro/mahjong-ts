@@ -1,4 +1,4 @@
-import { Hand } from "../models/Hand";
+import { Hand } from "../../models/Hand";
 
 export class ReadyCalculator {
   constructor(private hand: Hand) {}

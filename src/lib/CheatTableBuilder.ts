@@ -1,7 +1,7 @@
 import { List } from "linqts";
-import { Validator, sortTiles, CustomError, 牌 } from ".";
-import { CheatTable, Hand, PlayerDrawTiles, Table, Tile } from "./models";
-import { FourMembers, PlayerIndex } from "./Types";
+import { CheatTable, Hand, PlayerDrawTiles, Table, Tile } from "../models";
+import { FourMembers, 牌 } from "../types";
+import { CustomError, Validator } from ".";
 
 export class CheatTableBuilder {
   public _baseCheatTable: CheatTable;
@@ -34,7 +34,7 @@ export class CheatTableBuilder {
     const allTiles = kingsTiles.concat(allPlayerDrawTiles);
 
     if (!Validator.isValidAllTiles(allTiles)) {
-      throw new CustomError({ length: allTiles.length.toString(), sortTiles: sortTiles(allTiles) });
+      throw new CustomError({ length: allTiles.length.toString(), sortTiles: Tile.sortTiles(allTiles) });
     }
 
     const table = new CheatTable(allTiles);
@@ -74,8 +74,8 @@ export class CheatTableBuilder {
     return tiles;
   }
 
-  setPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, playerIndex: PlayerIndex) {
-    this._playerDrawTilesList[playerIndex] = playerDrawTiles;
+  setPlayerDrawTiles(playerDrawTiles: PlayerDrawTiles, index: number) {
+    this._playerDrawTilesList[index] = playerDrawTiles;
 
     // イカサマ配牌とツモ牌をテーブルの山から除く
     playerDrawTiles.hand.tiles.forEach((tile) => this._baseCheatTable.removeTile(tile));

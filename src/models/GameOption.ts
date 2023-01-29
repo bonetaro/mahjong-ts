@@ -1,6 +1,5 @@
-import { Player } from ".";
-import { PlayerDrawTiles } from "./PlayerDrawTiles";
-import { FourMembers } from "../Types";
+import { FourMembers } from "../types";
+import { Player, PlayerDrawTiles } from ".";
 
 export class GameOption {
   private _cheat = false;

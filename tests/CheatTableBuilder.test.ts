@@ -1,7 +1,6 @@
 import { CheatTableBuilder } from "../src/lib/CheatTableBuilder";
-import { PlayerDrawTiles } from "../src/lib/models";
-import { FourMembers, PlayerIndex, sortTiles, 牌 } from "../src/lib";
-import { Hand } from "../src/lib/models";
+import { PlayerDrawTiles, Hand, Tile } from "../src/models";
+import { FourMembers, 牌 } from "../src/types/MahjongTypes";
 
 const playerDrawTilesList: FourMembers<PlayerDrawTiles> = [
   new PlayerDrawTiles(new Hand("1m1m1m1m9m2m3m1p3m4m4m2s3s")),
@@ -20,10 +19,10 @@ test("CheatTableBuilder fillPlayerDrawTilesHand", () => {
   const builder = new CheatTableBuilder();
   expect(builder._baseCheatTable.washedTiles.length).toBe(136);
 
-  const originalTiles = sortTiles([...builder._baseCheatTable.washedTiles]);
+  const originalTiles = Tile.sortTiles([...builder._baseCheatTable.washedTiles]);
 
   playerDrawTilesList.forEach((playerDealedTiles, index) => {
-    builder.setPlayerDrawTiles(playerDealedTiles, index as PlayerIndex);
+    builder.setPlayerDrawTiles(playerDealedTiles, index);
   });
 
   expect(builder._playerDrawTilesList[0].hand.tiles.length).toBe(13);
@@ -43,7 +42,7 @@ test("CheatTableBuilder fillPlayerDrawTilesHand", () => {
     tiles = tiles.concat(playerDrawTiles.drawTiles);
   });
 
-  tiles = sortTiles(tiles.concat(restTiles));
+  tiles = Tile.sortTiles(tiles.concat(restTiles));
 
   expect(tiles).toEqual(expect.arrayContaining(originalTiles));
 });

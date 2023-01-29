@@ -1,7 +1,6 @@
-import { toEmoji, toMoji, sortTiles } from "../functions";
-import { 数牌, 刻子like, 塔子like, 槓子like, 牌, 面子like, 順子like, 数牌の色, 順子, PlayerDirection } from "../Types";
-import { CustomError } from "../CustomError";
-import { Tile } from "./Tile";
+import { 牌, 面子like, 槓子like, 刻子like, 数牌の色, 順子like, 順子, PlayerDirection, 数牌, 塔子like } from "../types";
+import { CustomError, toEmoji, toMoji } from "../lib";
+import { Tile } from "./";
 
 export interface IMentsu {
   get tiles(): 牌[];
@@ -46,7 +45,7 @@ export abstract class Mentsu<T extends 面子like> implements IMentsu {
       return false;
     }
 
-    const sortedTiles = sortTiles(tiles);
+    const sortedTiles = Tile.sortTiles(tiles);
     const firstTileNum = Number(sortedTiles[0][0]);
 
     return Number(sortedTiles[1][0]) == firstTileNum + 1 && Number(sortedTiles[2][0]) == firstTileNum + 2;

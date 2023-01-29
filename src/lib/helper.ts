@@ -1,8 +1,17 @@
 import { List } from "linqts";
+import { MustInclude, NonEmptyArray } from "../types";
 
 // 順列
 export class helper {
   static isRangeNumber = (input: string, max: number, min = 0) => input && min <= Number(input) && Number(input) <= max;
+
+  static includes<T extends U, U>(arr: ReadonlyArray<T>, el: U): el is T {
+    return arr.includes(el as T);
+  }
+
+  static stringUnionToArray<T>() {
+    return <U extends NonEmptyArray<T>>(...elements: MustInclude<T, U>) => elements;
+  }
 
   static permutation = (arr: number[], k: number): number[][] => {
     const ans: number[][] = [];

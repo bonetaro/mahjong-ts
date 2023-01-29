@@ -1,14 +1,9 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable no-case-declarations */
-import { CommandTextCreator, CommandType, FourMembers, WindNames, logger, selectCommand, toEmojiMoji, 牌 } from "../";
-import { Game, Table, DrawTile, Turn } from "./";
+import { FourMembers, PlayerIndex, isPlayerIndex, 牌 } from "../types";
+import { DrawTile, Game, RoundHandMembers, RoundHandPlayer, Table, Turn, TurnResult } from ".";
+import { CommandTextCreator, CustomError, WindNameList, logger, selectCommand, toEmojiMoji } from "../lib";
 import * as Commands from "./Command";
-import { CustomError } from "../CustomError";
-import { TurnResult } from "./TurnResult";
-import { TsumoCommand, RonCommand } from "./Command";
-import { PlayerIndex } from "../Types";
-import { RoundHandMembers } from "./RoundHandMembers";
-import { RoundHandPlayer } from "./RoundHandPlayer";
 
 // 局
 export class GameRoundHand {
@@ -44,7 +39,7 @@ export class GameRoundHand {
   }
 
   name(game: Game): string {
-    return `${WindNames[game.roundCount - 1]}${game.currentRound.hands.length}局`;
+    return `${WindNameList[game.roundCount - 1]}${game.currentRound.hands.length}局`;
   }
 
   dealTiles(num: number): Array<牌> {
@@ -67,8 +62,8 @@ export class GameRoundHand {
     this.executeCommand(command);
 
     // どの牌を捨てるか
-    const commandText = new CommandTextCreator([CommandType.Discard]).createPlayerCommandText(player);
-    const discardTileNumber = await selectCommand(commandText, player.hand, [CommandType.Discard]);
+    const commandText = new CommandTextCreator(["discard"]).createPlayerCommandText(player);
+    const discardTileNumber = await selectCommand(commandText, player.hand, ["discard"]);
 
     // 牌を捨てる
     const discardCommand = new Commands.DiscardCommand(player, player.hand.tiles[Number(discardTileNumber)]);
@@ -120,7 +115,10 @@ export class GameRoundHand {
       throw new CustomError(index);
     }
 
-    this._playerIndex = (index % this._members.players.length) as PlayerIndex;
+    index = index % this._members.players.length;
+    if (isPlayerIndex(index)) {
+      this._playerIndex = index;
+    }
   }
 
   setNextPlayer(): void {
@@ -140,12 +138,12 @@ export class GameRoundHand {
   }
 
   playerWinEnd(turnResult: TurnResult) {
-    if (turnResult.command instanceof TsumoCommand) {
-      this.tsumoEnd(turnResult.command as TsumoCommand);
+    if (turnResult.command instanceof Commands.TsumoCommand) {
+      this.tsumoEnd(turnResult.command as Commands.TsumoCommand);
     }
 
-    if (turnResult.command instanceof RonCommand) {
-      this.ronEnd(turnResult.command as RonCommand);
+    if (turnResult.command instanceof Commands.RonCommand) {
+      this.ronEnd(turnResult.command as Commands.RonCommand);
     }
 
     throw new CustomError(turnResult);
