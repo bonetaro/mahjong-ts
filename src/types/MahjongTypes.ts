@@ -102,16 +102,6 @@ export type PlayerCommandType = CommandType & ("discard" | "kan" | "tsumo");
 // 捨てられた牌に対してできるコマンド
 export type OtherPlayersCommandType = CommandType & ("pon" | "kan" | "chi" | "ron" | "nothing");
 
-export const CommandTypeNames: Record<CommandType, string> = {
-  pon: "ポン",
-  kan: "カン",
-  chi: "チー",
-  tsumo: "ツモ",
-  ron: "ロン",
-  discard: "牌を捨てる",
-  nothing: "何もしない",
-};
-
 // 鳴きのコマンド
 export type MeldCommandType = (typeof MeldCommandTypeList)[number];
 

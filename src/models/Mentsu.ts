@@ -1,5 +1,5 @@
 import { 牌, 面子like, 槓子like, 刻子like, 数牌の色, 順子like, 順子, PlayerDirection, 数牌, 塔子like } from "../types";
-import { CustomError, toEmoji, toMoji } from "../lib";
+import { CustomError } from "../lib";
 import { Tile } from "./";
 
 export interface IMentsu {
@@ -98,10 +98,10 @@ export class AnKanMentsu extends KanMentsu {
   }
 
   emojiStatus(): string {
-    return this.tiles.map((tile, index) => toEmoji(tile, index == 0 || index == 3)).join(" ");
+    return this.tiles.map((tile, index) => Tile.toEmoji(tile, index == 0 || index == 3)).join(" ");
   }
   mojiStatus(): string {
-    return toMoji(this.tiles[0]);
+    return Tile.toMoji(this.tiles[0]);
   }
 }
 
@@ -112,10 +112,10 @@ export class AnKouMentsu extends KoutsuMentsu {
   }
 
   emojiStatus(): string {
-    return this.tiles.map((tile) => toEmoji(tile)).join(" ");
+    return this.tiles.map((tile) => Tile.toEmoji(tile)).join(" ");
   }
   mojiStatus(): string {
-    return toMoji(this.tiles[0]);
+    return Tile.toMoji(this.tiles[0]);
   }
 }
 
@@ -128,13 +128,13 @@ export class ChiMentsu extends Mentsu<順子like> implements OpenMentsu {
   emojiStatus(): string {
     return this.tiles
       .map((tile) => {
-        const text = tile == this.calledTile ? `(${toEmoji(tile)} )` : toEmoji(tile);
+        const text = tile == this.calledTile ? `(${Tile.toEmoji(tile)} )` : Tile.toEmoji(tile);
         return text;
       })
       .join(" ");
   }
   mojiStatus(): string {
-    return this.tiles.map((tile) => toMoji(tile)).join("");
+    return this.tiles.map((tile) => Tile.toMoji(tile)).join("");
   }
 }
 
@@ -161,14 +161,14 @@ export class MinKouMentsu extends KoutsuMentsu implements OpenMentsu {
   emojiStatus(): string {
     return [...Array(3)]
       .map((_, index) => {
-        const text = index + Number(this.fromPlayerDirection) == 3 ? `(${toEmoji(this.calledTile)} )` : toEmoji(this.calledTile);
+        const text = index + Number(this.fromPlayerDirection) == 3 ? `(${Tile.toEmoji(this.calledTile)} )` : Tile.toEmoji(this.calledTile);
         return text;
       })
       .join(" ");
   }
 
   mojiStatus(): string {
-    return toMoji(this.calledTile);
+    return Tile.toMoji(this.calledTile);
   }
 }
 
@@ -199,12 +199,12 @@ export class MinKanMentsu extends KanMentsu implements OpenMentsu {
         return (index == 0 && this.fromPlayerDirection == "toTheLeft") ||
           (index == 1 && this.fromPlayerDirection == "opposite") ||
           (index == 3 && this.fromPlayerDirection == "toTheRight")
-          ? `(${toEmoji(tile)} )` // 絵文字が重なってしまうため、半角空白をいれる
-          : toEmoji(tile);
+          ? `(${Tile.toEmoji(tile)} )` // 絵文字が重なってしまうため、半角空白をいれる
+          : Tile.toEmoji(tile);
       })
       .join(" ");
   }
   mojiStatus(): string {
-    return toMoji(this.tiles[0]);
+    return Tile.toMoji(this.tiles[0]);
   }
 }

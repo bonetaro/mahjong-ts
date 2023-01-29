@@ -1,5 +1,5 @@
 import { DrawTile, IMentsu, Tile } from ".";
-import { CustomError, toEmojiArray, toMojiArray } from "../lib";
+import { CustomError } from "../lib";
 import { 牌 } from "../types";
 
 export class Hand {
@@ -52,7 +52,7 @@ export class Hand {
 
   get status(): string {
     const testList: string[] = [];
-    testList.push(`[${toEmojiArray(this.tiles)} (${toMojiArray(this.tiles)})]`);
+    testList.push(`[${Tile.toEmojiArray(this.tiles)} (${Tile.toMojiArray(this.tiles)})]`);
 
     if (this.openMentsuList.length > 0) {
       testList.push(`副露牌 [${this._openMentsuList.map((mentsu) => `${mentsu.status()}`).join(" ")}]`);
@@ -92,8 +92,8 @@ export class Hand {
     return {
       tiles: this.tiles.join(""),
       length: this.tiles.length,
-      emoji: toEmojiArray(this.tiles),
-      moji2: toMojiArray(this.tiles),
+      emoji: Tile.toEmojiArray(this.tiles),
+      moji2: Tile.toMojiArray(this.tiles),
       furo: this._openMentsuList.map((m) => m.status()).join("|"),
     };
   }

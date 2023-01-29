@@ -1,8 +1,7 @@
 /* eslint-disable no-constant-condition */
-/* eslint-disable no-case-declarations */
 import { FourMembers, PlayerIndex, isPlayerIndex, 牌 } from "../types";
-import { DrawTile, Game, RoundHandMembers, RoundHandPlayer, Table, Turn, TurnResult } from ".";
-import { CommandTextCreator, CustomError, WindNameList, logger, selectCommand, toEmojiMoji } from "../lib";
+import { DrawTile, Game, RoundHandMembers, RoundHandPlayer, Table, Tile, Turn, TurnResult } from ".";
+import { CommandTextCreator, CustomError, WindNameList, logger, selectCommand } from "../lib";
 import * as Commands from "./Command";
 
 // 局
@@ -154,7 +153,7 @@ export class GameRoundHand {
   }
 
   ronEnd(command: Commands.RonCommand): void {
-    logger.info(`${command.who.name}が${command.whomPlayer(this).name}に${toEmojiMoji(command.tile)}で振り込みました`);
+    logger.info(`${command.who.name}が${command.whomPlayer(this).name}に${Tile.toEmojiMoji(command.tile)}で振り込みました`);
   }
 
   drawEnd(): void {

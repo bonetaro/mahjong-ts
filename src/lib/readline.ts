@@ -1,8 +1,8 @@
 import inquirer from "inquirer";
 import * as readline from "readline";
-import { logger, toEmojiMoji } from ".";
-import { Hand } from "../models";
-import { CommandType, CommandTypeNames, HandTilesIndex, isCommandType, isHandTilesIndex } from "../types";
+import { CommandTypeNames, logger } from ".";
+import { Hand, Tile } from "../models";
+import { CommandType, HandTilesIndex, isCommandType, isHandTilesIndex } from "../types";
 
 const readInput = async (message: string): Promise<string> => {
   const rl = readline.createInterface({
@@ -38,7 +38,7 @@ export const selectCommand = async (message: string, hand: Hand, commandTypeList
   const tileChoices = commandTypeList.includes("discard")
     ? hand.tiles.map((tile, index) => {
         return {
-          name: toEmojiMoji(tile),
+          name: Tile.toEmojiMoji(tile),
           value: index.toString(),
         };
       })

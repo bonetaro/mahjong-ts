@@ -209,6 +209,60 @@ export class Tile {
       })
       .ToArray();
   };
+
+  static toEmojiArray(values: Array<牌>): string {
+    return values.map((v) => Tile.toEmoji(v)).join(" ");
+  }
+
+  static toEmoji(value: 牌, hide = false): string {
+    const manzuList = ["🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏"];
+    const pinzuList = ["🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟", "🀠", "🀡"];
+    const souzuList = ["🀐", "🀑", "🀒", "🀓", "🀔", "🀕", "🀖", "🀗", "🀘"];
+    const kazehaiList = { e: "🀀", s: "🀁", w: "🀂", n: "🀃" };
+    const sangenpaiList = { w: "🀆", g: "🀅", r: "🀄" };
+    const hideTile = "🀫";
+
+    if (hide) {
+      return hideTile;
+    }
+
+    if (Tile.isManzu(value)) {
+      return manzuList[Number(value[0]) - 1];
+    } else if (Tile.isPinzu(value)) {
+      return pinzuList[Number(value[0]) - 1];
+    } else if (Tile.isSouzu(value)) {
+      return souzuList[Number(value[0]) - 1];
+    } else if (Tile.isKazehai(value)) {
+      return kazehaiList[value[0] as keyof typeof kazehaiList];
+    } else if (Tile.isSangenpai(value)) {
+      return sangenpaiList[value[0] as keyof typeof sangenpaiList];
+    } else {
+      return "?";
+    }
+  }
+
+  static toMojiArray(values: Array<牌>): string {
+    return values.map((v) => Tile.toMoji(v)).join(" ");
+  }
+
+  static toMoji(value: 牌): string {
+    const tile = new Tile(value);
+    if (Tile.isSuits(value)) {
+      return value;
+    } else if (Tile.isKazehai(value)) {
+      const index = Constants.WindChars.indexOf(tile.toWindTile().value);
+      return `${Constants.WindChars[index]}${Constants.KazehaiChar}`;
+    } else if (Tile.isSangenpai(value)) {
+      const index = Constants.DragonChars.indexOf(tile.toDragonTile().value);
+      return `${Constants.DragonChars[index]}${Constants.SangenpaiChar}`;
+    } else {
+      return "?";
+    }
+  }
+
+  static toEmojiMoji(tile: 牌): string {
+    return `${Tile.toEmoji(tile)} (${Tile.toMoji(tile)})`;
+  }
 }
 
 export class SuitsTile extends Tile {

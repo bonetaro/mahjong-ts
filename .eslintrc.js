@@ -1,21 +1,17 @@
 module.exports = {
-  env: {
-    es2021: true,
-    // 環境に応じてenvは変えてください
-    // "node": true,
-    // "browser": true
-  },
-  extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
+  extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  plugins: ["@typescript-eslint"],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     sourceType: "module",
     project: "./tsconfig.json",
   },
-  plugins: ["@typescript-eslint"],
-  rules: {
-    // お好みで設定ください
-    "@typescript-eslint/no-explicit-any": 1,
-    "@typescript-eslint/no-non-null-assertion": 1,
+  parserOptions: {
+    ecmaVersion: "latest",
+    sourceType: "module",
+    project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
   },
-  root: true,
+  ignorePatterns: ["build"],
+  rules: {},
 };

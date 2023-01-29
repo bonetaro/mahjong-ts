@@ -1,3 +1,5 @@
+import { CommandType } from "MahjongTypes";
+
 export const ManduChar = "m"; // 萬子 Characters
 export const PinduChar = "p"; // 筒子 Wheels
 export const SouduChar = "s"; // 索子 Bamboos
@@ -33,3 +35,12 @@ export const PlayerDirectionList = ["self", "toTheRight", "opposite", "toTheLeft
 export const MeldCommandTypeList = ["pon", "kan", "chi"] as const;
 export const WinCommandTypeList = ["tsumo", "ron"] as const;
 export const CommandTypeList = [...MeldCommandTypeList, ...WinCommandTypeList, "discard", "nothing"] as const;
+export const CommandTypeNames: Record<CommandType, string> = {
+  pon: "ポン",
+  kan: "カン",
+  chi: "チー",
+  tsumo: "ツモ",
+  ron: "ロン",
+  discard: "牌を捨てる",
+  nothing: "何もしない",
+};

@@ -1,7 +1,7 @@
 /* eslint-disable no-constant-condition */
 import { List } from "linqts";
-import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, RoundHandPlayer, Table } from ".";
-import { CheatTableBuilder, WindNameList, askAnyKey, logger, toEmojiMoji } from "../lib";
+import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, RoundHandPlayer, Table, Tile } from ".";
+import { CheatTableBuilder, WindNameList, askAnyKey, logger } from "../lib";
 import { FourMembers } from "../types";
 
 export class Game {
@@ -138,7 +138,7 @@ export class Game {
 
     if (option.dora) {
       const doras = this.currentRoundHand.table.kingsWall.doras;
-      label.push(`ドラ:${doras.map((dora) => toEmojiMoji(dora)).join(" ")}`);
+      label.push(`ドラ:${doras.map((dora) => Tile.toEmojiMoji(dora)).join(" ")}`);
     }
 
     if (label.length > 0) {

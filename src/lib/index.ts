@@ -1,4 +1,4 @@
-export * from "./AskPlayer";
+export * from "./askPlayer";
 export * from "./CheatTableBuilder";
 export * from "./CommandTextCreator";
 export * from "../constants";
@@ -7,7 +7,6 @@ export * from "./HandParser";
 export * from "./Validator";
 export * from "./calculator/MentsuCalculator";
 export * from "./calculator/ReadyCalculator";
-export * from "./functions";
 export * from "./helper";
 export * from "./logging";
 export * from "./readline";

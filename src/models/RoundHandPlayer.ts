@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
-import { DiscardTile, DrawTile, Hand } from ".";
-import { CustomError, WindNameList, logger, toEmoji, toEmojiArray, toEmojiMoji, toMoji, toMojiArray } from "../lib";
+import { DiscardTile, DrawTile, Hand, Tile } from ".";
+import { CustomError, WindNameList, logger } from "../lib";
 import { PlayerDirection, 牌 } from "../types";
 
 export class Player {
@@ -28,8 +28,8 @@ export class RoundHandPlayer extends Player {
     let status = "";
 
     if (this.discardTiles.length > 0) {
-      status = this.discardTiles.map((t) => (t.meld ? `(${toEmoji(t.tile)})` : toEmoji(t.tile))).join(" ");
-      status += " " + this.discardTiles.map((t) => (t.meld ? `(${toMoji(t.tile)})` : toMoji(t.tile))).join(" ");
+      status = this.discardTiles.map((t) => (t.meld ? `(${Tile.toEmoji(t.tile)})` : Tile.toEmoji(t.tile))).join(" ");
+      status += " " + this.discardTiles.map((t) => (t.meld ? `(${Tile.toMoji(t.tile)})` : Tile.toMoji(t.tile))).join(" ");
     }
 
     return `[${status}]`;
@@ -90,13 +90,13 @@ export class RoundHandPlayer extends Player {
 
     this._discardTiles.push(new DiscardTile(tile));
 
-    logger.info(`${this.name}が${toEmojiMoji(tile)}を捨てました`, { hand: this.hand.debugStatus(), discards: this.debugDiscardStatus() });
+    logger.info(`${this.name}が${Tile.toEmojiMoji(tile)}を捨てました`, { hand: this.hand.debugStatus(), discards: this.debugDiscardStatus() });
   }
 
   drawTile(tile: DrawTile) {
     this.hand.drawingTile = tile;
 
-    logger.info(`${this.name}が${tile.kingsTile ? "王牌から" : ""}${toEmojiMoji(tile.tile)}をツモりました`, this.hand.debugStatus());
+    logger.info(`${this.name}が${tile.kingsTile ? "王牌から" : ""}${Tile.toEmojiMoji(tile.tile)}をツモりました`, this.hand.debugStatus());
   }
 
   drawTiles(tiles: Array<牌>) {
@@ -114,8 +114,8 @@ export class RoundHandPlayer extends Player {
     logger.debug(`${this.name}が牌を並び替えました`, {
       tiles: this.hand.tiles.join(""),
       length: this.hand.tiles.length,
-      emoji: toEmojiArray(this.hand.tiles),
-      moji2: toMojiArray(this.hand.tiles),
+      emoji: Tile.toEmojiArray(this.hand.tiles),
+      moji2: Tile.toMojiArray(this.hand.tiles),
     });
   }
 }

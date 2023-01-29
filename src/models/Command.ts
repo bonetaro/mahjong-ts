@@ -1,6 +1,6 @@
 import { List } from "linqts";
-import { AnKanMentsu, ChiMentsu, GameRoundHand, MinKanMentsu, MinKouMentsu, RoundHandPlayer } from ".";
-import { logger, toEmoji, toEmojiMoji } from "../lib";
+import { AnKanMentsu, ChiMentsu, GameRoundHand, MinKanMentsu, MinKouMentsu, RoundHandPlayer, Tile } from ".";
+import { logger } from "../lib";
 import { CommandType, PlayerDirection, isMeldCommandType, 塔子like, 数牌, 牌 } from "../types";
 
 export abstract class BaseCommand {
@@ -60,7 +60,7 @@ export class AnKanCommand extends PlayerCommand {
   }
 
   execute(roundHand: GameRoundHand): void {
-    logger.info(`「${this.who.name}」が${toEmoji(this.tile)} を暗槓しました`);
+    logger.info(`「${this.who.name}」が${Tile.toEmoji(this.tile)} を暗槓しました`);
 
     this.who.hand.removeTiles([this.tile, this.tile, this.tile, this.tile]);
     this.who.hand.openMentsuList.push(new AnKanMentsu(this.tile));
@@ -92,7 +92,7 @@ export class KaKanCommand extends PlayerCommand {
 
     this.who.drawTile(roundHand.pickKingsTile());
 
-    logger.info(`「${this.who.name}」が${toEmoji(this.tile)} を加槓しました`);
+    logger.info(`「${this.who.name}」が${Tile.toEmoji(this.tile)} を加槓しました`);
   }
 }
 
@@ -154,7 +154,10 @@ export class PonCommand extends OtherPlayersCommand {
     // 牌を捨てた人の捨て牌から取り除く（実際はflagをたてるだけ）
     this.whomPlayer(roundHand).discardTiles.slice(-1)[0].meld = true;
 
-    logger.info(`「${this.who.name}」が${toEmoji(this.tile)} をポンしました`, { hand: this.who.hand.debugStatus(), discards: this.who.debugDiscardStatus() });
+    logger.info(`「${this.who.name}」が${Tile.toEmoji(this.tile)} をポンしました`, {
+      hand: this.who.hand.debugStatus(),
+      discards: this.who.debugDiscardStatus(),
+    });
   }
 }
 
@@ -173,7 +176,7 @@ export class DaiMinKanCommand extends OtherPlayersCommand {
     // 牌を捨てた人の捨て牌から取り除く（実際はflagをたてるだけ）
     this.whomPlayer(roundHand).discardTiles.slice(-1)[0].meld = true;
 
-    logger.info(`「${this.who.name}」が${toEmoji(this.tile)} を大明槓しました`);
+    logger.info(`「${this.who.name}」が${Tile.toEmoji(this.tile)} を大明槓しました`);
   }
 }
 
@@ -199,7 +202,7 @@ export class ChiCommand extends OtherPlayersCommand {
     // 牌を捨てた人の捨て牌から取り除く（実際はflagをたてるだけ）
     this.whomPlayer(roundHand).discardTiles.slice(-1)[0].meld = true;
 
-    logger.info(`「${this.who.name}」が${toEmojiMoji(this.tile)}をチーしました`, {
+    logger.info(`「${this.who.name}」が${Tile.toEmojiMoji(this.tile)}をチーしました`, {
       hand: this.who.hand.debugStatus(),
       discards: this.who.debugDiscardStatus(),
     });

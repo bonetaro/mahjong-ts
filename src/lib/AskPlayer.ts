@@ -1,8 +1,8 @@
 /* eslint-disable no-case-declarations */
 import { List } from "linqts";
 import * as Commands from "../models/Command";
-import { MinKouMentsu, RoundHandPlayer } from "../models";
-import { CommandTextCreator, CustomError, HandParser, helper, logger, readCommand, selectCommand, toEmojiArray } from ".";
+import { MinKouMentsu, RoundHandPlayer, Tile } from "../models";
+import { CommandTextCreator, CustomError, HandParser, helper, logger, readCommand, selectCommand } from ".";
 import { FourMembers, OtherPlayersCommandType, PlayerDirection, isHandTilesIndex, isMeldCommandType, 塔子like, 牌 } from "../types";
 import selectChoices from "./readline";
 
@@ -22,7 +22,7 @@ const askPlayerWhatTileOnKanCommand = async (player: RoundHandPlayer, kanCandida
     kanTile = kanCandidateTiles[0];
   } else {
     const answer = await readCommand(
-      `${toEmojiArray(kanCandidateTiles)} どの牌をカンしますか？ [0-${kanCandidateTiles.length - 1}] >\n`,
+      `${Tile.toEmojiArray(kanCandidateTiles)} どの牌をカンしますか？ [0-${kanCandidateTiles.length - 1}] >\n`,
       (input) => 0 <= Number(input) && Number(input) < kanCandidateTiles.length
     );
 
@@ -145,7 +145,7 @@ const createChiCommand = async (who: RoundHandPlayer, playerDirection: PlayerDir
       const index = await selectChoices(
         "どの塔子でチーしますか",
         candidatesList.map((values, index) => {
-          return { name: toEmojiArray(values), value: index.toString() };
+          return { name: Tile.toEmojiArray(values), value: index.toString() };
         })
       );
 

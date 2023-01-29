@@ -1,5 +1,5 @@
 import { Tile, Wall } from ".";
-import { CustomError, logger, toEmojiMoji } from "../lib";
+import { CustomError, logger } from "../lib";
 import { 牌 } from "../types";
 
 export class KingsWall {
@@ -13,7 +13,7 @@ export class KingsWall {
 
     this._wall = wall;
 
-    logger.info(`ドラ: ${this.doras.map((x) => toEmojiMoji(x)).join(" ")}`);
+    logger.info(`ドラ: ${this.doras.map((x) => Tile.toEmojiMoji(x)).join(" ")}`);
   }
 
   get doras(): 牌[] {
