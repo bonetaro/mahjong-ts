@@ -1,39 +1,39 @@
 /* eslint-disable no-constant-condition */
 import { FourMembers, PlayerIndex, isPlayerIndex, 牌 } from "../types";
-import { DrawTile, Game, RoundHandMembers, RoundHandPlayer, Table, Tile, Turn, TurnResult } from ".";
+import { DrawTile, Game, GameRoundHandMembers, GameRoundHandPlayer, GameTable, Tile, Turn, TurnResult } from ".";
 import { CommandTextCreator, CustomError, WindNameList, logger, selectCommand } from "../lib";
 import * as Commands from "./Command";
 
 // 局
 export class GameRoundHand {
-  protected _table: Table = new Table();
-  protected _members: RoundHandMembers;
+  protected _table: GameTable = new GameTable();
+  protected _members: GameRoundHandMembers;
   private _playerIndex: PlayerIndex = 0;
   private _isDraw = false; // 流局
 
-  constructor(players: FourMembers<RoundHandPlayer>) {
+  constructor(players: FourMembers<GameRoundHandPlayer>) {
     logger.debug("gameRoundHand create");
 
-    this._members = new RoundHandMembers(players);
+    this._members = new GameRoundHandMembers(players);
   }
 
   get isDraw(): boolean {
     return this._isDraw;
   }
 
-  get table(): Table {
+  get table(): GameTable {
     return this._table;
   }
 
-  get menbers(): RoundHandMembers {
+  get menbers(): GameRoundHandMembers {
     return this._members;
   }
 
-  get players(): FourMembers<RoundHandPlayer> {
+  get players(): FourMembers<GameRoundHandPlayer> {
     return this._members.players;
   }
 
-  get currentPlayer(): RoundHandPlayer {
+  get currentPlayer(): GameRoundHandPlayer {
     return this._members.getPlayer(this._playerIndex);
   }
 
@@ -57,7 +57,7 @@ export class GameRoundHand {
   }
 
   // ポン、チー、カン(大明槓)を実行
-  executeMeldCommand = async (command: Commands.BaseCommand, player: RoundHandPlayer): Promise<牌> => {
+  executeMeldCommand = async (command: Commands.BaseCommand, player: GameRoundHandPlayer): Promise<牌> => {
     this.executeCommand(command);
 
     // どの牌を捨てるか
@@ -102,7 +102,7 @@ export class GameRoundHand {
     } while (true);
   };
 
-  setCurrentPlayer(player: RoundHandPlayer): RoundHandPlayer {
+  setCurrentPlayer(player: GameRoundHandPlayer): GameRoundHandPlayer {
     const index = this.players.findIndex((p) => p.id == player.id);
     this.setPlayerIndex(index);
 
@@ -169,7 +169,7 @@ export class CheatGameRoundHand extends GameRoundHand {
   }
 
   // イカサマ牌を設定するためsetterを用意
-  set table(table: Table) {
+  set table(table: GameTable) {
     this._table = table;
   }
 }

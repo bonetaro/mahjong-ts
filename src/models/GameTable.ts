@@ -3,7 +3,7 @@ import { CustomError, DragonChars, KazehaiChar, ManduChar, PinduChar, SangenpaiC
 import { KingsWall, Tile, Wall } from ".";
 import { 牌, 数牌の色 } from "../types";
 
-export class Table {
+export class GameTable {
   private _walls: Wall[] = []; //牌の山
   private _kingsWall: KingsWall; // 王牌
   protected _washedTiles: 牌[] = [];
@@ -12,7 +12,7 @@ export class Table {
     if (washedTiles) {
       this._washedTiles = washedTiles;
     } else {
-      this.washInitializeTiles(Table.initializeTiles());
+      this.washInitializeTiles(GameTable.initializeTiles());
     }
 
     if (!Validator.isValidAllTiles(this._washedTiles)) {

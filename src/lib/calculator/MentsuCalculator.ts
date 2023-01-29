@@ -1,10 +1,10 @@
 import { List } from "linqts";
-import { Hand, Mentsu, MinKouMentsu, Tile } from "../../models";
+import { PlayerHand, Mentsu, MinKouMentsu, Tile } from "../../models";
 import { helper } from "../helper";
 import { 牌, 塔子like, 面子like, 順子like } from "../../types";
 
 abstract class MentsuCalculator {
-  constructor(protected readonly hand: Hand) {}
+  constructor(protected readonly hand: PlayerHand) {}
 }
 
 export class KanCalculator extends MentsuCalculator {

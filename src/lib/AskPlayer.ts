@@ -1,7 +1,7 @@
 /* eslint-disable no-case-declarations */
 import { List } from "linqts";
 import * as Commands from "../models/Command";
-import { MinKouMentsu, RoundHandPlayer, Tile } from "../models";
+import { MinKouMentsu, GameRoundHandPlayer, Tile } from "../models";
 import { CommandTextCreator, CustomError, HandParser, helper, logger, readCommand, selectCommand } from ".";
 import { FourMembers, OtherPlayersCommandType, PlayerDirection, isHandTilesIndex, isMeldCommandType, 塔子like, 牌 } from "../types";
 import selectChoices from "./readline";
@@ -15,7 +15,7 @@ export const askOtherPlayersWhetherDoChankanIfPossible = (command: Commands.Play
   return null;
 };
 
-const askPlayerWhatTileOnKanCommand = async (player: RoundHandPlayer, kanCandidateTiles: 牌[]): Promise<Commands.PlayerCommand> => {
+const askPlayerWhatTileOnKanCommand = async (player: GameRoundHandPlayer, kanCandidateTiles: 牌[]): Promise<Commands.PlayerCommand> => {
   let kanTile: 牌;
 
   if (kanCandidateTiles.length === 1) {
@@ -38,7 +38,7 @@ const askPlayerWhatTileOnKanCommand = async (player: RoundHandPlayer, kanCandida
   }
 };
 
-export const askPlayerWhatCommand = async (player: RoundHandPlayer): Promise<Commands.PlayerCommand> => {
+export const askPlayerWhatCommand = async (player: GameRoundHandPlayer): Promise<Commands.PlayerCommand> => {
   const playerCommandMap = new HandParser(player.hand).parseAsPlayerCommand();
 
   const playerCommandTypeList = Array.from(playerCommandMap.keys());
@@ -62,9 +62,9 @@ export const askPlayerWhatCommand = async (player: RoundHandPlayer): Promise<Com
 };
 
 export const askOtherPlayersWhatCommand = async (
-  players: FourMembers<RoundHandPlayer>,
+  players: FourMembers<GameRoundHandPlayer>,
   discardTile: 牌,
-  whom: RoundHandPlayer
+  whom: GameRoundHandPlayer
 ): Promise<Commands.OtherPlayersCommand> => {
   const otherPlayers = players.filter((player) => player.id != whom.id);
   const possiblePlayerCommandMap = calculatePossiblePlayerCommandMap(otherPlayers, whom);
@@ -81,8 +81,8 @@ export const askOtherPlayersWhatCommand = async (
     return await makeOtherPlayersCommand(answer, possiblePlayerCommandMap, whom, discardTile);
   }
 
-  function calculatePossiblePlayerCommandMap(otherPlayers: RoundHandPlayer[], whom: RoundHandPlayer) {
-    const otherPlayersCommandMap = new Map<RoundHandPlayer, Map<OtherPlayersCommandType, 牌[][]>>();
+  function calculatePossiblePlayerCommandMap(otherPlayers: GameRoundHandPlayer[], whom: GameRoundHandPlayer) {
+    const otherPlayersCommandMap = new Map<GameRoundHandPlayer, Map<OtherPlayersCommandType, 牌[][]>>();
     otherPlayers.forEach((player) => {
       otherPlayersCommandMap.set(player, new HandParser(player.hand).parseAsOtherPlayersCommand(discardTile, whom.isLeftPlayer(player)));
     });
@@ -92,8 +92,8 @@ export const askOtherPlayersWhatCommand = async (
 
   async function makeOtherPlayersCommand(
     answer: OtherPlayersCommandType,
-    possiblePlayerCommandMap: Map<RoundHandPlayer, Map<OtherPlayersCommandType, 牌[][]>>,
-    whom: RoundHandPlayer,
+    possiblePlayerCommandMap: Map<GameRoundHandPlayer, Map<OtherPlayersCommandType, 牌[][]>>,
+    whom: GameRoundHandPlayer,
     tile: 牌
   ): Promise<Commands.OtherPlayersCommand> {
     let command: Commands.OtherPlayersCommand;
@@ -134,7 +134,7 @@ export const askOtherPlayersWhatCommand = async (
   }
 };
 
-const createChiCommand = async (who: RoundHandPlayer, playerDirection: PlayerDirection, tile: 牌, candidatesList: 牌[][]): Promise<Commands.ChiCommand> => {
+const createChiCommand = async (who: GameRoundHandPlayer, playerDirection: PlayerDirection, tile: 牌, candidatesList: 牌[][]): Promise<Commands.ChiCommand> => {
   const tarts: 塔子like = await selectTarts();
   const command = new Commands.ChiCommand(who, playerDirection, tile, tarts);
 

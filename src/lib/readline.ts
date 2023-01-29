@@ -1,7 +1,7 @@
 import inquirer from "inquirer";
 import * as readline from "readline";
 import { CommandTypeNames, logger } from ".";
-import { Hand, Tile } from "../models";
+import { PlayerHand, Tile } from "../models";
 import { CommandType, HandTilesIndex, isCommandType, isHandTilesIndex } from "../types";
 
 const readInput = async (message: string): Promise<string> => {
@@ -32,7 +32,7 @@ export const readCommand = async (message: string, condition?: (input: string) =
 };
 
 // todo コマンドによって戻り値の型を変える
-export const selectCommand = async (message: string, hand: Hand, commandTypeList: CommandType[]): Promise<CommandType | HandTilesIndex> => {
+export const selectCommand = async (message: string, hand: PlayerHand, commandTypeList: CommandType[]): Promise<CommandType | HandTilesIndex> => {
   // todo 食い替えを禁止する対応
 
   const tileChoices = commandTypeList.includes("discard")

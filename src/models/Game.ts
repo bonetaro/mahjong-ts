@@ -1,6 +1,6 @@
 /* eslint-disable no-constant-condition */
 import { List } from "linqts";
-import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, RoundHandPlayer, Table, Tile } from ".";
+import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, GameRoundHandPlayer, GameTable, Tile } from ".";
 import { CheatTableBuilder, WindNameList, askAnyKey, logger } from "../lib";
 import { FourMembers } from "../types";
 
@@ -123,7 +123,7 @@ export class Game {
     this._rounds.push(new GameRound());
   }
 
-  createRoundHand(players: FourMembers<RoundHandPlayer>): void {
+  createRoundHand(players: FourMembers<GameRoundHandPlayer>): void {
     this.currentRound.hands.push(new GameRoundHand(players));
   }
 
@@ -168,7 +168,7 @@ export class Game {
     this.createRound();
 
     // 東1局作成
-    const players = this.players.map((player, index) => new RoundHandPlayer(index, player)) as FourMembers<RoundHandPlayer>;
+    const players = this.players.map((player, index) => new GameRoundHandPlayer(index, player)) as FourMembers<GameRoundHandPlayer>;
     this.createRoundHand(players);
   }
 
@@ -191,8 +191,8 @@ export class CheatGame extends Game {
       builder.setPlayerDrawTiles(playerDealedTiles, index);
     });
 
-    const roundHand = new CheatGameRoundHand(players.map((player, index) => new RoundHandPlayer(index, player)) as FourMembers<RoundHandPlayer>);
-    roundHand.table = new Table(builder.build().washedTiles);
+    const roundHand = new CheatGameRoundHand(players.map((player, index) => new GameRoundHandPlayer(index, player)) as FourMembers<GameRoundHandPlayer>);
+    roundHand.table = new GameTable(builder.build().washedTiles);
 
     this.currentRound.hands.push(roundHand);
   }

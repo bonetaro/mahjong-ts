@@ -1,9 +1,9 @@
 import { OtherPlayersCommandType, PlayerCommandType, 牌 } from "../types";
-import { Hand } from "../models";
+import { PlayerHand } from "../models";
 import { ChiCalculator, KanCalculator, PonCalculator } from "./calculator/MentsuCalculator";
 
 export class HandParser {
-  constructor(private readonly hand: Hand) {}
+  constructor(private readonly hand: PlayerHand) {}
 
   private _parseAsPlayerCommand = (): Map<PlayerCommandType, 牌[]> => {
     const playerCommandMap = new Map<PlayerCommandType, 牌[]>();

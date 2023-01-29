@@ -1,10 +1,10 @@
 import { List } from "linqts";
-import { Hand } from "./";
+import { PlayerHand } from "./";
 import { CustomError } from "../lib";
 import { 牌 } from "../types";
 
 export class PlayerDrawTiles {
-  constructor(public hand = new Hand(), public drawTiles: 牌[] = []) {
+  constructor(public hand = new PlayerHand(), public drawTiles: 牌[] = []) {
     const group = new List(this.hand.tiles).GroupBy((t) => t);
 
     if (Object.keys(group).filter((key) => group[key].length > 4).length > 0) {

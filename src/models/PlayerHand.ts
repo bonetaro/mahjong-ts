@@ -2,7 +2,7 @@ import { DrawTile, IMentsu, Tile } from ".";
 import { CustomError } from "../lib";
 import { 牌 } from "../types";
 
-export class Hand {
+export class PlayerHand {
   private _tiles: 牌[];
   private _openMentsuList: IMentsu[] = [];
   private _drawingTile: DrawTile;
@@ -19,7 +19,7 @@ export class Hand {
         throw new CustomError("hand tiles count must be 13", tiles);
       }
     } else if (typeof tileSomthing === "string") {
-      tiles = Hand.parse(tileSomthing);
+      tiles = PlayerHand.parse(tileSomthing);
     }
 
     this._tiles = tiles ?? [];

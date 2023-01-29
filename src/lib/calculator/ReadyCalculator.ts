@@ -1,7 +1,7 @@
-import { Hand } from "../../models/Hand";
+import { PlayerHand } from "../../models/PlayerHand";
 
 export class ReadyCalculator {
-  constructor(private hand: Hand) {}
+  constructor(private hand: PlayerHand) {}
 
   public calculate(): number {
     return 0;

@@ -1,11 +1,11 @@
 import { CommandType } from "../types";
-import { RoundHandPlayer } from "../models";
+import { GameRoundHandPlayer } from "../models";
 import { CommandTypeNames } from ".";
 
 export class CommandTextCreator {
   constructor(private commands: CommandType[]) {}
 
-  createPlayerCommandText(player?: RoundHandPlayer): string {
+  createPlayerCommandText(player?: GameRoundHandPlayer): string {
     const textList = this.createCommandTextList();
 
     let commandText = textList.length > 1 ? `${textList.join("|")} > ` : "";

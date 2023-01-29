@@ -1,5 +1,5 @@
 import { List } from "linqts";
-import { CheatTable, Hand, PlayerDrawTiles, Table, Tile } from "../models";
+import { CheatTable, PlayerHand, PlayerDrawTiles, GameTable, Tile } from "../models";
 import { FourMembers, 牌 } from "../types";
 import { CustomError, Validator } from ".";
 
@@ -8,7 +8,7 @@ export class CheatTableBuilder {
   public _playerDrawTilesList: FourMembers<PlayerDrawTiles>;
 
   constructor() {
-    this._baseCheatTable = new CheatTable(new Table().washedTiles);
+    this._baseCheatTable = new CheatTable(new GameTable().washedTiles);
 
     if (!Validator.isValidAllTiles(this._baseCheatTable.washedTiles)) {
       throw new CustomError(this._baseCheatTable);
@@ -96,7 +96,7 @@ export class CheatTableBuilder {
 
   fillHandOfPlayerDrawTiles = (playerDrawTiles: PlayerDrawTiles) => {
     if (playerDrawTiles.hand.tiles.length == 0) {
-      playerDrawTiles.hand = new Hand(this._baseCheatTable.drawTiles(13));
+      playerDrawTiles.hand = new PlayerHand(this._baseCheatTable.drawTiles(13));
     } else if (playerDrawTiles.hand.tiles.length != 13) {
       throw new CustomError(playerDrawTiles);
     }
@@ -104,7 +104,7 @@ export class CheatTableBuilder {
 
   // 引数の牌を加えることで、全ての牌(1種の牌が4枚ずつ136枚)がそろうように残りの牌を生成する
   createRestTiles = (handTiles: 牌[]): 牌[] => {
-    const suffleTiles = Table.shuffleTiles(Table.initializeTiles());
+    const suffleTiles = GameTable.shuffleTiles(GameTable.initializeTiles());
 
     // イカサマ牌を先頭に足して、逆順にする(末尾にイカサマ牌を末尾にもってくる)
     const reversedTiles = new List(handTiles.concat(suffleTiles)).Reverse();

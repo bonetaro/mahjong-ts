@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { DiscardTile, DrawTile, Hand, Tile } from ".";
+import { DiscardTile, DrawTile, PlayerHand, Tile } from ".";
 import { CustomError, WindNameList, logger } from "../lib";
 import { PlayerDirection, 牌 } from "../types";
 
@@ -9,10 +9,10 @@ export class Player {
   }
 }
 
-export class RoundHandPlayer extends Player {
+export class GameRoundHandPlayer extends Player {
   private _discardTiles: DiscardTile[];
 
-  constructor(public index: number, player: Player, public hand = new Hand()) {
+  constructor(public index: number, player: Player, public hand = new PlayerHand()) {
     super(player.name);
   }
 
@@ -44,21 +44,21 @@ export class RoundHandPlayer extends Player {
   }
 
   // 下家
-  isRightPlayer(player: RoundHandPlayer): boolean {
+  isRightPlayer(player: GameRoundHandPlayer): boolean {
     return (this.index + 1) % 4 == player.index;
   }
 
   // 対面
-  isOppositePlayer(player: RoundHandPlayer): boolean {
+  isOppositePlayer(player: GameRoundHandPlayer): boolean {
     return (this.index + 2) % 4 == player.index;
   }
 
   // 上家
-  isLeftPlayer(player: RoundHandPlayer): boolean {
+  isLeftPlayer(player: GameRoundHandPlayer): boolean {
     return (this.index + 3) % 4 == player.index;
   }
 
-  getPlayerDirectionOf(player: RoundHandPlayer): PlayerDirection {
+  getPlayerDirectionOf(player: GameRoundHandPlayer): PlayerDirection {
     if (this.isLeftPlayer(player)) {
       return "toTheLeft";
     } else if (this.isRightPlayer(player)) {
@@ -73,7 +73,7 @@ export class RoundHandPlayer extends Player {
   init(): void {
     logger.debug("player init");
 
-    this.hand = new Hand();
+    this.hand = new PlayerHand();
     this._discardTiles = [];
   }
 
