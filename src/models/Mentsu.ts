@@ -1,6 +1,7 @@
 import { 牌, 面子like, 槓子like, 刻子like, 数牌の色, 順子like, 順子, PlayerDirection, 数牌, 塔子like } from "../types";
 import { CustomError } from "../lib";
 import { Tile } from "./";
+import { PlayerDirectionList } from "../constants";
 
 export interface IMentsu {
   get tiles(): 牌[];
@@ -140,28 +141,14 @@ export class ChiMentsu extends Mentsu<順子like> implements OpenMentsu {
 
 // 明刻
 export class MinKouMentsu extends KoutsuMentsu implements OpenMentsu {
-  private _calledTile: 牌;
-  private _fromPlayerDirection: PlayerDirection;
-
-  constructor(calledTile: 牌, fromPlayerDirection: PlayerDirection) {
+  constructor(public readonly calledTile: 牌, public readonly fromPlayerDirection: PlayerDirection) {
     super(calledTile);
-
-    this._calledTile = calledTile;
-    this._fromPlayerDirection = fromPlayerDirection;
-  }
-
-  get calledTile(): 牌 {
-    return this._calledTile;
-  }
-
-  get fromPlayerDirection(): PlayerDirection {
-    return this._fromPlayerDirection;
   }
 
   emojiStatus(): string {
     return [...Array(3)]
       .map((_, index) => {
-        const text = index + Number(this.fromPlayerDirection) == 3 ? `(${Tile.toEmoji(this.calledTile)} )` : Tile.toEmoji(this.calledTile);
+        const text = index == PlayerDirectionList.indexOf(this.fromPlayerDirection) ? `(${Tile.toEmoji(this.calledTile)} )` : Tile.toEmoji(this.calledTile);
         return text;
       })
       .join(" ");

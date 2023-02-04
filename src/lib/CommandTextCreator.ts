@@ -1,6 +1,6 @@
 import { CommandType } from "../types";
 import { GameRoundHandPlayer } from "../models";
-import { CommandTypeNames } from ".";
+import { CommandTypeNames } from "../constants";
 
 export class CommandTextCreator {
   constructor(private commands: CommandType[]) {}

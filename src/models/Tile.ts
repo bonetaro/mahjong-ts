@@ -132,19 +132,19 @@ export class Tile {
   }
 
   static isEast(value: unknown): value is 東 {
-    return value.toString() === `${Constants.EastWindChar}${Constants.KazehaiChar}`;
+    return value.toString() === `${Constants.EastWindChar}${Constants.WindChar}`;
   }
 
   static isSouth(value: unknown): value is 南 {
-    return value.toString() === `${Constants.SouduChar}${Constants.KazehaiChar}`;
+    return value.toString() === `${Constants.SouduChar}${Constants.WindChar}`;
   }
 
   static isWest(value: unknown): value is 西 {
-    return value.toString() === `${Constants.WestWindChar}${Constants.KazehaiChar}`;
+    return value.toString() === `${Constants.WestWindChar}${Constants.WindChar}`;
   }
 
   static isNorth(value: unknown): value is 北 {
-    return value.toString() === `${Constants.NorthWindChar}${Constants.KazehaiChar}`;
+    return value.toString() === `${Constants.NorthWindChar}${Constants.WindChar}`;
   }
 
   static isKazehai(value: unknown): value is 四風牌 {
@@ -152,15 +152,15 @@ export class Tile {
   }
 
   static isHaku(value: unknown): value is 白 {
-    return value.toString() === `${Constants.WhiteDragonChar}${Constants.SangenpaiChar}`;
+    return value.toString() === `${Constants.WhiteDragonChar}${Constants.DragonChar}`;
   }
 
   static isHatsu(value: unknown): value is 發 {
-    return value.toString() === `${Constants.GreenDragonChar}${Constants.SangenpaiChar}`;
+    return value.toString() === `${Constants.GreenDragonChar}${Constants.DragonChar}`;
   }
 
   static isChun(value: unknown): value is 中 {
-    return value.toString() === `${Constants.RedDragonChar}${Constants.SangenpaiChar}`;
+    return value.toString() === `${Constants.RedDragonChar}${Constants.DragonChar}`;
   }
 
   static isSangenpai(value: unknown): value is 三元牌 {
@@ -186,11 +186,11 @@ export class Tile {
     } else if (Tile.isKazehai(pai)) {
       const value = new Tile(pai).toWindTile().value;
       const nextIndex = (Constants.WindChars.indexOf(value) + 1) % Constants.WindChars.length;
-      return `${Constants.WindChars[nextIndex]}${Constants.KazehaiChar}`;
+      return `${Constants.WindChars[nextIndex]}${Constants.WindChar}`;
     } else if (Tile.isSangenpai(pai)) {
       const value = new Tile(pai).toDragonTile().value;
       const nextIndex = (Constants.DragonChars.indexOf(value) + 1) % Constants.DragonChars.length;
-      return `${Constants.DragonChars[nextIndex]}${Constants.SangenpaiChar}`;
+      return `${Constants.DragonChars[nextIndex]}${Constants.DragonChar}`;
     } else {
       throw new Error(pai);
     }
@@ -251,10 +251,10 @@ export class Tile {
       return value;
     } else if (Tile.isKazehai(value)) {
       const index = Constants.WindChars.indexOf(tile.toWindTile().value);
-      return `${Constants.WindChars[index]}${Constants.KazehaiChar}`;
+      return `${Constants.WindChars[index]}${Constants.WindChar}`;
     } else if (Tile.isSangenpai(value)) {
       const index = Constants.DragonChars.indexOf(tile.toDragonTile().value);
-      return `${Constants.DragonChars[index]}${Constants.SangenpaiChar}`;
+      return `${Constants.DragonChars[index]}${Constants.DragonChar}`;
     } else {
       return "?";
     }

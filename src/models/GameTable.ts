@@ -1,15 +1,16 @@
 import { Enumerable, List } from "linqts";
-import { CustomError, DragonChars, KazehaiChar, ManduChar, PinduChar, SangenpaiChar, SouduChar, Validator, WindChars, logger } from "../lib";
 import { KingsWall, Tile, Wall } from ".";
-import { 牌, 数牌の色 } from "../types";
+import { DragonChars, WindChar, ManduChar, PinduChar, DragonChar, SouduChar, WindChars } from "../constants";
+import { CustomError, Validator, logger } from "../lib";
+import { 数牌の色, 牌 } from "../types";
 
 export class GameTable {
   private _walls: Wall[] = []; //牌の山
   private _kingsWall: KingsWall; // 王牌
   protected _washedTiles: 牌[] = [];
 
-  constructor(washedTiles?: Array<牌>) {
-    if (washedTiles) {
+  constructor(washedTiles?: 牌[]) {
+    if (washedTiles != null) {
       this._washedTiles = washedTiles;
     } else {
       this.washInitializeTiles(GameTable.initializeTiles());
@@ -86,7 +87,6 @@ export class GameTable {
     return new List(this._walls).Last((wall) => wall.tilesCount > 0).popTile();
   }
 
-  //洗牌
   washInitializeTiles(tiles: 牌[]): void {
     this._washedTiles = new List(tiles).OrderBy(() => Math.random()).ToArray();
 
@@ -136,11 +136,11 @@ export class GameTable {
   }
 
   static initializeKazehai(): Array<牌> {
-    return WindChars.map((c) => Tile.toKazehai(`${c}${KazehaiChar}`));
+    return WindChars.map((c) => Tile.toKazehai(`${c}${WindChar}`));
   }
 
   static initializeSangenpai(): Array<牌> {
-    return DragonChars.map((c) => Tile.toSangenpai(`${c}${SangenpaiChar}`));
+    return DragonChars.map((c) => Tile.toSangenpai(`${c}${DragonChar}`));
   }
 }
 

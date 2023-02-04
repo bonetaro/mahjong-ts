@@ -1,8 +1,11 @@
 import inquirer from "inquirer";
 import * as readline from "readline";
-import { CommandTypeNames, logger } from ".";
+import { logger } from ".";
 import { PlayerHand, Tile } from "../models";
-import { CommandType, HandTilesIndex, isCommandType, isHandTilesIndex } from "../types";
+import { CommandType, isCommandType } from "../types";
+import { CommandTypeNames } from "../constants";
+import { Helper } from "./Helper";
+import { CustomError } from "./CustomError";
 
 const readInput = async (message: string): Promise<string> => {
   const rl = readline.createInterface({
@@ -27,12 +30,21 @@ export const readCommand = async (message: string, condition?: (input: string) =
       return ans;
     }
 
-    logger.error(`無効です。もう一度入力してください。`);
+    logger.info(`無効です。もう一度入力してください。`);
   }
 };
 
+export const selectDicardTile = async (message: string, hand: PlayerHand): Promise<number> => {
+  const answer = await selectCommand(message, hand, ["discard"]);
+  if (Helper.isInt(answer)) {
+    return Number(answer);
+  }
+
+  throw new CustomError(answer);
+};
+
 // todo コマンドによって戻り値の型を変える
-export const selectCommand = async (message: string, hand: PlayerHand, commandTypeList: CommandType[]): Promise<CommandType | HandTilesIndex> => {
+export const selectCommand = async (message: string, hand: PlayerHand, commandTypeList: CommandType[]): Promise<CommandType | number> => {
   // todo 食い替えを禁止する対応
 
   const tileChoices = commandTypeList.includes("discard")
@@ -55,8 +67,13 @@ export const selectCommand = async (message: string, hand: PlayerHand, commandTy
 
   const choice = await selectChoices(message, commandChoices.concat(tileChoices));
 
-  if (isCommandType(choice) || isHandTilesIndex(choice)) {
+  if (isCommandType(choice)) {
     return choice;
+  }
+
+  const num = Number(choice);
+  if (Helper.isRangeNumber(num, hand.tiles.length)) {
+    return num;
   }
 };
 

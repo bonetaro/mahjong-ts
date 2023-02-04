@@ -1,9 +1,10 @@
 /* eslint-disable no-case-declarations */
 import { List } from "linqts";
+import { CommandTextCreator, CustomError, HandParser, Helper, logger, readCommand, selectCommand } from ".";
+import { GameRoundHandPlayer, Tile } from "../models";
 import * as Commands from "../models/Command";
-import { MinKouMentsu, GameRoundHandPlayer, Tile } from "../models";
-import { CommandTextCreator, CustomError, HandParser, helper, logger, readCommand, selectCommand } from ".";
-import { FourMembers, OtherPlayersCommandType, PlayerDirection, isHandTilesIndex, isMeldCommandType, 塔子like, 牌 } from "../types";
+import { FourMembers, OtherPlayersCommandType, PlayerDirection, isMeldCommandType, 塔子like, 牌 } from "../types";
+import { KanCalculator } from "./calculator";
 import selectChoices from "./readline";
 
 export const askAnyKey = async (msg: string): Promise<string> => {
@@ -15,27 +16,30 @@ export const askOtherPlayersWhetherDoChankanIfPossible = (command: Commands.Play
   return null;
 };
 
-const askPlayerWhatTileOnKanCommand = async (player: GameRoundHandPlayer, kanCandidateTiles: 牌[]): Promise<Commands.PlayerCommand> => {
+const askPlayerWhatTileOnKanCommand = async (player: GameRoundHandPlayer, candidateTiles: 牌[]): Promise<Commands.PlayerCommand> => {
   let kanTile: 牌;
 
-  if (kanCandidateTiles.length === 1) {
-    kanTile = kanCandidateTiles[0];
+  if (candidateTiles.length === 1) {
+    kanTile = candidateTiles[0];
   } else {
     const answer = await readCommand(
-      `${Tile.toEmojiArray(kanCandidateTiles)} どの牌をカンしますか？ [0-${kanCandidateTiles.length - 1}] >\n`,
-      (input) => 0 <= Number(input) && Number(input) < kanCandidateTiles.length
+      `${Tile.toEmojiArray(candidateTiles)} どの牌をカンしますか？ [0-${candidateTiles.length - 1}] >\n`,
+      (input) => 0 <= Number(input) && Number(input) < candidateTiles.length
     );
 
-    kanTile = kanCandidateTiles[Number(answer)];
+    kanTile = candidateTiles[Number(answer)];
   }
 
-  if (player.hand.openMentsuList.filter((mentsu) => mentsu instanceof MinKouMentsu).some((mentsu) => mentsu.tiles.includes(kanTile))) {
+  const calculator = new KanCalculator(player.hand);
+  if (calculator.canKakan(kanTile)) {
     return new Commands.KaKanCommand(player, kanTile);
-  } else if (player.hand.tiles.includes(kanTile)) {
-    return new Commands.AnKanCommand(player, kanTile);
   } else {
-    throw new CustomError(kanTile);
+    if (calculator.ankanCandidateTiles().includes(kanTile)) {
+      return new Commands.AnKanCommand(player, kanTile);
+    }
   }
+
+  throw new CustomError(kanTile);
 };
 
 export const askPlayerWhatCommand = async (player: GameRoundHandPlayer): Promise<Commands.PlayerCommand> => {
@@ -45,29 +49,29 @@ export const askPlayerWhatCommand = async (player: GameRoundHandPlayer): Promise
   const commandText = new CommandTextCreator(playerCommandTypeList).createPlayerCommandText(player);
 
   const answer = await selectCommand(commandText, player.hand, playerCommandTypeList);
-
-  if (isHandTilesIndex(answer)) {
-    return new Commands.DiscardCommand(player, player.hand.tiles[answer]);
-  }
-
   switch (answer) {
     case "tsumo":
       return new Commands.TsumoCommand(player);
     case "kan":
-      // 暗カン or 加カン
+      // 暗カン or 加カン。暗槓できる状態で、加槓できる牌を持ってくる場合もあるため
       return await askPlayerWhatTileOnKanCommand(player, playerCommandMap.get("kan"));
-  }
+    default:
+      const num = Number(answer);
+      if (Helper.isRangeNumber(num, player.hand.tiles.length)) {
+        return new Commands.DiscardCommand(player, player.hand.tiles[num]);
+      }
 
-  throw new CustomError(answer);
+      throw new CustomError(num);
+  }
 };
 
 export const askOtherPlayersWhatCommand = async (
   players: FourMembers<GameRoundHandPlayer>,
   discardTile: 牌,
-  whom: GameRoundHandPlayer
+  currentPlayer: GameRoundHandPlayer
 ): Promise<Commands.OtherPlayersCommand> => {
-  const otherPlayers = players.filter((player) => player.id != whom.id);
-  const possiblePlayerCommandMap = calculatePossiblePlayerCommandMap(otherPlayers, whom);
+  const otherPlayers = players.filter((player) => player.id != currentPlayer.id);
+  const possiblePlayerCommandMap = calculatePossibleOtherPlayersCommandMap(otherPlayers, currentPlayer);
 
   const commandTypeList = new List(Array.from(possiblePlayerCommandMap.values()).flatMap((value) => Array.from(value.keys()))).Distinct().ToArray();
   const commandText = new CommandTextCreator(commandTypeList).createOtherPlayersCommandText();
@@ -77,14 +81,14 @@ export const askOtherPlayersWhatCommand = async (
   // 実行したいコマンドを選ぶ
   const answer = await selectCommand(commandText, null, commandTypeList);
 
-  if (helper.includes(commandTypeList, answer)) {
-    return await makeOtherPlayersCommand(answer, possiblePlayerCommandMap, whom, discardTile);
+  if (Helper.includes(commandTypeList, answer)) {
+    return await makeOtherPlayersCommand(answer, possiblePlayerCommandMap, currentPlayer, discardTile);
   }
 
-  function calculatePossiblePlayerCommandMap(otherPlayers: GameRoundHandPlayer[], whom: GameRoundHandPlayer) {
+  function calculatePossibleOtherPlayersCommandMap(otherPlayers: GameRoundHandPlayer[], currentPlayer: GameRoundHandPlayer) {
     const otherPlayersCommandMap = new Map<GameRoundHandPlayer, Map<OtherPlayersCommandType, 牌[][]>>();
     otherPlayers.forEach((player) => {
-      otherPlayersCommandMap.set(player, new HandParser(player.hand).parseAsOtherPlayersCommand(discardTile, whom.isLeftPlayer(player)));
+      otherPlayersCommandMap.set(player, new HandParser(player.hand).parseAsOtherPlayersCommand(discardTile, currentPlayer.isLeftPlayerOf(player)));
     });
 
     return otherPlayersCommandMap;
@@ -101,13 +105,13 @@ export const askOtherPlayersWhatCommand = async (
     if (isMeldCommandType(answer)) {
       // どのコマンドかで、誰が主体かわかるはず
       const possiblePlayers = Array.from(possiblePlayerCommandMap.keys());
+
       const who = new List(possiblePlayers).Single((p) => {
-        possiblePlayerCommandMap.get(p);
         const commandTypes = Array.from(possiblePlayerCommandMap.get(p).keys());
         return new List(commandTypes).Any((type) => type === answer);
       });
 
-      const playerDirection = whom.getPlayerDirectionOf(who);
+      const playerDirection = whom.getDirectionOf(who);
 
       switch (answer) {
         case "pon":

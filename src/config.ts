@@ -11,8 +11,7 @@ const playerDrawTilesList: FourMembers<PlayerDrawTiles> = [
   new PlayerDrawTiles(new PlayerHand(), ["5m"]),
 ];
 
-const cheatOption = new CheatOption(playerDrawTilesList);
-const gameOption = new GameOption(players, cheatOption); // チート半荘
+const gameOption = new GameOption(players, new CheatOption(playerDrawTilesList)); // チート半荘
 // const gameOption = new GameOption(players); // 通常の半荘
 
 export { gameOption };

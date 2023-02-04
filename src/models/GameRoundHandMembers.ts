@@ -1,5 +1,5 @@
 import { FourMembers, PlayerIndex, PlayerDirection, isPlayerIndex } from "../types";
-import { logger, PlayerDirectionList } from "../lib";
+import { logger } from "../lib";
 import { GameRoundHandPlayer } from ".";
 
 export class GameRoundHandMembers {
@@ -11,8 +11,8 @@ export class GameRoundHandMembers {
     return this.players[index];
   }
 
-  getPlayerOf(player: GameRoundHandPlayer, direction: PlayerDirection): GameRoundHandPlayer {
-    const index = (player.index + PlayerDirectionList.indexOf(direction)) % PlayerDirectionList.length;
+  getPlayerByDirection(player: GameRoundHandPlayer, direction: PlayerDirection): GameRoundHandPlayer {
+    const index = player.calculateIndex(direction);
     if (isPlayerIndex(index)) {
       return this.players[index];
     }

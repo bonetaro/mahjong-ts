@@ -105,7 +105,7 @@ export abstract class OtherPlayersCommand extends BaseCommand {
   }
 
   whomPlayer(roundHand: GameRoundHand): GameRoundHandPlayer {
-    return roundHand.menbers.getPlayerOf(this.who, this.direction);
+    return roundHand.menbers.getPlayerByDirection(this.who, this.direction);
   }
 }
 
@@ -184,7 +184,7 @@ export class DaiMinKanCommand extends OtherPlayersCommand {
 export class ChiCommand extends OtherPlayersCommand {
   private _tiles: 塔子like; // 順子のもとになったターツ
 
-  constructor(who: GameRoundHandPlayer, direction: PlayerDirection, tile: 牌, tiles: 塔子like) {
+  constructor(who: GameRoundHandPlayer, direction: PlayerDirection = "toTheLeft", tile: 牌, tiles: 塔子like) {
     super(who, direction, tile);
     this._tiles = tiles;
     this._type = "chi";

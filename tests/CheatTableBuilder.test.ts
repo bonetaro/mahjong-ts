@@ -1,12 +1,12 @@
 import { CheatTableBuilder } from "../src/lib/CheatTableBuilder";
-import { PlayerDrawTiles, Hand, Tile } from "../src/models";
+import { PlayerDrawTiles, PlayerHand, Tile } from "../src/models";
 import { FourMembers, 牌 } from "../src/types/MahjongTypes";
 
 const playerDrawTilesList: FourMembers<PlayerDrawTiles> = [
-  new PlayerDrawTiles(new Hand("1m1m1m1m9m2m3m1p3m4m4m2s3s")),
-  new PlayerDrawTiles(new Hand("1s1s1s2s9s2s3s1p3p4p4p1p2p"), ["3m"]),
-  new PlayerDrawTiles(new Hand(), ["4m"]),
-  new PlayerDrawTiles(new Hand(), ["5m"]),
+  new PlayerDrawTiles(new PlayerHand("1m1m1m1m9m2m3m1p3m4m4m2s3s")),
+  new PlayerDrawTiles(new PlayerHand("1s1s1s2s9s2s3s1p3p4p4p1p2p"), ["3m"]),
+  new PlayerDrawTiles(new PlayerHand(), ["4m"]),
+  new PlayerDrawTiles(new PlayerHand(), ["5m"]),
 ];
 
 test("CheatTableBuilder constructor", () => {

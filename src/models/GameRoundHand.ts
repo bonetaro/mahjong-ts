@@ -1,17 +1,18 @@
 /* eslint-disable no-constant-condition */
 import { FourMembers, PlayerIndex, isPlayerIndex, 牌 } from "../types";
 import { DrawTile, Game, GameRoundHandMembers, GameRoundHandPlayer, GameTable, Tile, Turn, TurnResult } from ".";
-import { CommandTextCreator, CustomError, WindNameList, logger, selectCommand } from "../lib";
+import { CommandTextCreator, CustomError, logger, selectCommand } from "../lib";
 import * as Commands from "./Command";
+import { WindNameList } from "../constants";
+import { selectDicardTile } from "../lib/readline";
 
 // 局
 export class GameRoundHand {
-  protected _table: GameTable = new GameTable();
-  protected _members: GameRoundHandMembers;
-  private _playerIndex: PlayerIndex = 0;
   private _isDraw = false; // 流局
+  private _playerIndex: PlayerIndex = 0;
+  protected _members: GameRoundHandMembers;
 
-  constructor(players: FourMembers<GameRoundHandPlayer>) {
+  constructor(players: FourMembers<GameRoundHandPlayer>, public readonly table = new GameTable()) {
     logger.debug("gameRoundHand create");
 
     this._members = new GameRoundHandMembers(players);
@@ -19,10 +20,6 @@ export class GameRoundHand {
 
   get isDraw(): boolean {
     return this._isDraw;
-  }
-
-  get table(): GameTable {
-    return this._table;
   }
 
   get menbers(): GameRoundHandMembers {
@@ -62,7 +59,7 @@ export class GameRoundHand {
 
     // どの牌を捨てるか
     const commandText = new CommandTextCreator(["discard"]).createPlayerCommandText(player);
-    const discardTileNumber = await selectCommand(commandText, player.hand, ["discard"]);
+    const discardTileNumber = await selectDicardTile(commandText, player.hand);
 
     // 牌を捨てる
     const discardCommand = new Commands.DiscardCommand(player, player.hand.tiles[Number(discardTileNumber)]);
@@ -77,8 +74,8 @@ export class GameRoundHand {
 
   pickKingsTile(): DrawTile {
     // 山の最終牌を王牌に足して、嶺上牌をツモる
-    const lastTile = this._table.popTile();
-    const tile = this._table.kingsWall.pickTile(lastTile);
+    const lastTile = this.table.popTile();
+    const tile = this.table.kingsWall.pickTile(lastTile);
 
     return new DrawTile(tile, true);
   }
@@ -160,16 +157,5 @@ export class GameRoundHand {
     logger.info("流局しました");
 
     this._isDraw = true;
-  }
-}
-
-export class CheatGameRoundHand extends GameRoundHand {
-  get table() {
-    return this._table;
-  }
-
-  // イカサマ牌を設定するためsetterを用意
-  set table(table: GameTable) {
-    this._table = table;
   }
 }

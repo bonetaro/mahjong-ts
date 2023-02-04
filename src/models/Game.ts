@@ -1,8 +1,9 @@
 /* eslint-disable no-constant-condition */
 import { List } from "linqts";
-import { CheatGameRoundHand, Dice, GameOption, GameRound, GameRoundHand, Player, GameRoundHandPlayer, GameTable, Tile } from ".";
-import { CheatTableBuilder, WindNameList, askAnyKey, logger } from "../lib";
+import { Dice, GameOption, GameRound, GameRoundHand, Player, GameRoundHandPlayer, GameTable, Tile } from ".";
+import { CheatTableBuilder, askAnyKey, logger } from "../lib";
 import { FourMembers } from "../types";
+import { WindNameList } from "../constants";
 
 export class Game {
   private _dices = [new Dice(), new Dice()];
@@ -42,8 +43,7 @@ export class Game {
   }
 
   startRoundHand = (): void => {
-    logger.debug("gameRoundHand start");
-
+    logger.debug("startRoundHand");
     logger.info(`${WindNameList[this._rounds.length - 1]}${this.currentRound.hands.length}局`);
 
     // プレイヤーの状態をリセット
@@ -191,8 +191,10 @@ export class CheatGame extends Game {
       builder.setPlayerDrawTiles(playerDealedTiles, index);
     });
 
-    const roundHand = new CheatGameRoundHand(players.map((player, index) => new GameRoundHandPlayer(index, player)) as FourMembers<GameRoundHandPlayer>);
-    roundHand.table = new GameTable(builder.build().washedTiles);
+    const roundHand = new GameRoundHand(
+      players.map((player, index) => new GameRoundHandPlayer(index, player)) as FourMembers<GameRoundHandPlayer>,
+      new GameTable(builder.build().washedTiles)
+    );
 
     this.currentRound.hands.push(roundHand);
   }

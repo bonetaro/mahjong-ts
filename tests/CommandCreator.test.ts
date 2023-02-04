@@ -1,6 +1,6 @@
-import { CommandTextCreator } from "../src/lib/CommandTextCreator";
-import { Hand, Tile } from "../src/models";
-import { CommandType } from "../src/types/MahjongTypes";
+import { CommandTextCreator } from "../src/lib";
+import { PlayerHand, Tile } from "../src/models";
+import { CommandType } from "../src/types";
 
 const commandList: CommandType[] = ["discard"];
 
@@ -20,7 +20,7 @@ tiles.push("1s"); // 12
 tiles.push("2s"); // 13
 
 test("コマンドが1つの時は空文字を返す", () => {
-  const hand = new Hand(tiles.map((s) => Tile.toTile(s)));
+  const hand = new PlayerHand(tiles.map((s) => Tile.toTile(s)));
   hand.tiles = hand.tiles.filter((tile, index) => index == 0); // 裸単騎
   const creator = new CommandTextCreator(commandList);
   const text = creator.createPlayerCommandText();

@@ -1,6 +1,6 @@
 import { List } from "linqts";
 import { PlayerHand, Mentsu, MinKouMentsu, Tile } from "../../models";
-import { helper } from "../helper";
+import { Helper } from "../Helper";
 import { 牌, 塔子like, 面子like, 順子like } from "../../types";
 
 abstract class MentsuCalculator {
@@ -8,7 +8,7 @@ abstract class MentsuCalculator {
 }
 
 export class KanCalculator extends MentsuCalculator {
-  ankanCandidate(): 牌[] {
+  ankanCandidateTiles(): 牌[] {
     // todo リーチ時には、面子が変わるようなカンはできない
 
     const tiles: 牌[] = [];
@@ -24,7 +24,7 @@ export class KanCalculator extends MentsuCalculator {
   }
 
   canKakan(tile: 牌): boolean {
-    return new List(this.hand.openMentsuList).Any((mentsu) => mentsu instanceof MinKouMentsu && mentsu.tiles.includes(tile));
+    return this.hand.openMentsuList.some((mentsu) => mentsu instanceof MinKouMentsu && mentsu.tiles.includes(tile));
   }
 
   canDaiminkan(tile: 牌): boolean {
@@ -52,7 +52,7 @@ export class ChiCalculator extends MentsuCalculator {
     }
 
     // 同じ色の数牌２つの組み合わせを取得
-    const combinationArray = helper.combination(
+    const combinationArray = Helper.combination(
       sameColorSuitTiles.map((t) => new Tile(t).toSuitsTile().value),
       2
     );

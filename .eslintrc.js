@@ -12,6 +12,6 @@ module.exports = {
     project: "./tsconfig.eslint.json",
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ["build"],
+  ignorePatterns: ["build", "jest-set-up"],
   rules: {},
 };

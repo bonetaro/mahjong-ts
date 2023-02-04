@@ -39,12 +39,12 @@ test("9s is Souzu", () => {
 });
 
 test(`${Constants.WindChars.join(" ")} is 東南西北`, () => {
-  const result = Constants.WindChars.every((c) => Tile.isKazehai(`${c}${Constants.KazehaiChar}`));
+  const result = Constants.WindChars.every((c) => Tile.isKazehai(`${c}${Constants.WindChar}`));
   expect(result).toBe(true);
 });
 
 test(`${Constants.DragonChars.join(" ")} is 白發中`, () => {
-  const result = Constants.DragonChars.every((c) => Tile.isSangenpai(`${c}${Constants.SangenpaiChar}`));
+  const result = Constants.DragonChars.every((c) => Tile.isSangenpai(`${c}${Constants.DragonChar}`));
   expect(result).toBe(true);
 });
 

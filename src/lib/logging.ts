@@ -1,46 +1,83 @@
 import moment from "moment";
-import { createLogger, transports, format } from "winston";
+import * as winston from "winston";
 
-export const logger = createLogger({
-  transports: [
-    new transports.Console(),
-    new transports.File({ filename: "logs/error.log", level: "error" }),
-    new transports.File({ filename: "logs/combined.log" }),
-  ],
-  format: format.combine(
-    format.errors({ stack: true }),
-    // format.colorize(),
-    // format.splat(),
-    // format.metadata(),
-    // format.timestamp(),
-    // format.prettyPrint(),
-    // format.printf(({ timestamp, level, message, metadata }) => {
-    //   if (metadata && Object.keys(metadata).length > 0) {
-    //     return `[${timestamp}]${level}:${message} ${JSON.stringify(metadata)}`;
-    //   } else {
-    //     return `[${timestamp}]${level}:${message}`;
-    //   }
-    // })
-    format.printf((info: any): string => {
-      // 引数を展開する
-      const {
-        level, // デフォルトで level と message が渡る
-        message,
-        timestamp, // format.combine() で format.timestamp() 指定されている
-        ...etc // その他の内容は JSON で表示する
-      } = info;
+class Logger {
+  public consoleLogger: winston.Logger;
+  public fileLogger: winston.Logger;
 
-      // フォーマットした文字列を返す
-      return (
-        `${moment(timestamp).format("YYYY-MM-DD HH:mm:SS")} [${level}] ${message}` +
-        `${etc && Object.keys(etc).length ? "\n" + JSON.stringify(etc, null, 2) : ""}`
-      );
-    })
-  ),
-});
+  constructor() {
+    this.consoleLogger = this.createConsoleLogger();
+    this.fileLogger = this.createFileLogger();
+  }
 
-export function LogEvent(text: string): void {
-  logger.info("--------------------------------------------------------");
-  logger.info(text);
-  logger.info("--------------------------------------------------------");
+  set silent(value: boolean) {
+    this.consoleLogger.silent = value;
+    this.fileLogger.silent = value;
+  }
+
+  private log = (level: string, message: any, meta?: any): void => {
+    this.consoleLogger.log(level, message, meta);
+    this.fileLogger.log(level, message, meta);
+  };
+
+  debug = (message: any, meta?: any): void => {
+    this.log("debug", message, meta);
+  };
+
+  info = (message: any, meta?: any): void => {
+    this.log("info", message, meta);
+  };
+
+  error = (message: any, meta?: any): void => {
+    this.log("error", message, meta);
+  };
+
+  createFileLogger = (): winston.Logger => {
+    return winston.createLogger({
+      transports: [
+        new winston.transports.File({ dirname: "logs", filename: "error.log", level: "error" }),
+        new winston.transports.File({ dirname: "logs", filename: "combined.log" }),
+      ],
+      format: winston.format.combine(
+        winston.format.printf((info: any): string => {
+          // 引数を展開する
+          const {
+            level, // デフォルトで level と message が渡る
+            message,
+            timestamp, // format.combine() で format.timestamp() 指定されている
+            ...etc // その他の内容は JSON で表示する
+          } = info;
+
+          return (
+            `[${moment(timestamp).format("YYYY-MM-DD HH:mm:SS")}] ${level}: ${message}` +
+            `${etc && Object.keys(etc).length ? "\n" + JSON.stringify(etc, null, 2) : ""}`
+          );
+        })
+      ),
+    });
+  };
+
+  createConsoleLogger = (): winston.Logger => {
+    return winston.createLogger({
+      transports: [new winston.transports.Console()],
+      format: winston.format.combine(
+        winston.format.printf((info: any): string => {
+          // 引数を展開する
+          const {
+            level, // デフォルトで level と message が渡る
+            message,
+            timestamp, // format.combine() で format.timestamp() 指定されている
+            ...etc // その他の内容は JSON で表示する
+          } = info;
+
+          return (
+            `[${moment(timestamp).format("YYYY-MM-DD HH:mm:SS")}] ${level}: ${message}` +
+            (level != "info" ? `${etc && Object.keys(etc).length ? "\n" + JSON.stringify(etc, null, 2) : ""}` : "")
+          );
+        })
+      ),
+    });
+  };
 }
+
+export const logger = new Logger();

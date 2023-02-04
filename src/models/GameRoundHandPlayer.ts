@@ -1,11 +1,18 @@
 import { v4 as uuid } from "uuid";
 import { DiscardTile, DrawTile, PlayerHand, Tile } from ".";
-import { CustomError, WindNameList, logger } from "../lib";
-import { PlayerDirection, 牌 } from "../types";
+import { CustomError, logger } from "../lib";
+import { PlayerDirection, PlayerIndex, isPlayerIndex, 牌 } from "../types";
+import { PlayerDirectionList, WindNameList } from "../constants";
 
 export class Player {
-  constructor(public readonly name: string, public readonly id?: string) {
-    this.id = uuid();
+  private _id;
+
+  constructor(public readonly name: string) {
+    this._id = uuid();
+  }
+
+  get id() {
+    return this._id;
   }
 }
 
@@ -28,7 +35,7 @@ export class GameRoundHandPlayer extends Player {
     let status = "";
 
     if (this.discardTiles.length > 0) {
-      status = this.discardTiles.map((t) => (t.meld ? `(${Tile.toEmoji(t.tile)})` : Tile.toEmoji(t.tile))).join(" ");
+      status = this.discardTiles.map((t) => (t.meld ? `(${Tile.toEmoji(t.tile)} )` : Tile.toEmoji(t.tile))).join(" ");
       status += " " + this.discardTiles.map((t) => (t.meld ? `(${Tile.toMoji(t.tile)})` : Tile.toMoji(t.tile))).join(" ");
     }
 
@@ -43,35 +50,42 @@ export class GameRoundHandPlayer extends Player {
     return `${this.windName} ${this.name}`;
   }
 
-  // 下家
-  isRightPlayer(player: GameRoundHandPlayer): boolean {
-    return (this.index + 1) % 4 == player.index;
+  calculateIndex(direction: PlayerDirection): PlayerIndex {
+    const index = (this.index + PlayerDirectionList.indexOf(direction)) % PlayerDirectionList.length;
+    if (isPlayerIndex(index)) {
+      return index;
+    }
   }
 
-  // 対面
-  isOppositePlayer(player: GameRoundHandPlayer): boolean {
-    return (this.index + 2) % 4 == player.index;
+  // (thisがwhomの)下家
+  isRightPlayerOf(whom: GameRoundHandPlayer): boolean {
+    return this.index == whom.calculateIndex("toTheRight");
   }
 
-  // 上家
-  isLeftPlayer(player: GameRoundHandPlayer): boolean {
-    return (this.index + 3) % 4 == player.index;
+  // (thisがwhomの)対面
+  isOppositePlayerOf(whom: GameRoundHandPlayer): boolean {
+    return this.index == whom.calculateIndex("opposite");
   }
 
-  getPlayerDirectionOf(player: GameRoundHandPlayer): PlayerDirection {
-    if (this.isLeftPlayer(player)) {
+  // (thisがwhomの)上家
+  isLeftPlayerOf(whom: GameRoundHandPlayer): boolean {
+    return this.index == whom.calculateIndex("toTheLeft");
+  }
+
+  getDirectionOf(whom: GameRoundHandPlayer): PlayerDirection {
+    if (this.isLeftPlayerOf(whom)) {
       return "toTheLeft";
-    } else if (this.isRightPlayer(player)) {
+    } else if (this.isRightPlayerOf(whom)) {
       return "toTheRight";
-    } else if (this.isOppositePlayer(player)) {
+    } else if (this.isOppositePlayerOf(whom)) {
       return "opposite";
     } else {
-      throw new CustomError(player);
+      throw new CustomError(whom);
     }
   }
 
   init(): void {
-    logger.debug("player init");
+    logger.debug(`${this.fullName} GameRoundHandPlayer init`);
 
     this.hand = new PlayerHand();
     this._discardTiles = [];
@@ -79,7 +93,7 @@ export class GameRoundHandPlayer extends Player {
 
   debugDiscardStatus(): any {
     return {
-      discards: this.discardStatus,
+      tiles: this.discardStatus,
       length: this._discardTiles.length,
     };
   }
@@ -102,7 +116,7 @@ export class GameRoundHandPlayer extends Player {
   drawTiles(tiles: Array<牌>) {
     this.hand.tiles = this.hand.tiles.concat(tiles);
 
-    logger.debug(`${this.name}が牌を${tiles.length}枚とりました`, {
+    logger.info(`${this.name}が牌を${tiles.length}枚とりました`, {
       tiles: this.hand.tiles,
       length: this.hand.tiles.length,
     });
