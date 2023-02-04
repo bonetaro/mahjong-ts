@@ -1,10 +1,10 @@
 import { List } from "linqts";
 import { PlayerHand } from "../../models/PlayerHand";
 import { Helper } from "../Helper";
-import { Tile } from "../../../src/models";
+import { Tile } from "../../models";
 import { TileType } from "../../models/TileType";
 import { Mentsu } from "../../models/Mentsu";
-import { 刻子like, 順子like, 牌 } from "MahjongTypes";
+import { 刻子like, 順子like, 牌 } from "../../types/MahjongTypes";
 import { logger } from "../logging";
 
 export class ReadyCalculator {
