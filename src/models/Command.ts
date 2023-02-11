@@ -1,7 +1,7 @@
 import { List } from "linqts";
 import { AnKanMentsu, ChiMentsu, GameRoundHand, MinKanMentsu, MinKouMentsu, GameRoundHandPlayer, Tile } from ".";
 import { logger } from "../lib";
-import { CommandType, PlayerDirection, isMeldCommandType, 塔子like, 数牌, 牌 } from "../types";
+import { CommandType, PlayerDirection, 塔子like, 数牌, 牌 } from "../types";
 
 export abstract class BaseCommand {
   protected _type: CommandType;
@@ -13,11 +13,6 @@ export abstract class BaseCommand {
   }
 
   abstract execute(roundHand: GameRoundHand): void;
-
-  // ポン、チー、カン
-  isMeldCommand(): boolean {
-    return isMeldCommandType(this.type);
-  }
 }
 
 //-----------------------------
@@ -105,7 +100,7 @@ export abstract class OtherPlayersCommand extends BaseCommand {
   }
 
   whomPlayer(roundHand: GameRoundHand): GameRoundHandPlayer {
-    return roundHand.menbers.getPlayerByDirection(this.who, this.direction);
+    return roundHand.members.getPlayerByDirection(this.who, this.direction);
   }
 }
 

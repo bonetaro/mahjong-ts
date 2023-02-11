@@ -3,7 +3,8 @@ import { List } from "linqts";
 import { CommandTextCreator, CustomError, HandParser, Helper, logger, readCommand, selectCommand } from ".";
 import { GameRoundHandPlayer, Tile } from "../models";
 import * as Commands from "../models/Command";
-import { FourMembers, OtherPlayersCommandType, PlayerDirection, isMeldCommandType, 塔子like, 牌 } from "../types";
+import { GameRoundHandMembers } from "../models/GameRoundHandMembers";
+import { OtherPlayersCommandType, PlayerDirection, isMeldCommandType, 塔子like, 牌 } from "../types";
 import { KanCalculator } from "./calculator";
 import selectChoices from "./readline";
 
@@ -66,11 +67,11 @@ export const askPlayerWhatCommand = async (player: GameRoundHandPlayer): Promise
 };
 
 export const askOtherPlayersWhatCommand = async (
-  players: FourMembers<GameRoundHandPlayer>,
+  members: GameRoundHandMembers,
   discardTile: 牌,
   currentPlayer: GameRoundHandPlayer
 ): Promise<Commands.OtherPlayersCommand> => {
-  const otherPlayers = players.filter((player) => player.id != currentPlayer.id);
+  const otherPlayers = members.players.filter((player) => player.id != currentPlayer.id);
   const possiblePlayerCommandMap = calculatePossibleOtherPlayersCommandMap(otherPlayers, currentPlayer);
 
   const commandTypeList = new List(Array.from(possiblePlayerCommandMap.values()).flatMap((value) => Array.from(value.keys()))).Distinct().ToArray();

@@ -13,6 +13,7 @@ export class GameRoundHandMembers {
 
   getPlayerByDirection(player: GameRoundHandPlayer, direction: PlayerDirection): GameRoundHandPlayer {
     const index = player.calculateIndex(direction);
+
     if (isPlayerIndex(index)) {
       return this.players[index];
     }

@@ -1,7 +1,7 @@
 /* eslint-disable no-constant-condition */
 import { FourMembers, PlayerIndex, isPlayerIndex, 牌 } from "../types";
 import { DrawTile, Game, GameRoundHandMembers, GameRoundHandPlayer, GameTable, Tile, Turn, TurnResult } from ".";
-import { CommandTextCreator, CustomError, logger, selectCommand } from "../lib";
+import { CommandTextCreator, CustomError, logger } from "../lib";
 import * as Commands from "./Command";
 import { WindNameList } from "../constants";
 import { selectDicardTile } from "../lib/readline";
@@ -10,7 +10,7 @@ import { selectDicardTile } from "../lib/readline";
 export class GameRoundHand {
   private _isDraw = false; // 流局
   private _playerIndex: PlayerIndex = 0;
-  protected _members: GameRoundHandMembers;
+  private _members: GameRoundHandMembers;
 
   constructor(players: FourMembers<GameRoundHandPlayer>, public readonly table = new GameTable()) {
     logger.debug("gameRoundHand create");
@@ -22,12 +22,8 @@ export class GameRoundHand {
     return this._isDraw;
   }
 
-  get menbers(): GameRoundHandMembers {
+  get members(): GameRoundHandMembers {
     return this._members;
-  }
-
-  get players(): FourMembers<GameRoundHandPlayer> {
-    return this._members.players;
   }
 
   get currentPlayer(): GameRoundHandPlayer {
@@ -47,10 +43,10 @@ export class GameRoundHand {
     logger.debug("game dealStartTilesToPlayers");
 
     // 各プレイヤー4枚ずつ3回牌をつもる
-    [...Array(3)].forEach(() => this.players.forEach((player) => player.drawTiles(this.dealTiles(4))));
+    [...Array(3)].forEach(() => this._members.players.forEach((player) => player.drawTiles(this.dealTiles(4))));
 
     // 各プレイヤー1枚牌をつもる
-    this.players.forEach((player) => player.drawTiles(this.dealTiles(1)));
+    this.members.players.forEach((player) => player.drawTiles(this.dealTiles(1)));
   }
 
   // ポン、チー、カン(大明槓)を実行
@@ -100,7 +96,7 @@ export class GameRoundHand {
   };
 
   setCurrentPlayer(player: GameRoundHandPlayer): GameRoundHandPlayer {
-    const index = this.players.findIndex((p) => p.id == player.id);
+    const index = this.members.players.findIndex((p) => p.id == player.id);
     this.setPlayerIndex(index);
 
     return this.currentPlayer;

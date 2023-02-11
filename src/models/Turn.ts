@@ -63,7 +63,7 @@ export class Turn {
     let discardTile = playerDiscardTile;
 
     while (true) {
-      const command = await askOtherPlayersWhatCommand(this.roundHand.players, discardTile, currentPlayer);
+      const command = await askOtherPlayersWhatCommand(this.roundHand.members, discardTile, currentPlayer);
 
       // 誰も反応しなかったら、次のプレイヤーのツモ番（ターンが終わる）
       // 鳴きよりもロンが最優先で処理される

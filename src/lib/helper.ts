@@ -5,7 +5,7 @@ import { MustInclude, NonEmptyArray } from "../types";
 export class Helper {
   static isRangeNumber = (input: string | number, max: number, min = 0) => min <= Number(input) && Number(input) <= max;
 
-  static isInt = (x: unknown): boolean => Number(x) && typeof x === "number" && x % 1 === 0;
+  static isInt = (x: unknown): boolean => !isNaN(Number(x)) && Number(x) % 1 === 0;
 
   static includes<T extends U, U>(arr: ReadonlyArray<T>, el: U): el is T {
     return arr.includes(el as T);

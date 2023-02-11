@@ -9,20 +9,13 @@ export class Game {
   private _dices = [new Dice(), new Dice()];
   private _rounds: GameRound[] = [];
   private _firstDealer: Player;
-  protected _players: FourMembers<Player>;
 
   constructor(public readonly gameOption: GameOption) {
     logger.debug(`game create`);
-
-    this.players = gameOption.players;
   }
 
   get players(): FourMembers<Player> {
-    return this._players;
-  }
-
-  set players(players: FourMembers<Player>) {
-    this._players = players;
+    return this.gameOption.players;
   }
 
   // 起家
@@ -40,59 +33,6 @@ export class Game {
 
   get roundCount(): number {
     return this._rounds.length;
-  }
-
-  startRoundHand = (): void => {
-    logger.debug("startRoundHand");
-    logger.info(`${WindNameList[this._rounds.length - 1]}${this.currentRound.hands.length}局`);
-
-    // プレイヤーの状態をリセット
-    this.currentRoundHand.players.forEach((player) => player.init());
-
-    // 牌の山を積む
-    this.currentRoundHand.table.buildWalls();
-
-    // サイコロを振る
-    this.rollDices();
-
-    // todo サイコロを振っているが王牌と無関係
-    this.currentRoundHand.table.makeKingsWall();
-
-    // 配牌
-    this.currentRoundHand.dealStartingTilesToPlayers();
-
-    // 牌を整列
-    this.currentRoundHand.players.forEach((player) => player.sortHandTiles());
-  };
-
-  roundHandLoop = async (): Promise<void> => {
-    await this.currentRoundHand.mainLoop();
-  };
-
-  nextRoundHand = async (): Promise<boolean> => {
-    if (this.isLastRoundHand()) {
-      return false;
-    }
-
-    await askAnyKey("次の局に進みます...");
-
-    if (this.currentRound.hands.length == 4) {
-      this.createRound();
-    }
-
-    const players = Object.assign({}, this.currentRoundHand.players);
-    players.forEach((player) => {
-      player.index = (player.index + 1) % this.currentRoundHand.players.length;
-    });
-
-    this.createRoundHand(players);
-
-    return true;
-  };
-
-  isLastRoundHand(): boolean {
-    // 南4局で終わり
-    return this._rounds.length == 2 && this.currentRound.hands.length == 4;
   }
 
   rollDices(): number {
@@ -119,12 +59,80 @@ export class Game {
     this.players.forEach((_, index) => (this.players[index] = players[index]));
   }
 
+  roundHandLoop = async (): Promise<void> => {
+    await this.currentRoundHand.mainLoop();
+  };
+
+  startRoundHand = (): void => {
+    logger.debug("startRoundHand");
+    logger.info(`${WindNameList[this._rounds.length - 1]}${this.currentRound.hands.length}局`);
+
+    // プレイヤーの状態をリセット
+    this.currentRoundHand.members.players.forEach((player) => player.init());
+
+    // 牌の山を積む
+    this.currentRoundHand.table.buildWalls();
+
+    // サイコロを振る
+    this.rollDices();
+
+    // todo サイコロを振っているが王牌と無関係
+    this.currentRoundHand.table.makeKingsWall();
+
+    // 配牌
+    this.currentRoundHand.dealStartingTilesToPlayers();
+
+    // 牌を整列
+    this.currentRoundHand.members.players.forEach((player) => player.sortHandTiles());
+  };
+
+  nextRoundHand = async (): Promise<boolean> => {
+    if (this.isLastRoundHand()) {
+      return false;
+    }
+
+    await askAnyKey("次の局に進みます...");
+
+    this.createRoundHand();
+
+    return true;
+  };
+
+  createRoundHand() {
+    if (this.roundCount == 0 || this.currentRound.hands.length % 4 == 0) {
+      this.createRound();
+    }
+
+    const players = this.createRoundHandPlayers(this.currentRound.hands.length + 1);
+    this.currentRound.hands.push(new GameRoundHand(players, this.createGameTable()));
+  }
+
+  isLastRoundHand(): boolean {
+    // 南4局で終わり
+    return this._rounds.length == 2 && this.currentRound.hands.length == 4;
+  }
+
+  createGameTable(): GameTable {
+    if (this.gameOption.cheatOption) {
+      const builder = new CheatTableBuilder();
+
+      this.gameOption.cheatOption.playerDrawTilesList.forEach((playerDealedTiles, index) => {
+        builder.setPlayerDrawTiles(playerDealedTiles, index);
+      });
+
+      return new GameTable(builder.build().washedTiles);
+    } else {
+      return new GameTable();
+    }
+  }
+
   createRound(): void {
     this._rounds.push(new GameRound());
   }
 
-  createRoundHand(players: FourMembers<GameRoundHandPlayer>): void {
-    this.currentRound.hands.push(new GameRoundHand(players));
+  createRoundHandPlayers(roundHandNumber: number): FourMembers<GameRoundHandPlayer> {
+    const players = this.players.map((_, index) => new GameRoundHandPlayer(this.players[(index + roundHandNumber - 1) % this.players.length], index));
+    return players as FourMembers<GameRoundHandPlayer>;
   }
 
   status(option: { round: boolean; player: boolean; dora: boolean }): string {
@@ -164,38 +172,12 @@ export class Game {
     // 起家決め
     this.decideFirstDealer();
 
-    // 東場生成
-    this.createRound();
-
-    // 東1局作成
-    const players = this.players.map((player, index) => new GameRoundHandPlayer(index, player)) as FourMembers<GameRoundHandPlayer>;
-    this.createRoundHand(players);
+    // 東1局生成
+    this.createRoundHand();
   }
 
   // 半荘終了
   end(): void {
     logger.info("半荘終了");
-  }
-}
-
-export class CheatGame extends Game {
-  constructor(gameOption: GameOption) {
-    logger.debug("cheatGame create");
-
-    super(gameOption);
-  }
-
-  createRoundHand(players: FourMembers<Player>): void {
-    const builder = new CheatTableBuilder();
-    this.gameOption.cheatOption?.playerDrawTilesList.forEach((playerDealedTiles, index) => {
-      builder.setPlayerDrawTiles(playerDealedTiles, index);
-    });
-
-    const roundHand = new GameRoundHand(
-      players.map((player, index) => new GameRoundHandPlayer(index, player)) as FourMembers<GameRoundHandPlayer>,
-      new GameTable(builder.build().washedTiles)
-    );
-
-    this.currentRound.hands.push(roundHand);
   }
 }

@@ -19,7 +19,7 @@ export class Player {
 export class GameRoundHandPlayer extends Player {
   private _discardTiles: DiscardTile[];
 
-  constructor(public index: number, player: Player, public hand = new PlayerHand()) {
+  constructor(player: Player, public index: number, public hand = new PlayerHand()) {
     super(player.name);
   }
 

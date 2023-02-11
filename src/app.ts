@@ -1,8 +1,8 @@
 import { gameOption } from "./config";
-import { CheatGame, Game, GameOption } from "./models";
+import { Game, GameOption } from "./models";
 
 const main = async (option: GameOption) => {
-  const game = option.cheat ? new CheatGame(option) : new Game(option);
+  const game = new Game(option);
   game.init();
 
   do {
@@ -13,5 +13,4 @@ const main = async (option: GameOption) => {
   game.end();
 };
 
-// main();
 main(gameOption);
