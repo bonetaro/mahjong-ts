@@ -1,8 +1,8 @@
 import { OtherPlayersCommandType, PlayerCommandType, 牌 } from "../types";
 import { PlayerHand } from "../models";
-import { ChiCalculator, KanCalculator, PonCalculator } from "./calculator/";
+import { ChiCalculator, KanCalculator, PonCalculator } from "./calculator";
 
-export class HandParser {
+export class CommandParser {
   constructor(private readonly hand: PlayerHand) {}
 
   public parseAsPlayerCommand = (): Map<PlayerCommandType, 牌[]> => {

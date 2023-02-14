@@ -1,4 +1,4 @@
-import { 牌, 面子like, 槓子like, 刻子like, 数牌の色, 順子like, 順子, PlayerDirection, 数牌, 塔子like } from "../types";
+import { 牌, 面子like, 槓子like, 刻子like, 数牌の色, 順子like, 順子, PlayerDirection, 数牌, 塔子like, 塔子 } from "../types";
 import { CustomError } from "../lib";
 import { Tile } from "./";
 import { PlayerDirectionList } from "../constants";
@@ -36,13 +36,22 @@ export abstract class Mentsu<T extends 面子like> implements IMentsu {
     return values.length === 3 && values.every((v) => Tile.isTile(v)) && values.every((v) => v == values[0]);
   }
 
-  // export function isShuntsuMentsu<C extends 数牌の色>(values: unknown[]): values is 順子<C> {
-  //   return values.every((x) => isSuits(x)
-  // }
+  static isTatsu<T extends 数牌の色>(tiles: 塔子like): tiles is 塔子<T> {
+    if (!tiles.every((tile) => Tile.isSameColor(tiles[0], tile))) {
+      return false;
+    }
+
+    const sortedTiles = Tile.sortTiles(tiles);
+    const firstTileNum = Number(new Tile(sortedTiles[0]).toSuitsTile().value);
+    const secondTileNum = Number(new Tile(sortedTiles[1]).toSuitsTile().value);
+
+    // todo 実装不十分
+    return secondTileNum == firstTileNum + 1 || secondTileNum == firstTileNum + 2;
+  }
 
   // 順子のメンツか。順子は英語でRun
-  static isRunMentsu<T extends 数牌の色>(tiles: 順子like): tiles is 順子<T> {
-    if (!tiles.every((tile) => Tile.isSameColor(tiles[0], tile))) {
+  static isRunMentsu<T extends 数牌の色>(tiles: 牌[]): tiles is 順子<T> {
+    if (!tiles.every((tile) => Tile.isSuits(tile) && Tile.isSameColor(tiles[0] as 数牌, tile))) {
       return false;
     }
 

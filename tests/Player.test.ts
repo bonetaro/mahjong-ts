@@ -4,7 +4,7 @@ import { GameRoundHandMembers } from "../src/models/GameRoundHandMembers";
 
 const players: FourMembers<Player> = [new Player("Aさん"), new Player("Bさん"), new Player("Cさん"), new Player("Dさん")];
 
-const roundHandPlayers = players.map((player, index) => new GameRoundHandPlayer(index, player)) as FourMembers<GameRoundHandPlayer>;
+const roundHandPlayers = players.map((player, index) => new GameRoundHandPlayer(player, index)) as FourMembers<GameRoundHandPlayer>;
 const roundHandMembers = new GameRoundHandMembers(roundHandPlayers);
 
 test("Aさんの上家はDさん", () => {

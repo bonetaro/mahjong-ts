@@ -1,28 +1,36 @@
 import { DrawTile, IMentsu, Tile } from ".";
 import { CustomError } from "../lib";
+import { SubShantenCalculator } from "../lib/calculator";
 import { 牌 } from "../types";
 
 export class PlayerHand {
   private _tiles: 牌[];
   private _openMentsuList: IMentsu[] = [];
-  private _drawingTile: DrawTile;
+  private _drawingTile: DrawTile | null;
 
+  constructor(hand: PlayerHand);
   constructor(tile?: string);
   constructor(tiles?: 牌[]);
-  constructor(tileSomthing?: string | 牌[]) {
-    let tiles: 牌[] = [];
+  constructor(something?: string | 牌[] | PlayerHand) {
+    this._tiles = [];
 
-    if (Array.isArray(tileSomthing)) {
-      tiles = tileSomthing;
+    if (Array.isArray(something)) {
+      const tiles: 牌[] = something;
 
       if (tiles.length > 0 && tiles.length !== 13) {
         throw new CustomError("hand tiles count must be 13", tiles);
       }
-    } else if (typeof tileSomthing === "string") {
-      tiles = PlayerHand.parse(tileSomthing);
-    }
 
-    this._tiles = tiles ?? [];
+      this._tiles = tiles;
+    } else if (typeof something === "string") {
+      this._tiles = PlayerHand.parse(something);
+    } else if (something instanceof PlayerHand) {
+      this._tiles = [...something.tiles];
+      this.openMentsuList = [...something.openMentsuList];
+      if (something.drawingTile) {
+        this.drawingTile = something.drawingTile;
+      }
+    }
   }
 
   get tiles(): Array<牌> {
@@ -33,13 +41,27 @@ export class PlayerHand {
     this._tiles = tiles;
   }
 
-  get drawingTile(): DrawTile {
+  // ツモ番（牌を捨てる番）でも、ツモ牌を除いた手牌を返す
+  get rawTiles(): 牌[] {
+    const tiles = [...this._tiles];
+    if (![1, 4, 7, 10, 13].includes(tiles.length)) {
+      tiles.pop();
+    }
+
+    return tiles;
+  }
+
+  get drawingTile(): DrawTile | null {
     return this._drawingTile;
   }
 
   set drawingTile(tile: DrawTile) {
     this._drawingTile = tile;
     this.tiles.push(tile.tile);
+  }
+
+  get isMenzen(): boolean {
+    return this.openMentsuList.length == 0;
   }
 
   get openMentsuList(): IMentsu[] {
@@ -58,6 +80,9 @@ export class PlayerHand {
       testList.push(`副露牌 [${this._openMentsuList.map((mentsu) => `${mentsu.status()}`).join(" ")}]`);
     }
 
+    const shanten = this.calculateShanten();
+    testList.push(`${shanten}シャンテン`);
+
     return testList.join(" ");
   }
 
@@ -73,6 +98,11 @@ export class PlayerHand {
     }
 
     return strArray.map((x) => Tile.toTile(x));
+  }
+
+  discardTile(tile: 牌): void {
+    this.removeTile(tile);
+    this._drawingTile = null;
   }
 
   removeTiles(tiles: 牌[]): void {
@@ -103,7 +133,8 @@ export class PlayerHand {
   }
 
   //シャンテン数（向聴数）を計算する
-  calculateToReady(): number {
-    throw new Error();
+  calculateShanten(): number {
+    const shanten = new SubShantenCalculator(this).calculateShanten();
+    return shanten;
   }
 }

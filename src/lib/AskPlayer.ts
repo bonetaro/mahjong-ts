@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 import { List } from "linqts";
-import { CommandTextCreator, CustomError, HandParser, Helper, logger, readCommand, selectCommand } from ".";
+import { CommandTextCreator, CustomError, CommandParser, Helper, logger, readCommand, selectCommand } from ".";
 import { GameRoundHandPlayer, Tile } from "../models";
 import * as Commands from "../models/Command";
 import { GameRoundHandMembers } from "../models/GameRoundHandMembers";
@@ -44,7 +44,7 @@ const askPlayerWhatTileOnKanCommand = async (player: GameRoundHandPlayer, candid
 };
 
 export const askPlayerWhatCommand = async (player: GameRoundHandPlayer): Promise<Commands.PlayerCommand> => {
-  const playerCommandMap = new HandParser(player.hand).parseAsPlayerCommand();
+  const playerCommandMap = new CommandParser(player.hand).parseAsPlayerCommand();
 
   const playerCommandTypeList = Array.from(playerCommandMap.keys());
   const commandText = new CommandTextCreator(playerCommandTypeList).createPlayerCommandText(player);
@@ -89,7 +89,7 @@ export const askOtherPlayersWhatCommand = async (
   function calculatePossibleOtherPlayersCommandMap(otherPlayers: GameRoundHandPlayer[], currentPlayer: GameRoundHandPlayer) {
     const otherPlayersCommandMap = new Map<GameRoundHandPlayer, Map<OtherPlayersCommandType, 牌[][]>>();
     otherPlayers.forEach((player) => {
-      otherPlayersCommandMap.set(player, new HandParser(player.hand).parseAsOtherPlayersCommand(discardTile, currentPlayer.isLeftPlayerOf(player)));
+      otherPlayersCommandMap.set(player, new CommandParser(player.hand).parseAsOtherPlayersCommand(discardTile, currentPlayer.isLeftPlayerOf(player)));
     });
 
     return otherPlayersCommandMap;

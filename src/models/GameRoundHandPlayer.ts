@@ -99,8 +99,7 @@ export class GameRoundHandPlayer extends Player {
   }
 
   doDiscard(tile: 牌): void {
-    const index = this.hand.tiles.indexOf(tile);
-    this.hand.tiles.splice(index, 1);
+    this.hand.discardTile(tile);
 
     this._discardTiles.push(new DiscardTile(tile));
 
@@ -116,7 +115,7 @@ export class GameRoundHandPlayer extends Player {
   drawTiles(tiles: Array<牌>) {
     this.hand.tiles = this.hand.tiles.concat(tiles);
 
-    logger.info(`${this.name}が牌を${tiles.length}枚とりました`, {
+    logger.debug(`${this.name}が牌を${tiles.length}枚とりました`, {
       tiles: this.hand.tiles,
       length: this.hand.tiles.length,
     });

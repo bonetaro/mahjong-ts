@@ -42,10 +42,10 @@ export class Helper {
   };
 
   // 組み合わせ
-  static combination = (arr: number[], k: number): number[][] => {
+  static combination = (arr: unknown[], k: number): unknown[][] => {
     arr = new List(arr).Distinct().ToArray();
 
-    const returnArray: number[][] = [];
+    const returnArray: unknown[][] = [];
 
     if (arr.length < k) {
       return [];

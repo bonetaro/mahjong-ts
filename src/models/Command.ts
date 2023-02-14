@@ -54,12 +54,15 @@ export class AnKanCommand extends PlayerCommand {
     this._type = "kan";
   }
 
+  furo(): void {
+    this.who.hand.removeTiles([this.tile, this.tile, this.tile, this.tile]);
+    this.who.hand.openMentsuList.push(new AnKanMentsu(this.tile));
+  }
+
   execute(roundHand: GameRoundHand): void {
     logger.info(`「${this.who.name}」が${Tile.toEmoji(this.tile)} を暗槓しました`);
 
-    this.who.hand.removeTiles([this.tile, this.tile, this.tile, this.tile]);
-    this.who.hand.openMentsuList.push(new AnKanMentsu(this.tile));
-    this.who.hand.sortTiles();
+    this.furo();
     this.who.drawTile(roundHand.pickKingsTile());
   }
 }
@@ -71,20 +74,24 @@ export class KaKanCommand extends PlayerCommand {
     this._type = "kan";
   }
 
-  execute(roundHand: GameRoundHand): void {
-    let furoMentsuList = new List(this.who.hand.openMentsuList);
+  furo(): void {
+    let openMentsuList = new List(this.who.hand.openMentsuList);
 
     // 加槓する牌を手牌から除く
     this.who.hand.removeTile(this.tile);
     // 加槓される明刻から鳴いた相手を取り出す
-    const minkouMentsu = furoMentsuList.Where((mentsu) => mentsu instanceof MinKouMentsu).Single((mentsu) => mentsu.tiles.includes(this.tile)) as MinKanMentsu;
+    const minkouMentsu = openMentsuList.Where((mentsu) => mentsu instanceof MinKouMentsu).Single((mentsu) => mentsu.tiles.includes(this.tile)) as MinKanMentsu;
     // 明槓子
     const minkanMentsu = new MinKanMentsu(this.tile, minkouMentsu.fromPlayerDirection);
     // ベースとなった明刻を除き、作成した明槓子をさらす
-    furoMentsuList = furoMentsuList.Where((mentsu) => !(mentsu instanceof MinKouMentsu && mentsu.tiles.includes(this.tile)));
-    furoMentsuList.Add(minkanMentsu);
-    this.who.hand.openMentsuList = furoMentsuList.ToArray();
+    openMentsuList = openMentsuList.Where((mentsu) => !(mentsu instanceof MinKouMentsu && mentsu.tiles.includes(this.tile)));
+    openMentsuList.Add(minkanMentsu);
 
+    this.who.hand.openMentsuList = openMentsuList.ToArray();
+  }
+
+  execute(roundHand: GameRoundHand): void {
+    this.furo();
     this.who.drawTile(roundHand.pickKingsTile());
 
     logger.info(`「${this.who.name}」が${Tile.toEmoji(this.tile)} を加槓しました`);
