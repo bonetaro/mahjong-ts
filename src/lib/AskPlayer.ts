@@ -1,9 +1,9 @@
 /* eslint-disable no-case-declarations */
+import { FourMembers } from "MahjongTypes";
 import { List } from "linqts";
-import { CommandTextCreator, CustomError, CommandParser, Helper, logger, readCommand, selectCommand } from ".";
+import { CommandParser, CommandTextCreator, CustomError, Helper, logger, readCommand, selectCommand } from ".";
 import { GameRoundHandPlayer, Tile } from "../models";
 import * as Commands from "../models/Command";
-import { GameRoundHandMembers } from "../models/GameRoundHandMembers";
 import { OtherPlayersCommandType, PlayerDirection, isMeldCommandType, 塔子like, 牌 } from "../types";
 import { KanCalculator } from "./calculator";
 import selectChoices from "./readline";
@@ -18,29 +18,30 @@ export const askOtherPlayersWhetherDoChankanIfPossible = (command: Commands.Play
 };
 
 const askPlayerWhatTileOnKanCommand = async (player: GameRoundHandPlayer, candidateTiles: 牌[]): Promise<Commands.PlayerCommand> => {
-  let kanTile: 牌;
+  let tile: 牌;
 
   if (candidateTiles.length === 1) {
-    kanTile = candidateTiles[0];
+    tile = candidateTiles[0];
   } else {
     const answer = await readCommand(
       `${Tile.toEmojiArray(candidateTiles)} どの牌をカンしますか？ [0-${candidateTiles.length - 1}] >\n`,
       (input) => 0 <= Number(input) && Number(input) < candidateTiles.length
     );
 
-    kanTile = candidateTiles[Number(answer)];
+    tile = candidateTiles[Number(answer)];
   }
 
   const calculator = new KanCalculator(player.hand);
-  if (calculator.canKakan(kanTile)) {
-    return new Commands.KaKanCommand(player, kanTile);
-  } else {
-    if (calculator.ankanCandidateTiles().includes(kanTile)) {
-      return new Commands.AnKanCommand(player, kanTile);
-    }
+
+  if (calculator.canKakan(tile)) {
+    return new Commands.KaKanCommand(player, tile);
   }
 
-  throw new CustomError(kanTile);
+  if (calculator.getAnkanCandidateTiles().includes(tile)) {
+    return new Commands.AnKanCommand(player, tile);
+  }
+
+  throw new CustomError(tile);
 };
 
 export const askPlayerWhatCommand = async (player: GameRoundHandPlayer): Promise<Commands.PlayerCommand> => {
@@ -57,21 +58,20 @@ export const askPlayerWhatCommand = async (player: GameRoundHandPlayer): Promise
       // 暗カン or 加カン。暗槓できる状態で、加槓できる牌を持ってくる場合もあるため
       return await askPlayerWhatTileOnKanCommand(player, playerCommandMap.get("kan"));
     default:
-      const num = Number(answer);
-      if (Helper.isRangeNumber(num, player.hand.tiles.length)) {
-        return new Commands.DiscardCommand(player, player.hand.tiles[num]);
+      if (Helper.isRangeNumber(answer, player.hand.tiles.length - 1)) {
+        return new Commands.DiscardCommand(player, player.hand.tiles[Number(answer)]);
       }
-
-      throw new CustomError(num);
   }
+
+  throw new CustomError(answer);
 };
 
 export const askOtherPlayersWhatCommand = async (
-  members: GameRoundHandMembers,
+  players: FourMembers<GameRoundHandPlayer>,
   discardTile: 牌,
   currentPlayer: GameRoundHandPlayer
 ): Promise<Commands.OtherPlayersCommand> => {
-  const otherPlayers = members.players.filter((player) => player.id != currentPlayer.id);
+  const otherPlayers = players.filter((player) => player.id != currentPlayer.id);
   const possiblePlayerCommandMap = calculatePossibleOtherPlayersCommandMap(otherPlayers, currentPlayer);
 
   const commandTypeList = new List(Array.from(possiblePlayerCommandMap.values()).flatMap((value) => Array.from(value.keys()))).Distinct().ToArray();

@@ -1,8 +1,8 @@
-import { TileType } from "../../models/TileType";
 import { List } from "linqts";
 import { Mentsu, PlayerHand, Tile } from "../../models";
-import { 刻子like, 塔子like, 対子like, 数牌, 牌, 順子like } from "../../types/MahjongTypes";
+import { 刻子like, 塔子like, 対子like, 牌, 順子like } from "../../types/MahjongTypes";
 import { Helper } from "../Helper";
+import { TileType } from "../../models/TileType";
 
 export class HandTilesParser {
   public shuntsuList: 順子like[] = [];
@@ -14,20 +14,18 @@ export class HandTilesParser {
     this.parse();
   }
 
-  // とりえるブロック（刻子、順子、対子、塔子）を解析する
-  // 牌は重複して利用する（使いまわす）。
-  // あくまで取りうるブロックを全部列挙する
+  // 取りうるブロック（刻子、順子、対子、塔子）を解析する
+  // 牌は重複して利用する（使いまわす）。あくまで取りうるブロックを全部列挙する
   parse(): void {
-    // 牌種ごとにgrouping
-    const group = new List(Tile.sortTiles(this.hand.rawTiles)).GroupBy((t) => t[1]);
+    // 牌種(tile[1])ごとにgrouping
+    const groupByType = new List(Tile.sortTiles(this.hand.rawTiles)).GroupBy((tile) => tile[1]);
 
-    this.parseShuntsu(group);
-    this.parseKoutsu(group);
-    this.parsePair(group);
-    this.parseTatsu(group);
+    this.parseShuntsu(groupByType);
+    this.parseKoutsu(groupByType);
+    this.parsePair(groupByType);
+    this.parseTatsu(groupByType);
   }
 
-  // ターツの数
   parseTatsu(groupByType: { [key: string]: 牌[] }): void {
     for (const type in groupByType) {
       if (TileType.isSuitsType(type)) {
@@ -46,7 +44,6 @@ export class HandTilesParser {
     }
   }
 
-  // 対子の数
   parsePair(groupByType: { [key: string]: 牌[] }): void {
     for (const type in groupByType) {
       const groupByTile = new List(groupByType[type]).GroupBy((tile) => tile);
@@ -59,7 +56,6 @@ export class HandTilesParser {
     }
   }
 
-  // 刻子の数
   parseKoutsu(groupType: { [key: string]: 牌[] }): void {
     for (const type in groupType) {
       const groupByTile = new List(groupType[type]).GroupBy((tile) => tile);
@@ -76,11 +72,6 @@ export class HandTilesParser {
     }
   }
 
-  /**
-   * 順子の数を数える
-   * @param groupByType
-   * @returns
-   */
   parseShuntsu(groupByType: { [key: string]: 牌[] }): void {
     for (const type in groupByType) {
       if (TileType.isSuitsType(type)) {

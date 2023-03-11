@@ -1,6 +1,7 @@
 import { PlayerHand } from "../../models";
 import { IShantenCalculator, BaseNormalShantenCalculator } from ".";
 
+// 引き算方式
 export class SubShantenCalculator extends BaseNormalShantenCalculator {
   calculate(shuntsuCount: number, koutsuCount: number, pairCount: number, tatsuCount: number): number {
     const penalty = this.getPenalty(shuntsuCount, koutsuCount, pairCount, tatsuCount);
@@ -10,11 +11,13 @@ export class SubShantenCalculator extends BaseNormalShantenCalculator {
   }
 }
 
+// 足し算方式
 export class AddShantenCalculator extends BaseNormalShantenCalculator {
   calculate(shuntsuCount: number, koutsuCount: number, pairCount: number, tatsuCount: number): number {
     const hasHead = pairCount > 0;
 
     const nums: number[] = [];
+
     for (let i = 0; i < shuntsuCount + koutsuCount; i++) {
       nums.push(0);
     }
@@ -41,10 +44,10 @@ const calculatorMap = {
   add: AddShantenCalculator,
 };
 
-export type CalculatorKeys = keyof typeof calculatorMap;
+export type CalculatorType = keyof typeof calculatorMap;
 
 export class ReadyCalculatorFactory {
-  static factory(key: CalculatorKeys, hand: PlayerHand): IShantenCalculator {
+  static factory(key: CalculatorType, hand: PlayerHand): IShantenCalculator {
     return new calculatorMap[key](hand);
   }
 }

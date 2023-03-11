@@ -2,6 +2,7 @@ import { List } from "linqts";
 import { Tile } from "../../models";
 import { BaseShantenCalculator } from "./";
 
+// 国士無双のシャンテン数計算
 export class TerminalsAndHonorsCalculator extends BaseShantenCalculator {
   calculateShanten(): number {
     let count = 0;
@@ -13,14 +14,10 @@ export class TerminalsAndHonorsCalculator extends BaseShantenCalculator {
 
     const groupingTiles = new List(this.hand.tiles).GroupBy((t) => t);
     for (const tile in groupingTiles) {
-      if (Tile.isSuits(tile)) {
-        const suits = new Tile(tile).toSuitsTile();
-        count += suits.value == 1 || suits.value == 9 ? 1 : 0;
-      } else {
+      if (Tile.isTerminalOrHonourTile(tile)) {
         count += 1;
+        hasHead = hasHead || groupingTiles[tile].length > 1;
       }
-
-      hasHead = hasHead || groupingTiles[tile].length > 1;
     }
 
     return 13 - (count + (hasHead ? 1 : 0));

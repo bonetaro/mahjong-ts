@@ -32,7 +32,7 @@ export class DiscardCommand extends PlayerCommand {
   }
 
   execute(roundHand: GameRoundHand): void {
-    this.who.doDiscard(this.tile);
+    this.who.discardTile(this.tile);
     this.who.sortHandTiles();
   }
 }
@@ -107,7 +107,7 @@ export abstract class OtherPlayersCommand extends BaseCommand {
   }
 
   whomPlayer(roundHand: GameRoundHand): GameRoundHandPlayer {
-    return roundHand.members.getPlayerByDirection(this.who, this.direction);
+    return roundHand.getPlayerByDirection(this.who, this.direction);
   }
 }
 

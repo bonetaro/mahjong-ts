@@ -14,7 +14,7 @@ export class CommandParser {
     const kanCalculator = new KanCalculator(this.hand);
 
     // 暗槓
-    const ankanCandidateTiles = kanCalculator.ankanCandidateTiles();
+    const ankanCandidateTiles = kanCalculator.getAnkanCandidateTiles();
     if (ankanCandidateTiles.length > 0) {
       map.set("kan", ankanCandidateTiles);
     }
@@ -33,7 +33,6 @@ export class CommandParser {
   };
 
   /**
-   *
    * @param tile
    * @param leftPlayer tileが上家が捨てた牌として処理するか
    * @returns

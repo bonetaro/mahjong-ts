@@ -15,73 +15,73 @@ export class Turn {
     this.roundHand.currentPlayer.drawTile(this.roundHand.pickWallTile());
 
     // 牌をツモったプレイヤーのターン（ツモか牌を捨てるか）
-    const turnResult = await this.playerTurn();
+    const playerTurnResult = await this.playerTurn();
 
     // ツモもしくは槍槓
-    if (turnResult.playerWin) {
-      return turnResult;
+    if (playerTurnResult.playerWin) {
+      return playerTurnResult;
     }
 
-    if (turnResult.command instanceof Commands.DiscardCommand) {
+    if (playerTurnResult.command instanceof Commands.DiscardCommand) {
       // 牌をツモったプレイヤー以外のプレイヤーのターン(プレイヤーが捨てた牌へのアクション。鳴いた後に捨てた牌をさらに鳴く処理も含まれる)
-      return await this.otherPlayersTurn(turnResult.command.tile);
+      return await this.otherPlayersTurn(playerTurnResult.command.tile);
     }
 
-    throw new CustomError(turnResult);
+    throw new CustomError(playerTurnResult);
   };
 
   // 牌をツモったプレイヤーのターン（槍槓も含まれる）
   playerTurn = async (): Promise<TurnResult> => {
     while (true) {
-      const command = await askPlayerWhatCommand(this.roundHand.currentPlayer);
+      const playerCommand = await askPlayerWhatCommand(this.roundHand.currentPlayer);
 
-      if (command instanceof Commands.TsumoCommand || command instanceof Commands.DiscardCommand) {
-        this.roundHand.executeCommand(command);
-        return new PlayerTurnResult(command);
-      } else {
-        if (command.type == "kan") {
-          // todo 槍槓の場合は、カン自体は成立しないらしいので、このタイミングで実行
-          const chankanCommand = askOtherPlayersWhetherDoChankanIfPossible(command);
-          if (chankanCommand) {
-            return new OtherPlayersTurnResult(chankanCommand);
-          }
-
-          // カン（暗槓 or 加槓）を実行
-          this.roundHand.executeCommand(command);
-          // カンした場合は、もう一度捨て牌選択
-          continue;
-        }
+      if ([Commands.TsumoCommand, Commands.DiscardCommand].some((command) => playerCommand instanceof command)) {
+        this.roundHand.executeCommand(playerCommand);
+        return new PlayerTurnResult(playerCommand);
       }
 
-      throw new CustomError(command);
+      if (playerCommand.type == "kan") {
+        // todo 槍槓の場合は、カン自体は成立しないらしいので、このタイミング(kanCommandの実行前に)で実行
+        const chankanCommand = askOtherPlayersWhetherDoChankanIfPossible(playerCommand);
+        if (chankanCommand) {
+          return new OtherPlayersTurnResult(chankanCommand);
+        }
+
+        // カン（暗槓 or 加槓）を実行
+        this.roundHand.executeCommand(playerCommand);
+
+        // カンした場合は、PlayerTurnを繰り返す
+        continue;
+      }
+
+      throw new CustomError(playerCommand);
     }
   };
 
-  // 牌をツモって捨てたプレイヤーの捨てた牌に対するアクション（その牌を鳴いて捨てた牌をさらに鳴くアクションも含まれる）
+  // 牌を捨てたプレイヤーに対するアクション（その牌を鳴いて捨てた牌をさらに鳴くアクションも含まれる）
   otherPlayersTurn = async (playerDiscardTile: 牌): Promise<OtherPlayersTurnResult> => {
-    let currentPlayer = this.roundHand.currentPlayer;
     let discardTile = playerDiscardTile;
 
     while (true) {
-      const command = await askOtherPlayersWhatCommand(this.roundHand.members, discardTile, currentPlayer);
+      const otherPlayerCommand = await askOtherPlayersWhatCommand(this.roundHand.players, discardTile, this.roundHand.currentPlayer);
 
-      // 誰も反応しなかったら、次のプレイヤーのツモ番（ターンが終わる）
       // 鳴きよりもロンが最優先で処理される
-      if (command instanceof Commands.NothingCommand || command instanceof Commands.RonCommand) {
-        return new OtherPlayersTurnResult(command);
+      // 誰も反応しなかったら、次のプレイヤーのツモ番（ターンが終わる）
+      if ([Commands.NothingCommand, Commands.RonCommand].some((command) => otherPlayerCommand instanceof command)) {
+        return new OtherPlayersTurnResult(otherPlayerCommand);
       }
 
-      // ここに来るときは、鳴いた場合（ポン、チー、カン（大明槓））
-      if (command instanceof Commands.PonCommand || command instanceof Commands.ChiCommand || command instanceof Commands.DaiMinKanCommand) {
+      if ([Commands.PonCommand, Commands.ChiCommand, Commands.DaiMinKanCommand].some((command) => otherPlayerCommand instanceof command)) {
         // 鳴いた人に手番を変更する
-        currentPlayer = this.roundHand.setCurrentPlayer(command.who);
-        discardTile = await this.roundHand.executeMeldCommand(command, currentPlayer);
+        this.roundHand.setCurrentPlayer(otherPlayerCommand.who);
+        // 鳴きを実行
+        discardTile = await this.roundHand.executeMeldCommand(otherPlayerCommand, otherPlayerCommand.who);
 
         // 捨てた牌に対し、ほかのプレイヤーにアクションをさせるために、whileループを繰り返す
         continue;
       }
 
-      throw new CustomError(command);
+      throw new CustomError(otherPlayerCommand);
     }
   };
 }

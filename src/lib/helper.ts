@@ -1,7 +1,5 @@
 import { List } from "linqts";
-import { MustInclude, NonEmptyArray } from "../types";
 
-// 順列
 export class Helper {
   static isRangeNumber = (input: string | number, max: number, min = 0) => min <= Number(input) && Number(input) <= max;
 
@@ -11,20 +9,17 @@ export class Helper {
     return arr.includes(el as T);
   }
 
-  static stringUnionToArray<T>() {
-    return <U extends NonEmptyArray<T>>(...elements: MustInclude<T, U>) => elements;
-  }
-
-  static permutation = (arr: number[], k: number): number[][] => {
-    const ans: number[][] = [];
-
+  // 順列
+  static permutation = (arr: unknown[], k: number): unknown[][] => {
     if (arr.length < k) {
       throw new Error();
     }
 
+    const returnArray: unknown[][] = [];
+
     if (k === 1) {
       for (let i = 0; i < arr.length; i++) {
-        ans[i] = [arr[i]];
+        returnArray[i] = [arr[i]];
       }
     } else {
       for (let i = 0; i < arr.length; i++) {
@@ -33,23 +28,23 @@ export class Helper {
 
         const row = Helper.permutation(parts, k - 1);
         for (let j = 0; j < row.length; j++) {
-          ans.push([arr[i]].concat(row[j]));
+          returnArray.push([arr[i]].concat(row[j]));
         }
       }
     }
 
-    return ans;
+    return returnArray;
   };
 
   // 組み合わせ
   static combination = (arr: unknown[], k: number): unknown[][] => {
-    arr = new List(arr).Distinct().ToArray();
-
-    const returnArray: unknown[][] = [];
-
     if (arr.length < k) {
       return [];
     }
+
+    arr = new List(arr).Distinct().ToArray();
+
+    const returnArray: unknown[][] = [];
 
     if (k === 1) {
       for (let i = 0; i < arr.length; i++) {

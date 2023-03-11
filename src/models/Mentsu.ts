@@ -2,12 +2,15 @@ import { 牌, 面子like, 槓子like, 刻子like, 数牌の色, 順子like, 順�
 import { CustomError } from "../lib";
 import { Tile } from "./";
 import { PlayerDirectionList } from "../constants";
+import { logger } from "../lib/logging";
 
 export interface IMentsu {
   get tiles(): 牌[];
 
   status(): string;
+
   emojiStatus(): string;
+
   mojiStatus(): string;
 }
 
@@ -26,6 +29,7 @@ export abstract class Mentsu<T extends 面子like> implements IMentsu {
     return `${this.emojiStatus()} (${this.mojiStatus()})`;
   }
   abstract emojiStatus(): string;
+
   abstract mojiStatus(): string;
 
   static isKanMentsu(values: unknown[]): values is 槓子like {
@@ -67,7 +71,7 @@ export interface OpenMentsu {
   get fromPlayerDirection(): PlayerDirection;
 }
 
-class KanMentsu extends Mentsu<槓子like> {
+abstract class KanMentsu extends Mentsu<槓子like> {
   constructor(tile: 牌) {
     const tiles = [tile, tile, tile, tile];
 
@@ -78,12 +82,9 @@ class KanMentsu extends Mentsu<槓子like> {
     }
   }
 
-  emojiStatus(): string {
-    throw new Error("Method not implemented.");
-  }
-  mojiStatus(): string {
-    throw new Error("Method not implemented.");
-  }
+  abstract emojiStatus(): string;
+
+  abstract mojiStatus(): string;
 }
 
 abstract class KoutsuMentsu extends Mentsu<刻子like> {
@@ -110,6 +111,7 @@ export class AnKanMentsu extends KanMentsu {
   emojiStatus(): string {
     return this.tiles.map((tile, index) => Tile.toEmoji(tile, index == 0 || index == 3)).join(" ");
   }
+
   mojiStatus(): string {
     return Tile.toMoji(this.tiles[0]);
   }
@@ -124,6 +126,7 @@ export class AnKouMentsu extends KoutsuMentsu {
   emojiStatus(): string {
     return this.tiles.map((tile) => Tile.toEmoji(tile)).join(" ");
   }
+
   mojiStatus(): string {
     return Tile.toMoji(this.tiles[0]);
   }
@@ -131,8 +134,12 @@ export class AnKouMentsu extends KoutsuMentsu {
 
 // 鳴き順子（チー面子）。上家からしか鳴けないので、fromDirectionは上家固定
 export class ChiMentsu extends Mentsu<順子like> implements OpenMentsu {
-  constructor(public readonly calledTile: 数牌, tartsTiles: 塔子like, public fromPlayerDirection: PlayerDirection = "toTheLeft") {
+  constructor(public readonly calledTile: 数牌, tartsTiles: 塔子like) {
     super([calledTile].concat(tartsTiles) as 順子like);
+  }
+
+  get fromPlayerDirection(): PlayerDirection {
+    return "toTheLeft";
   }
 
   emojiStatus(): string {
@@ -143,6 +150,7 @@ export class ChiMentsu extends Mentsu<順子like> implements OpenMentsu {
       })
       .join(" ");
   }
+
   mojiStatus(): string {
     return this.tiles.map((tile) => Tile.toMoji(tile)).join("");
   }
@@ -200,6 +208,7 @@ export class MinKanMentsu extends KanMentsu implements OpenMentsu {
       })
       .join(" ");
   }
+
   mojiStatus(): string {
     return Tile.toMoji(this.tiles[0]);
   }

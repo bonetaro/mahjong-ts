@@ -171,6 +171,19 @@ export class Tile {
     return this.isKazehai(value) || this.isSangenpai(value);
   }
 
+  static isTerminalOrHonourTile(value: unknown): boolean {
+    if (this.isTile(value)) {
+      if (Tile.isSuits(value)) {
+        const suits = new Tile(value).toSuitsTile();
+        return suits.value == 1 || suits.value == 9;
+      } else {
+        return Tile.isHonours(value);
+      }
+    }
+
+    throw new Error(value.toString());
+  }
+
   static isSameColor(tile: 数牌, tile2: 数牌): boolean {
     const color = tile[1];
     const color2 = tile2[1];

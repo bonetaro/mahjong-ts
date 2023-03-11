@@ -49,7 +49,7 @@ export class GameTable {
   }
 
   makeKingsWall(): void {
-    // todo 常に先頭の山から14枚を王牌としている
+    // todo 常に先頭の山(this._walls[0])から14枚を王牌としている
     this.kingsWall = new KingsWall(new Wall(this._walls[0].pickTiles(14)));
   }
 

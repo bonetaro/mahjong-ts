@@ -95,28 +95,28 @@ export abstract class BaseNormalShantenCalculator extends BaseShantenCalculator 
   calculateShanten(): number {
     const parser = new HandTilesParser(this.hand);
 
-    const furoSyuntsuCount = this.hand.openMentsuList.filter((mentsu) => Mentsu.isRunMentsu(mentsu.tiles)).length;
+    const furoShuntsuCount = this.hand.openMentsuList.filter((mentsu) => Mentsu.isRunMentsu(mentsu.tiles)).length;
     // 副露槓子は刻子として扱う
     const furoKotsuCount = this.hand.openMentsuList.filter((mentsu) => Mentsu.isKoutsuMentsu(mentsu.tiles) || Mentsu.isKanMentsu(mentsu.tiles)).length;
 
     // 順子優先
-    const calculate = (handTiles: 牌[]): number => {
+    const calculateAsShuntsuPriority = (handTiles: 牌[]): number => {
       const tiles = [...handTiles];
 
-      const shuntsuCount = this.countShuntsu(parser, tiles) + furoSyuntsuCount;
-      const koutsuCount = this.countKoutsu(parser, tiles) + furoKotsuCount;
+      const shuntsuCount = this.countShuntsu(parser, tiles) + furoShuntsuCount;
+      const kotsuCount = this.countKoutsu(parser, tiles) + furoKotsuCount;
       const pairCount = this.countPair(parser, tiles);
       const tatsuCount = this.countTatsu(parser, tiles);
 
-      return this.calculate(shuntsuCount, koutsuCount, pairCount, tatsuCount);
+      return this.calculate(shuntsuCount, kotsuCount, pairCount, tatsuCount);
     };
 
     // 刻子優先
-    const calculate2 = (handTiles: 牌[]): number => {
+    const calculateAsKotsuPriority = (handTiles: 牌[]): number => {
       const tiles = [...handTiles];
 
       const koutsuCount = this.countKoutsu(parser, tiles) + furoKotsuCount;
-      const shuntsuCount = this.countShuntsu(parser, tiles) + furoSyuntsuCount;
+      const shuntsuCount = this.countShuntsu(parser, tiles) + furoShuntsuCount;
       const pairCount = this.countPair(parser, tiles);
       const tatsuCount = this.countTatsu(parser, tiles);
 
@@ -126,11 +126,11 @@ export abstract class BaseNormalShantenCalculator extends BaseShantenCalculator 
     // ツモ牌を除いた手牌（13牌）
     const handTiles = [...this.hand.rawTiles];
 
-    const result = calculate(handTiles);
-    const result2 = calculate2(handTiles);
-    const chitoitsu = new SevenPairsCalculator(this.hand).calculateShanten(parser);
-    const kokushi = new TerminalsAndHonorsCalculator(this.hand).calculateShanten();
+    const shuntsuResult = calculateAsShuntsuPriority(handTiles);
+    const kotsuResult = calculateAsKotsuPriority(handTiles);
+    const chitoitsuResult = new SevenPairsCalculator(this.hand).calculateShanten(parser);
+    const kokushiResult = new TerminalsAndHonorsCalculator(this.hand).calculateShanten();
 
-    return Math.min(result, result2, chitoitsu, kokushi);
+    return Math.min(shuntsuResult, kotsuResult, chitoitsuResult, kokushiResult);
   }
 }

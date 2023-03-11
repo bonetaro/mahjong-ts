@@ -8,7 +8,7 @@ abstract class MentsuCalculator {
 }
 
 export class KanCalculator extends MentsuCalculator {
-  ankanCandidateTiles(): 牌[] {
+  getAnkanCandidateTiles(): 牌[] {
     // todo リーチ時には、面子が変わるようなカンはできない
 
     const tiles: 牌[] = [];
@@ -28,7 +28,7 @@ export class KanCalculator extends MentsuCalculator {
   }
 
   canDaiminkan(tile: 牌): boolean {
-    return this.hand.tiles.map((t) => t == tile).length == 3;
+    return this.hand.tiles.filter((t) => t == tile).length == 3;
   }
 }
 

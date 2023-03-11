@@ -98,7 +98,7 @@ export class GameRoundHandPlayer extends Player {
     };
   }
 
-  doDiscard(tile: 牌): void {
+  discardTile(tile: 牌): void {
     this.hand.discardTile(tile);
 
     this._discardTiles.push(new DiscardTile(tile));

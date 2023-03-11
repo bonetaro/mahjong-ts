@@ -1,5 +1,6 @@
 import { BaseShantenCalculator, HandTilesParser } from "./";
 
+// 七対子のシャンテン数計算
 export class SevenPairsCalculator extends BaseShantenCalculator {
   calculateShanten(parser?: HandTilesParser): number {
     parser ??= new HandTilesParser(this.hand);

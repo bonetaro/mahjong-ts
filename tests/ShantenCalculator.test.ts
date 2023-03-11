@@ -1,8 +1,8 @@
-import { CalculatorKeys, IShantenCalculator, ReadyCalculatorFactory, SevenPairsCalculator, TerminalsAndHonorsCalculator } from "../src/lib/calculator";
+import { CalculatorType, IShantenCalculator, ReadyCalculatorFactory, SevenPairsCalculator, TerminalsAndHonorsCalculator } from "../src/lib/calculator";
 import { AnKanMentsu, DrawTile, PlayerHand } from "../src/models";
-import { SubShantenCalculator } from "../src/lib/calculator/ShantenCalculator";
+import { SubShantenCalculator } from "../src/lib/calculator";
 
-const calculator = (key: CalculatorKeys, tiles: string): IShantenCalculator => {
+const calculator = (key: CalculatorType, tiles: string): IShantenCalculator => {
   return ReadyCalculatorFactory.factory(key, new PlayerHand(tiles));
 };
 

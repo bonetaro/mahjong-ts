@@ -19,8 +19,9 @@ test("canAnkan is 1", () => {
 
   const hand = new PlayerHand(tiles.map((t) => Tile.toTile(t)));
   const calc = new KanCalculator(hand);
-  const result = calc.ankanCandidateTiles();
-  expect(result.length).toBe(1);
+  const candidateTiles = calc.getAnkanCandidateTiles();
+
+  expect(candidateTiles.length).toBe(1);
 });
 
 test("canAnkan is 2", () => {
@@ -41,7 +42,8 @@ test("canAnkan is 2", () => {
 
   const hand = new PlayerHand(tiles.map((t) => Tile.toTile(t)));
   const calc = new KanCalculator(hand);
-  const result = calc.ankanCandidateTiles();
+  const result = calc.getAnkanCandidateTiles();
+
   expect(result.length).toBe(2);
 });
 
@@ -63,6 +65,7 @@ test("canAnkan is 3", () => {
 
   const hand = new PlayerHand(tiles.map((t) => Tile.toTile(t)));
   const calc = new KanCalculator(hand);
-  const result = calc.ankanCandidateTiles();
-  expect(result.length).toBe(3);
+  const candidateTiles = calc.getAnkanCandidateTiles();
+
+  expect(candidateTiles.length).toBe(3);
 });

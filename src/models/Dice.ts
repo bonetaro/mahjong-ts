@@ -14,7 +14,13 @@ export class Dice {
     this._num = Math.floor(Math.random() * 6) + 1;
   }
 
-  toEmoji(): string {
-    return `${this.emojiList[this.num - 1]} (${this.num})`;
+  toEmoji(withChar = true): string {
+    const str = this.emojiList[this.num - 1];
+
+    if (withChar) {
+      return str + ` (${this.num})`;
+    }
+
+    return str;
   }
 }

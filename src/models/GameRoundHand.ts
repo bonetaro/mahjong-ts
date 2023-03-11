@@ -1,6 +1,6 @@
 /* eslint-disable no-constant-condition */
-import { FourMembers, PlayerIndex, isPlayerIndex, 牌 } from "../types";
-import { DrawTile, Game, GameRoundHandMembers, GameRoundHandPlayer, GameTable, Tile, Turn, TurnResult } from ".";
+import { FourMembers, PlayerDirection, PlayerIndex, isPlayerIndex, 牌 } from "../types";
+import { DrawTile, Game, GameRoundHandPlayer, GameTable, Tile, Turn, TurnResult } from ".";
 import { CommandTextCreator, CustomError, logger } from "../lib";
 import * as Commands from "./Command";
 import { WindNameList } from "../constants";
@@ -10,24 +10,17 @@ import { selectDicardTile } from "../lib/readline";
 export class GameRoundHand {
   private _isDraw = false; // 流局
   private _playerIndex: PlayerIndex = 0;
-  private _members: GameRoundHandMembers;
 
-  constructor(players: FourMembers<GameRoundHandPlayer>, public readonly table = new GameTable()) {
+  constructor(public players: FourMembers<GameRoundHandPlayer>, public readonly table = new GameTable()) {
     logger.debug("gameRoundHand create");
-
-    this._members = new GameRoundHandMembers(players);
   }
 
   get isDraw(): boolean {
     return this._isDraw;
   }
 
-  get members(): GameRoundHandMembers {
-    return this._members;
-  }
-
   get currentPlayer(): GameRoundHandPlayer {
-    return this._members.getPlayer(this._playerIndex);
+    return this.players[this._playerIndex];
   }
 
   name(game: Game): string {
@@ -43,22 +36,26 @@ export class GameRoundHand {
     logger.debug("game dealStartTilesToPlayers");
 
     // 各プレイヤー4枚ずつ3回牌をつもる
-    [...Array(3)].forEach(() => this._members.players.forEach((player) => player.drawTiles(this.dealTiles(4))));
+    [...Array(3)].forEach(() => this.players.forEach((player) => player.drawTiles(this.dealTiles(4))));
 
     // 各プレイヤー1枚牌をつもる
-    this.members.players.forEach((player) => player.drawTiles(this.dealTiles(1)));
+    this.players.forEach((player) => player.drawTiles(this.dealTiles(1)));
   }
 
   // ポン、チー、カン(大明槓)を実行
   executeMeldCommand = async (command: Commands.BaseCommand, player: GameRoundHandPlayer): Promise<牌> => {
+    if ([Commands.PonCommand, Commands.ChiCommand, Commands.DaiMinKanCommand].every((c) => !(command instanceof c))) {
+      throw new Error(command.type);
+    }
+
     this.executeCommand(command);
 
     // どの牌を捨てるか
     const commandText = new CommandTextCreator(["discard"]).createPlayerCommandText(player);
-    const discardTileNumber = await selectDicardTile(commandText, player.hand);
+    const num = await selectDicardTile(commandText, player.hand);
 
     // 牌を捨てる
-    const discardCommand = new Commands.DiscardCommand(player, player.hand.tiles[Number(discardTileNumber)]);
+    const discardCommand = new Commands.DiscardCommand(player, player.hand.tiles[Number(num)]);
     this.executeCommand(discardCommand);
 
     return discardCommand.tile;
@@ -95,28 +92,29 @@ export class GameRoundHand {
     } while (true);
   };
 
-  setCurrentPlayer(player: GameRoundHandPlayer): GameRoundHandPlayer {
-    const index = this.members.players.findIndex((p) => p.id == player.id);
+  setCurrentPlayer(player: GameRoundHandPlayer): void {
+    const index = this.players.findIndex((p) => p.id == player.id);
     this.setPlayerIndex(index);
-
-    return this.currentPlayer;
   }
 
   setPlayerIndex(index: number): void {
-    if (index < 0) {
-      throw new CustomError(index);
-    }
+    const newIndex = index % this.players.length;
+    if (isPlayerIndex(newIndex)) {
+      this._playerIndex = newIndex;
 
-    index = index % this._members.players.length;
-    if (isPlayerIndex(index)) {
-      this._playerIndex = index;
+      logger.info(`${this.currentPlayer.fullName}の手番です`);
+    } else {
+      throw new CustomError(index);
     }
   }
 
   setNextPlayer(): void {
     this.setPlayerIndex(this._playerIndex + 1);
+  }
 
-    logger.info(`${this.currentPlayer.fullName}の手番です`);
+  getPlayerByDirection(player: GameRoundHandPlayer, direction: PlayerDirection): GameRoundHandPlayer {
+    const index = player.calculateIndex(direction);
+    return this.players[index];
   }
 
   executeCommand(command: Commands.BaseCommand): void {

@@ -5,9 +5,15 @@ class Logger {
   public consoleLogger: winston.Logger;
   public fileLogger: winston.Logger;
 
+  _level = "info";
+
   constructor() {
     this.consoleLogger = this.createConsoleLogger();
     this.fileLogger = this.createFileLogger();
+  }
+
+  set level(value: string) {
+    this._level = value;
   }
 
   set silent(value: boolean) {
@@ -16,6 +22,12 @@ class Logger {
   }
 
   private log = (level: string, message: any, meta?: any): void => {
+    if (typeof message == "object") {
+      message = JSON.stringify(message);
+    }
+
+    this._level = level;
+
     this.consoleLogger.log(level, message, meta);
     this.fileLogger.log(level, message, meta);
   };

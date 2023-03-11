@@ -1,4 +1,4 @@
-/* eslint-disable no-constant-condition */
+/* eslsnt-disable no-constant-condition */
 import { List } from "linqts";
 import { Dice, GameOption, GameRound, GameRoundHand, Player, GameRoundHandPlayer, GameTable, Tile } from ".";
 import { CheatTableBuilder, askAnyKey, logger } from "../lib";
@@ -8,7 +8,6 @@ import { WindNameList } from "../constants";
 export class Game {
   private _dices = [new Dice(), new Dice()];
   private _rounds: GameRound[] = [];
-  private _firstDealer: Player;
 
   constructor(public readonly gameOption: GameOption) {
     logger.debug(`game create`);
@@ -16,11 +15,6 @@ export class Game {
 
   get players(): FourMembers<Player> {
     return this.gameOption.players;
-  }
-
-  // 起家
-  get firstDealer(): Player {
-    return this._firstDealer;
   }
 
   get currentRound(): GameRound {
@@ -38,7 +32,7 @@ export class Game {
   rollDices(): number {
     this._dices.forEach((dice) => dice.roll());
 
-    logger.debug(`サイコロを振りました: ${this._dices[0].toEmoji()} ${this._dices[1].toEmoji()} `);
+    logger.debug(`サイコロを振りました: ${this._dices.map((dice) => dice.toEmoji()).join(" ")}`);
 
     return this._dices.reduce((sum: number, dice: Dice) => (sum += dice.num), 0);
   }
@@ -47,16 +41,18 @@ export class Game {
   decideFirstDealer(): void {
     logger.debug("decideFirstDealer");
 
+    let players = [...this.players];
+
     const randomNumber = (): number => this.rollDices() % this.players.length;
-    logger.debug(`仮親：${this.players[randomNumber()].name}`);
+
+    // 仮親決めは、この実装だと意味がないが・・
+    logger.debug(`仮親：${players[randomNumber()].name}`);
 
     const firstDealerNumber = randomNumber();
-    logger.debug(`起家：${this.players[firstDealerNumber].name}`);
-
-    let players = [...this.players];
-    players = players.splice(firstDealerNumber, 1).concat(players);
-
+    players = players.splice(firstDealerNumber).concat(players);
     this.players.forEach((_, index) => (this.players[index] = players[index]));
+
+    logger.debug(`起家：${this.players[0].name}`);
   }
 
   roundHandLoop = async (): Promise<void> => {
@@ -65,17 +61,19 @@ export class Game {
 
   startRoundHand = (): void => {
     logger.debug("startRoundHand");
-    logger.info(`${WindNameList[this._rounds.length - 1]}${this.currentRound.hands.length}局`);
 
-    // プレイヤーの状態をリセット
-    this.currentRoundHand.members.players.forEach((player) => player.init());
+    logger.info(this.currentRoundHand.name(this));
 
-    // 牌の山を積む
+    // プレイヤーの状態を初期化
+    this.currentRoundHand.players.forEach((player) => player.init());
+
+    // テーブルに牌の山を積む
     this.currentRoundHand.table.buildWalls();
 
     // サイコロを振る
     this.rollDices();
 
+    // 王牌作成
     // todo サイコロを振っているが王牌と無関係
     this.currentRoundHand.table.makeKingsWall();
 
@@ -83,7 +81,7 @@ export class Game {
     this.currentRoundHand.dealStartingTilesToPlayers();
 
     // 牌を整列
-    this.currentRoundHand.members.players.forEach((player) => player.sortHandTiles());
+    this.currentRoundHand.players.forEach((player) => player.sortHandTiles());
   };
 
   nextRoundHand = async (): Promise<boolean> => {
@@ -93,11 +91,13 @@ export class Game {
 
     await askAnyKey("次の局に進みます...");
 
+    // todo 連荘未実装
     this.createRoundHand();
 
     return true;
   };
 
+  // 局生成
   createRoundHand() {
     if (this.roundCount == 0 || this.currentRound.hands.length % 4 == 0) {
       this.createRound();
@@ -114,18 +114,19 @@ export class Game {
 
   createGameTable(): GameTable {
     if (this.gameOption.cheatOption) {
-      const builder = new CheatTableBuilder();
+      const cheatTable = new CheatTableBuilder();
 
       this.gameOption.cheatOption.playerDrawTilesList.forEach((playerDealedTiles, index) => {
-        builder.setPlayerDrawTiles(playerDealedTiles, index);
+        cheatTable.setPlayerDrawTiles(playerDealedTiles, index);
       });
 
-      return new GameTable(builder.build().washedTiles);
+      return new GameTable(cheatTable.build().washedTiles);
     } else {
       return new GameTable();
     }
   }
 
+  // 場生成
   createRound(): void {
     this._rounds.push(new GameRound());
   }
@@ -146,7 +147,7 @@ export class Game {
 
     if (option.dora) {
       const doras = this.currentRoundHand.table.kingsWall.doras;
-      label.push(`ドラ:${doras.map((dora) => Tile.toEmojiMoji(dora)).join(" ")}`);
+      label.push(`ドラ: ${doras.map((dora) => Tile.toEmojiMoji(dora)).join(" ")}`);
     }
 
     if (label.length > 0) {

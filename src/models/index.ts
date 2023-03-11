@@ -9,7 +9,6 @@ export * from "./KingsWall";
 export * from "./Mentsu";
 export * from "./PlayerDrawTiles";
 export * from "./PlayerHand";
-export * from "./GameRoundHandMembers";
 export * from "./GameRoundHandPlayer";
 export * from "./Tile";
 export * from "./Turn";
